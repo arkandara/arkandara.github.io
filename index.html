@@ -89,14 +89,63 @@
     .dark-mode .font-btn:hover { background: rgba(255,255,255,0.1); }
 
     .market-wrap { position: relative; }
-    .market-drop { 
-        display: none; position: absolute; top: 35px; left: 0; background: white; 
-        min-width: 190px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
-        padding: 10px; border-radius: 10px; z-index: 100; border: 1px solid #eee;
-    }
-    .dark-mode .market-drop { background: #252525; border: 1px solid #333; box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
-    .market-drop div { font-size: 12px; padding: 6px 8px; border-bottom: 1px solid #eee; color: #333; cursor: pointer; border-radius: 4px; }
-    .market-drop div:hover { background: #f9f9f9; }
+   /* باکگراوندێکی گشتی کاڵ بۆ هەموو بەشەکە */
+.market-wrap {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.04); /* باکگراوندێکی زۆر کاڵ بۆ لایت مۆد */
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+/* باکگراوند بۆ مۆدی تاریک */
+.dark-mode .market-wrap {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.live-market-bar {
+    display: flex;
+    gap: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    align-items: center;
+}
+
+/* ستایل بۆ نرخەکان بە جیاوازی باکگراوندی ناوەکی کاڵ */
+#gold, #silver {
+    padding: 2px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ڕەنگی زێڕی و باکگراوندی کاڵی زەرد */
+#gold { 
+    color: #b8860b; 
+    background: rgba(255, 215, 0, 0.15); 
+}
+
+/* ڕەنگی زیوی و باکگراوندی کاڵی خۆڵەمێشی */
+#silver { 
+    color: #707070; 
+    background: rgba(157, 161, 165, 0.15); 
+}
+
+/* ڕەنگی دەقەکان لە مۆدی تاریکدا تۆختر و ڕوونتر دەبن */
+.dark-mode #gold { color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+.dark-mode #silver { color: #e5e4e2; background: rgba(255, 255, 255, 0.05); }
+
+.separator {
+    color: rgba(0, 0, 0, 0.1);
+    font-weight: normal;
+}
+
+.dark-mode .separator {
+    color: rgba(255, 255, 255, 0.1);
+}
     .dark-mode .market-drop div { border-bottom-color: #333; color: #eee; }
     .dark-mode .market-drop div:hover { background: #333; }
     .show { display: block; animation: slideDown 0.2s ease; }
@@ -268,7 +317,7 @@
             <div class="modal-body">
                 <p><strong>ناوی گەشەپێدەر:</strong> ئه‌ركان دارا </p>
                 <p><strong>وەشانی پڕۆژەکە:</strong> 1.6</p>
-                <p><strong> دواین وه‌شان:</strong> 23/02/2026 </p>
+                <p><strong> دواین وه‌شان:</strong> 03/03/2026 </p>
                 <p><strong>مافی كۆپیكردن:</strong> پارێزراوه‌</p>
                 <hr style="margin: 5px 0; opacity: 1.8;">
                 <p><strong>زانیاری و ئاگاداری:</strong></p>
@@ -325,13 +374,12 @@
         <div style="flex: 1;"></div>
         <div class="h-left">
 
-
-            <select class="stat-item" id="fontSelect" onchange="changeFont()" style="border:none; outline:none;">
-                <option value="'Noto Sans Arabic', sans-serif">فۆنتی نۆتۆ</option>
-                <option value="'Amiri', serif">فۆنتی ئەمیری</option>
-                <option value="'Lateef', cursive">فۆنتی لەتیف</option>
-                <option value="'Reem Kufi', sans-serif">فۆنتی ڕیم کوفی</option>
-
+<select id="fontSelect" onchange="changeFont()" style="display: none;">
+    <option value="'Noto Sans Arabic', sans-serif">فۆنتی نۆتۆ</option>
+    <option value="'Amiri', serif">فۆنتی ئەمیری</option>
+    <option value="'Lateef', cursive">فۆنتی لەتیف</option>
+    <option value="'Reem Kufi', sans-serif">فۆنتی ڕیم کوفی</option>
+</select>
 
 
 
@@ -344,16 +392,14 @@
                 <button class="font-btn" onclick="changeFontSize(2)">A+</button>
                 <button class="font-btn" onclick="changeFontSize(-2)">A-</button>
             </div>
-            <div class="market-wrap">
-                <div class="stat-item" onclick="toggleM()">📊</div>
-                <div id="mDrop" class="market-drop">
-                    <div id="gold">🟡 زێڕ: ...</div>
-                    <div id="oil-brent">🛢️ برێنت: ...</div>
-                    <div id="oil-wti">⛽ تەکساس: ...</div>
-                    <div id="oil-opec">🌍 ئۆپێک: ...</div>
-                    <div id="oil-basra" style="border:none;">🇮🇶 بەسڕە: ...</div>
-                </div>
-            </div>
+
+           <div class="market-wrap">
+    <div class="live-market-bar">
+        <span id="gold">🟡 زێڕ: ...</span>
+        <span class="separator"> | </span>
+        <span id="silver">⚪ زیو: ...</span>
+    </div>
+</div>
 
    <div class="stat-item" id="textStats">وشە: ٠</div>
             <div style="cursor:pointer; font-size:18px;" onclick="toggleT()">🌙</div>
@@ -523,34 +569,46 @@ function changeFont() {
 }
 
 async function updateMarket() {
-    try {
-        const goldRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
-        const goldData = await goldRes.json();
-        document.getElementById('gold').innerText = `🟡 زێڕ: $${parseFloat(goldData.price).toLocaleString()}`;
-        const fetchOil = async (symbol) => {
-            const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`));
-            const data = JSON.parse((await res.json()).contents);
-            return data.chart.result[0].meta.regularMarketPrice;
-        };
-        const brent = await fetchOil('BZ=F');
-        const wti = await fetchOil('CL=F');
-        const opec = await fetchOil('USO');
+    const fetchData = async (symbol) => {
+        try {
+            // بەکارهێنانی سێرڤەرێکی خێرا و جیهانی بۆ هەموو نرخەکان
+            const res = await fetch(`https://api.gold-api.com/price/${symbol}`);
+            const data = await res.json();
+            return data.price;
+        } catch (err) {
+            console.error(`هەڵە لە وەرگرتنی ${symbol}:`, err);
+            return null;
+        }
+    };
+
+    // ۱. وەرگرتنی نرخەکان بە شێوەی هاوتەریب (زۆر خێراترە)
+    const [gold, silver, brent, wti] = await Promise.all([
+        fetchData('XAU'),   // زێڕ
+        fetchData('XAG'),   // زیو
+        fetchData('BRENT'), // نەوتی برێنت
+        fetchData('WTI')    // نەوتی تەکساس
+    ]);
+
+    // ۲. نیشاندان لە UI (تەنها ئەگەر نرخەکە هاتبوو)
+    if (gold) document.getElementById('gold').innerText = `🟡 زێڕ: $${gold.toLocaleString()}`;
+    if (silver) document.getElementById('silver').innerText = `⚪ زیو: $${silver.toFixed(2)}`;
+    if (brent) {
         document.getElementById('oil-brent').innerText = `🛢️ برێنت: $${brent.toFixed(2)}`;
-        document.getElementById('oil-wti').innerText = `⛽ تەکساس: $${wti.toFixed(2)}`;
-        document.getElementById('oil-opec').innerText = `🌍 ئۆپێک: $${opec.toFixed(2)}`;
         document.getElementById('oil-basra').innerText = `🇮🇶 بەسڕە: $${(brent - 2.50).toFixed(2)}`;
+        document.getElementById('oil-opec').innerText = `🌍 ئۆپێک: $${(brent - 0.70).toFixed(2)}`;
+    }
+    if (wti) document.getElementById('oil-wti').innerText = `⛽ تەکساس: $${wti.toFixed(2)}`;
 
-        const drop = document.getElementById("mDrop");
-        drop.classList.add("show"); 
-        showStatus("📊 نرخەکان نوێبوونەوە"); 
-
-        setTimeout(() => {
-            drop.classList.remove("show");
-        }, 4000); 
-    } catch (e) {}
+    // ۳. نیشاندانی نامەی سەرکەوتوو
+    const drop = document.getElementById("mDrop");
+    if (drop) {
+        drop.classList.add("show");
+        setTimeout(() => drop.classList.remove("show"), 4000);
+    }
 }
 
-async function updateWeather() {
+// ٤. بۆ ئەوەی خۆی خۆکارانە (بێ ریفرێش) هەموو ٥ خولەک جارێک ئەبده‌یت بێتەوە
+setInterval(updateMarket, 10000);async function updateWeather() {
     try {
         const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.56&longitude=45.42&current_weather=true`);
         const d = await r.json();
@@ -718,49 +776,46 @@ function toggleDlModal() {
     if(m) m.style.display = (m.style.display === "block") ? "none" : "block";
 }
 
-// فەنکشنی داگرتن بە شێوەی "ڕاستەوخۆ"
+
+
 function processDownload() {
     const urlInput = document.getElementById("videoUrl");
     let url = urlInput.value.trim();
     const status = document.getElementById("dlStatus");
     const btn = document.getElementById("startDlBtn");
 
+    // ١. پشکنینی ئەوەی کە ئایا لینکەکە بەتاڵ نییە
     if (!url) {
         status.style.color = "red";
-        status.innerText = "❌ تکایە سەرەتا لینکێک دابنێ";
+        status.innerText = "❌ تکایە سەرەتا لینکەکە لێرە دابنێ";
         return;
     }
 
+    // ٢. نیشاندانی نامەی چاوەڕوانی
+    status.style.color = "blue";
+    status.innerText = "⏳ خەریکە دەتگوازمەوە بۆ پەڕەی داگرتن...";
+    btn.innerText = "کەمێک چاوەڕوان بە...";
     btn.disabled = true;
-    btn.innerText = "خەریکی ئامادەکردنم...";
-    status.style.color = "#2e7d32";
-    status.innerText = "⏳ خەریکە لینکەکە ئامادە دەکەم...";
 
-    // بەکارهێنانی سێرڤەری sfrom.net کە ڕاستەوخۆ دەچێتە سەر فایلی داگرتن
-    // ئەمە باشترین سێرڤەرە چونکە زۆر خێرا لینکەکە دەدۆزێتەوە
-    try {
-        const finalUrl = "https://sfrom.net/" + url;
-        
-        // کردنەوەی لە تابێکی نوێ، بەڵام ئەمەیان جیاوازە
-        // چونکە بەکارهێنەر ڕاستەوخۆ دوگمەی Download ی بۆ دێت بێ گەڕان
-        const win = window.open(finalUrl, '_blank');
-        
-        if (win) {
-            status.innerText = "✅ پەڕەی داگرتن کرایەوە، کلیک لە Download بکە.";
-        } else {
-            // ئەگەر براوزەر ڕێگری لە پۆپ ئەپ کرد، ئەم لینکە بەکاربهێنە
-            window.location.href = finalUrl;
-        }
-        
-        urlInput.value = ""; 
-    } catch (error) {
-        status.style.color = "red";
-        status.innerText = "❌ کێشەیەک ڕوویدا، دواتر تاقی بکەرەوە.";
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "داگرتن";
+    // ٣. دروستکردنی لینکی نوێ (ئەمە زیرەکترین ڕێگەیە)
+    // ئێمە ناونیشانی سایتی داگرتنەکە دەخەینە پێش لینکە ئەسڵییەکە
+    let finalUrl = "";
+
+    if (url.includes("facebook.com") || url.includes("fb.watch")) {
+        // بۆ فەیسبووک ئەمە باشترینە
+        finalUrl = "https://fdown.net/download.php?url=" + encodeURIComponent(url);
+    } else {
+        // بۆ یوتیوب و هەموو سایتەکانی تری ڤیدیۆ
+        finalUrl = "https://savefrom.net/?url=" + encodeURIComponent(url);
     }
+
+    // ٤. گواستنەوەی بەکارهێنەر (بێ شک لێرەدا کار دەکات)
+    // بەکارهێنانی setTimeout بۆ ئەوەی بەکارهێنەر هەست بە پڕۆسەکە بکات
+    setTimeout(() => {
+        window.location.href = finalUrl; 
+    }, 1000);
 }
+
 
 
   const rssSources = [

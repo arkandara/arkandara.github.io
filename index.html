@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google-site-verification" content="Oy9JEJJiI4doCd0hF4JZZP3dZYv06DNlfVMq38pGUJ4" />
 
-<title>وەرگێڕی فۆنت و فایل | Ali K to Unicode | PDF Converter</title>
+<title>وەرگێڕی فۆنت</title>
     
     <meta name="description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode), خوێندنەوەی فایلی PDF و Word بە کوردی,  نرخی دراو و زێڕ و هەواڵەکان بەشێوەی راستەوخۆ.">
     
@@ -15,12 +15,13 @@
 
     <meta property="og:title" content="وەرگێڕی فۆنت و فایلەکان - بەخۆڕایی">
     <meta property="og:description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد و بەپێچەوانەوە، لەگەڵ خوێندنەوەی دەقی ناو وێنە و فایل.">
-    <meta property="og:type" content="website">
-<meta property="og:image" content="https://arkanndara-art.github.io/fc/preview.jpg">
-    <meta property="og:url" content="https://arkanndara-art.github.io/fc/">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lateef&family=Harmattan&family=Reem+Kufi&display=swap" rel="stylesheet">
-    
+  <meta property="og:type" content="website">
+<meta property="og:image" content="https://arkandara.github.io/preview.jpg">
+<meta property="og:url" content="https://arkandara.github.io/">
+
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lateef&family=Harmattan&family=Reem+Kufi&display=swap" rel="stylesheet">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
@@ -317,7 +318,7 @@
             <div class="modal-body">
                 <p><strong>ناوی گەشەپێدەر:</strong> ئه‌ركان دارا </p>
                 <p><strong>وەشانی پڕۆژەکە:</strong> 1.6</p>
-                <p><strong> دواین وه‌شان:</strong> 03/03/2026 </p>
+                <p><strong> دواین وه‌شان:</strong> 23/02/2026 </p>
                 <p><strong>مافی كۆپیكردن:</strong> پارێزراوه‌</p>
                 <hr style="margin: 5px 0; opacity: 1.8;">
                 <p><strong>زانیاری و ئاگاداری:</strong></p>
@@ -585,19 +586,13 @@ async function updateMarket() {
     const [gold, silver, brent, wti] = await Promise.all([
         fetchData('XAU'),   // زێڕ
         fetchData('XAG'),   // زیو
-        fetchData('BRENT'), // نەوتی برێنت
-        fetchData('WTI')    // نەوتی تەکساس
+
     ]);
 
     // ۲. نیشاندان لە UI (تەنها ئەگەر نرخەکە هاتبوو)
     if (gold) document.getElementById('gold').innerText = `🟡 زێڕ: $${gold.toLocaleString()}`;
     if (silver) document.getElementById('silver').innerText = `⚪ زیو: $${silver.toFixed(2)}`;
-    if (brent) {
-        document.getElementById('oil-brent').innerText = `🛢️ برێنت: $${brent.toFixed(2)}`;
-        document.getElementById('oil-basra').innerText = `🇮🇶 بەسڕە: $${(brent - 2.50).toFixed(2)}`;
-        document.getElementById('oil-opec').innerText = `🌍 ئۆپێک: $${(brent - 0.70).toFixed(2)}`;
-    }
-    if (wti) document.getElementById('oil-wti').innerText = `⛽ تەکساس: $${wti.toFixed(2)}`;
+   
 
     // ۳. نیشاندانی نامەی سەرکەوتوو
     const drop = document.getElementById("mDrop");

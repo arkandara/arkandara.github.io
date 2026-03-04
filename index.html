@@ -205,9 +205,7 @@
     .dl-btn { width: 100%; background: #ff0000; color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     .dl-btn:hover { background: #cc0000; }
 
-    /* ئەنیمەیشنەکان */
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+   
 
 
 /* --- بەشی ڕیپۆنسیڤ بۆ مۆبایل --- */
@@ -332,36 +330,12 @@
     </div>
 
    
-
-<div id="timeModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">بەروار و دیاریكردنی كات </div>
-        <div class="modal-body" style="text-align: center;">
-            <div id="dateArea" style="line-height: 2; margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 8px; color: #333;">
-                <div id="gregorianDate"></div>
-                <div id="islamicDate"></div>
-            </div>
-            
-            <div id="timerDisplay" style="font-size: 40px; font-weight: bold; color: #2e7d32; margin: 15px 0;">00:00</div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                <button onclick="runTimer(10)" style="background:#4caf50;">10 خولەک</button>
-                <button onclick="runTimer(15)" style="background:#4caf50;">15 خولەک</button>
-                <button onclick="runTimer(20)" style="background:#4caf50;">20 خولەک</button>
-            </div>
-            <button onclick="resetTimer()" style="width:100%; margin-top:10px; background:#f44336;">ڕاگرتنی كات</button>
-        </div>
-        <div class="modal-footer">
-            <button class="close-btn" onclick="toggleTimeModal()">داخستن</button>
-        </div>
-    </div>
-</div>
-
-  
-
+ 
 
     <div class="header">
         <div class="h-right" id="clock">...</div>
-        <div class="h-buttons-area">
+        <div class="h-buttons-area"> 
+
         </div>
 
 
@@ -452,66 +426,41 @@
 
 
 <script>
-// ڕێکخستنی وۆرکەری PDF.js (ئەمە زۆر گرنگە بۆ ئەوەی ئیش بکات)
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
+// تەنها چاودێری هەڵبژاردنی فایلی Word دەکات
 document.getElementById('fileInput').addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const extension = file.name.split('.').pop().toLowerCase();
-    showStatus("خەریکە فایلەکە دەخوێنمەوە... 🔄");
-
-    try {
-        if (extension === 'pdf') {
-            await readPDF(file);
-        } 
-        else if (extension === 'docx') {
+    
+    // پشکنین: تەنها ئەگەر docx بوو کاری لەسەر بکە
+    if (extension === 'docx') {
+        showStatus("خەریکە فایلی Word دەخوێنمەوە... 🔄");
+        try {
             await readDocx(file);
-        } 
-        else if (extension === 'txt') {
-            await readText(file);
+        } catch (error) {
+            console.error(error);
+            showStatus("هەڵەیەک ڕوویدا لە کاتی خوێندنەوەی وۆرد ❌");
         }
-        else {
-            alert("تکایە تەنها فایلی PDF یان Word هەڵبژێرە.");
-        }
-    } catch (error) {
-        console.error(error);
-        showStatus("هەڵەیەک ڕوویدا لە کاتی خوێندنەوەی فایلەکە ❌");
+    } else {
+        alert("تکایە تەنها فایلی Word (.docx) هەڵبژێرە.");
+        e.target.value = ""; // پاککردنەوەی ئینپوتەکە
+        showStatus("فایلی هەڵە هەڵبژێردرا ⚠️");
     }
 });
 
-// فەنکشن بۆ خوێندنەوەی PDF
-async function readPDF(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = "";
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map(item => item.str).join(" ");
-        fullText += pageText + "\n\n";
-    }
-
-    document.getElementById('textBox').value = fullText;
-    finalizeTask("📄 فایلی PDF بە سەرکەوتوویی خوێندرایەوە");
-}
-
-// فەنکشن بۆ خوێندنەوەی Word
+// فەنکشنی تایبەت بە خوێندنەوەی Word بە بەکارهێنانی Mammoth
 async function readDocx(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-    
-    document.getElementById('textBox').value = result.value;
-    finalizeTask("📝 فایلی Word بە سەرکەوتوویی خوێندرایەوە");
-}
-
-// فەنکشن بۆ خوێندنەوەی فایلی دەقی ئاسایی (تێبینی: بۆ پشتگیری کوردی)
-async function readText(file) {
-    const text = await file.text();
-    document.getElementById('textBox').value = text;
-    finalizeTask("📄 فایلی دەقی خوێندرایەوە");
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        // بەکارهێنانی mammoth بۆ دەرهێنانی دەق
+        const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+        
+        document.getElementById('textBox').value = result.value;
+        finalizeTask("📝 فایلی Word بە سەرکەوتوویی خوێندرایەوە");
+    } catch (err) {
+        throw err;
+    }
 }
 
 function finalizeTask(msg) {
@@ -520,7 +469,7 @@ function finalizeTask(msg) {
 }
 
 function showStatus(msg) {
-    const statusEl = document.getElementById('statusDisplay'); // دڵنیابە ئەم ئایدیەت هەیە
+    const statusEl = document.getElementById('statusDisplay');
     if(statusEl) statusEl.innerText = msg;
     else console.log(msg);
 }
@@ -602,8 +551,8 @@ async function updateMarket() {
     }
 }
 
-// ٤. بۆ ئەوەی خۆی خۆکارانە (بێ ریفرێش) هەموو ٥ خولەک جارێک ئەبده‌یت بێتەوە
-setInterval(updateMarket, 10000);async function updateWeather() {
+// ٤. بۆ ئەوەی خۆی خۆکارانە (بێ ریفرێش) هەموو ٥ چركه جارێک ئەبده‌یت بێتەوە
+setInterval(updateMarket, 5000);async function updateWeather() {
     try {
         const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.56&longitude=45.42&current_weather=true`);
         const d = await r.json();
@@ -612,30 +561,66 @@ setInterval(updateMarket, 10000);async function updateWeather() {
 
 function updateStats() {
     const textarea = document.getElementById('textBox');
-    const fullText = textarea.value.trim();
-    const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
-    const totalWords = fullText ? fullText.split(/\s+/).length : 0;
+    const fullText = textarea.value; // هەموو دەقەکە
+    
+    // وەرگرتنی ئەو بەشەی بە ماوس دیاری کراوە
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = fullText.substring(start, end).trim();
+    
+    // ئەژمارکردنی هەموو وشە و پیتەکان
+    const totalWords = fullText.trim() ? fullText.trim().split(/\s+/).length : 0;
+    const totalChars = fullText.length;
+
+    // ئەژمارکردنی وشە و پیتە دیاریکراوەکان
     const selectedWords = selectedText ? selectedText.split(/\s+/).length : 0;
+    const selectedChars = selectedText.length;
+
     const statsEl = document.getElementById('textStats');
-    statsEl.innerText = selectedWords > 0 ? `وشە: ${totalWords} (دیاریکراو: ${selectedWords})` : `وشە: ${totalWords}`;
+
+    // دروستکردنی پەیامەکە بۆ پیشاندان
+    if (selectedChars > 0) {
+        // ئەگەر بەشێک دیاری کرابوو
+        statsEl.innerText = `وشە: ${totalWords}, پیت: ${totalChars} | وشە: ${selectedWords}, پیت: ${selectedChars}`;
+    } else {
+        // ئەگەر هیچی دیاری نەکردبوو
+        statsEl.innerText = `وشە: ${totalWords} | پیت: ${totalChars}`;
+    }
 }
+
+// دڵنیابەرەوە ئەم دوو ئیڤێنتە لێرە بن بۆ ئەوەی لە کاتی نووسین و دیاریکردن یەکسەر بگۆڕێت
+document.getElementById('textBox').addEventListener('input', updateStats);
+document.getElementById('textBox').addEventListener('mouseup', updateStats);
+document.getElementById('textBox').addEventListener('keyup', updateStats);
 
 // --- ئیشپێکردنی بەرنامە ---
 function initApp() {
     setInterval(() => {
         const n = new Date();
-        const days = ["یەکشەممە","دووشەممە","سێشەممە","چوارشەممە","پێنجشەممە","هەینی","شەممە"];
-        document.getElementById('clock').innerText = `${days[n.getDay()]} ${n.toLocaleTimeString('en-GB',{hour12:false})}`;
-    }, 1000);
+        const days = ["یەکشەممە", "دووشەممە", "سێشەممە", "چوارشەممە", "پێنجشەممە", "هەینی", "شەممە"];
+        
+        // ڕێکخستنی بەروار: ساڵ/مانگ/ڕۆژ
+        const year = n.getFullYear();
+        const month = n.getMonth() + 1;
+        const day = n.getDate();
+        const dateStr = `${year}/${month}/${day}`;
 
-    // گرێدانی کاتژمێرەکە بە پەنجەرە نوێیەکە
-    document.getElementById('clock').onclick = toggleTimeModal;
+        // ڕێکخستنی کات: کاتژمێر:خولەک:چرکە (بە شێوازی ٢٤ کاتژمێری)
+        const hours = String(n.getHours()).padStart(2, '0');
+        const minutes = String(n.getMinutes()).padStart(2, '0');
+        const seconds = String(n.getSeconds()).padStart(2, '0');
 
-    updateWeather();
-    setInterval(updateWeather, 1800000);
+        const timeStr = `${hours}:${minutes}:${seconds}`;
+
+        // نیشاندانی ئەنجامەکە
+        document.getElementById('clock').innerText = `${days[n.getDay()]} ${dateStr} کاتژمێر ${timeStr}`;
+    }, 1000); // ئێستا هەر ١ چرکە جارێک نوێ دەبێتەوە
+
+
+    
 
     updateMarket();
-    setInterval(updateMarket, 300000);
+    setInterval(updateMarket, 5000);
 
     document.addEventListener('selectionchange', updateStats);
     window.onclick = function(event) {
@@ -693,49 +678,7 @@ function toggleTimeModal() {
     if(m.style.display === "block") showFullDates();
 }
 
-function showFullDates()
- {
-const n = new Date();
-  // لیستی ناوی مانگە کوردییەکان (بۆ ئەوەی دڵنیابین ڕێک وەک خۆی دەردەچێت)
-    const kurdishMonths = [
-        "کانوونی دووەم", "شوبات", "ئادار", "نیسان", "ئایار", "حوزەیران", 
-        "تەممووز", "ئاب", "ئەیلوول", "تشرینی یەکەم", "تشرینی دووەم", "کانوونی یەکەم"
-    ];
-
-    // ڕێکخستنی بەرواری زایینی: ١١ی شوباتی ٢٠٢٦
-    const dayG = n.getDate();
-    const monthG = kurdishMonths[n.getMonth()]; // وەرگرتنی ناوەکە لە لیستەکەدا
-    const yearG = n.getFullYear();
-    const g = dayG + "ی " + monthG + "ی " + yearG;
-    
-    document.getElementById('gregorianDate').innerText = "📅 زایینی: " + g;
-}
-
-function runTimer(minutes) {
-    clearInterval(timerRef);
-    let seconds = minutes * 60;
-    showStatus("⏰ كات بۆ " + minutes + " خولەک دانرا");
-    
-    timerRef = setInterval(() => {
-        seconds--;
-        let m = Math.floor(seconds / 60);
-        let s = seconds % 60;
-        document.getElementById('timerDisplay').innerText = 
-            (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
-            
-        if (seconds <= 0) {
-            clearInterval(timerRef);
-            alert("🔔 ئه‌و كاته‌ی كه‌ داتنابوو؛ ته‌واو بوو!");
-            document.getElementById('timerDisplay').innerText = "00:00";
-        }
-    }, 1000);
-}
-function resetTimer() {
-    clearInterval(timerRef);
-    document.getElementById('timerDisplay').innerText = "00:00";
-    showStatus("⏹️ كات ڕاگیرا");
-
-} // لێرەدا فەنکشنی ڕیسێت تەواو دەبێت
+// لێرەدا فەنکشنی ڕیسێت تەواو دەبێت
 async function toggleWeatherModal() {
     const modal = document.getElementById('weatherModal');
     const isVisible = (modal.style.display === 'block');

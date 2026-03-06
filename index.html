@@ -3,37 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="google-site-verification" content="Oy9JEJJiI4doCd0hF4JZZP3dZYv06DNlfVMq38pGUJ4" />
-
-<title>وەرگێڕی فۆنت</title>
-    
-    <meta name="description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode), خوێندنەوەی فایلی PDF و Word بە کوردی,  نرخی دراو و زێڕ و هەواڵەکان بەشێوەی راستەوخۆ.">
-    
+    <meta name="google-site-verification" content="Oy9JEJJiI4doCd0hF4JZZP3dZYv06DNlfVMq38pGUJ4" />
+    <title>وەرگێڕی فۆنت</title>
+    <meta name="description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode), خوێندنەوەی فایلی PDF و Word بە کوردی, نرخی دراو و زێڕ و هەواڵەکان بەشێوەی راستەوخۆ.">
     <meta name="keywords" content="وەرگێڕی فۆنت, گۆڕینی فۆنت, عەلی کەی, Ali K to Unicode, PDF to Text, کورد ئایتی, گۆڕینی کیبۆرد, وه‌رگێڕی ئه‌ركان, Arkan Dara, Font Converter Kurdish">
-    
     <meta name="author" content="Arkan Dara">
-
     <meta property="og:title" content="وەرگێڕی فۆنت و فایلەکان - بەخۆڕایی">
     <meta property="og:description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد و بەپێچەوانەوە، لەگەڵ خوێندنەوەی دەقی ناو وێنە و فایل.">
-  <meta property="og:type" content="website">
-<meta property="og:image" content="https://arkandara.github.io/preview.jpg">
-<meta property="og:url" content="https://arkandara.github.io/">
-
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lateef&family=Harmattan&family=Reem+Kufi&display=swap" rel="stylesheet">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">
-
-</script>
-
-
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://arkandara.github.io/preview.jpg">
+    <meta property="og:url" content="https://arkandara.github.io/">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lateef&family=Reem+Kufi&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
 <style>
-
-    /* بەکارهێنانی Variable بۆ ئەوەی کۆدەکە خاوێنتر بێت بەبێ گۆڕینی قەبارە */
     :root {
         --primary: #2e7d32;
         --primary-dark: #1b5e20;
@@ -46,13 +32,12 @@
     body { background: #f4f7f6; min-height: 100vh; display: flex; flex-direction: column; }
     body.dark-mode { background: #121212; color: #ffffff; }
 
-    /* هێدەر - هەمان قەبارە بەڵام بە ستایلی Glassmorphism */
     .header { 
         background: rgba(255, 255, 255, 0.95); 
         padding: 10px 20px; 
         border-bottom: 3px solid var(--primary); 
         display: grid; 
-        grid-template-columns: 130px 1.5fr auto 0.5fr auto; /* ڕێک وەک خۆی */
+        grid-template-columns: 130px 1.5fr auto 0.5fr auto; 
         align-items: center;
         position: sticky; top: 0; z-index: 1000; gap: 15px;
         box-shadow: var(--shadow);
@@ -63,7 +48,6 @@
     .h-right { font-family: 'Amiri', serif; font-weight: bold; color: var(--primary); font-size: 20px; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .dark-mode .h-right { color: #4caf50; }
 
-    /* دوگمەکانی ناڤبار بە سێبەری نەرم */
     .btn-nav { font-size: 12px; font-weight: bold; cursor: pointer; padding: 6px 12px; border-radius: 6px; color: white; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .btn-nav:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
@@ -75,83 +59,57 @@
     .h-left { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
     
     .stat-item { 
+        display: flex; align-items: center; /* بۆ سەنتەرکردنی دەقەکە */
         font-size: 11px; font-weight: bold; color: #444; 
-        background: #e0e0e0 !important; padding: 5px 8px; border-radius: 6px; 
+        background: #e0e0e0 !important; 
+        padding: 4px 10px; /* هەمان پادینگی زوومەکە */
+        height: 28px; /* دیاریکردنی هەمان بەرزی */
+        border-radius: 6px; 
         cursor: pointer; white-space: nowrap; border: 1px solid rgba(0,0,0,0.05);
     }
+
     .dark-mode .stat-item { background: #2c2c2c !important; color: #ccc; border-color: rgba(255,255,255,0.05); }
     
-    .font-ctrl { display: flex; gap: 2px; background: #e0e0e0 !important; border-radius: 6px; padding: 2px; border: 1px solid rgba(0,0,0,0.05); }
+    .font-ctrl { display: flex; align-items: center; gap: 8px; background: #e0e0e0 !important; border-radius: 6px; padding: 4px 10px; height: 28px; border: 1px solid rgba(0,0,0,0.05); }x; border: 1px solid rgba(0,0,0,0.05); }
+
     .dark-mode .font-ctrl { background: #2c2c2c !important; }
+    .font-icon { font-size: 14px; font-weight: bold; color: #555; }
+    .dark-mode .font-icon { color: #ccc; }
+    
+    .font-slider { 
+        -webkit-appearance: none; width: 80px; height: 4px; border-radius: 2px; 
+        background: #ccc; outline: none; transition: 0.2s; cursor: pointer;
+    }
+    .dark-mode .font-slider { background: #555; }
+    .font-slider::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none; width: 14px; height: 14px; 
+        border-radius: 50%; background: var(--primary); cursor: pointer;
+    }
+    .dark-mode .font-slider::-webkit-slider-thumb { background: #4caf50; }
 
-    .font-btn { border: none; background: none; padding: 2px 6px; cursor: pointer; font-weight: bold; color: #333; font-size: 12px; border-radius: 4px; }
-    .font-btn:hover { background: rgba(0,0,0,0.1); }
-    .dark-mode .font-btn { color: white; }
-    .dark-mode .font-btn:hover { background: rgba(255,255,255,0.1); }
+   .market-wrap {
+        display: flex;
+        align-items: center;
+        background: #e0e0e0 !important; 
+        padding: 4px 10px; 
+        height: 28px; /* دیاریکردنی بەرزی */
+        border-radius: 6px; 
+        border: 1px solid rgba(0,0,0,0.05);
+    }
 
-    .market-wrap { position: relative; }
-   /* باکگراوندێکی گشتی کاڵ بۆ هەموو بەشەکە */
-.market-wrap {
-    display: flex;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.04); /* باکگراوندێکی زۆر کاڵ بۆ لایت مۆد */
-    padding: 4px 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-}
+    .dark-mode .market-wrap { background: #2c2c2c !important; border-color: rgba(255,255,255,0.05); }
 
-/* باکگراوند بۆ مۆدی تاریک */
-.dark-mode .market-wrap {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
+    .live-market-bar { display: flex; gap: 12px; font-size: 0.85rem; font-weight: 600; align-items: center; }
 
-.live-market-bar {
-    display: flex;
-    gap: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    align-items: center;
-}
+    #gold, #silver { padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; }
+    #gold { color: #b8860b; font-weight: bold; }
+    #silver { color: #666; font-weight: bold; }
 
-/* ستایل بۆ نرخەکان بە جیاوازی باکگراوندی ناوەکی کاڵ */
-#gold, #silver {
-    padding: 2px 8px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-}
+    .dark-mode #gold { color: #ffd700; }
+    .dark-mode #silver { color: #e5e4e2; }
+    .separator { color: rgba(0, 0, 0, 0.1); font-weight: normal; }
+    .dark-mode .separator { color: rgba(255, 255, 255, 0.1); }
 
-/* ڕەنگی زێڕی و باکگراوندی کاڵی زەرد */
-#gold { 
-    color: #b8860b; 
-    background: rgba(255, 215, 0, 0.15); 
-}
-
-/* ڕەنگی زیوی و باکگراوندی کاڵی خۆڵەمێشی */
-#silver { 
-    color: #707070; 
-    background: rgba(157, 161, 165, 0.15); 
-}
-
-/* ڕەنگی دەقەکان لە مۆدی تاریکدا تۆختر و ڕوونتر دەبن */
-.dark-mode #gold { color: #ffd700; background: rgba(255, 215, 0, 0.1); }
-.dark-mode #silver { color: #e5e4e2; background: rgba(255, 255, 255, 0.05); }
-
-.separator {
-    color: rgba(0, 0, 0, 0.1);
-    font-weight: normal;
-}
-
-.dark-mode .separator {
-    color: rgba(255, 255, 255, 0.1);
-}
-    .dark-mode .market-drop div { border-bottom-color: #333; color: #eee; }
-    .dark-mode .market-drop div:hover { background: #333; }
-    .show { display: block; animation: slideDown 0.2s ease; }
-
-    /* بەشی تێکست ئێریا */
     .container { flex: 1; display: flex; flex-direction: column; padding: 10px; gap: 1px; max-width: 100%; margin: 0 auto; width: 100%; }
     textarea { 
         flex: 1; min-height: 400px; padding: 20px; border-radius: 12px; 
@@ -177,25 +135,33 @@
     .btn-clear { background: linear-gradient(135deg, #f44336, #e53935); } 
     .btn-file { background: #333; }
 
+/* ستایلی دوگمەی دەنگ بۆ نووسین */
+    .btn-mic { background: linear-gradient(135deg, #ff9800, #f57c00); position: relative; overflow: hidden; } 
+    
+    /* ئەنیمەیشنی شەپۆل کاتێک مایکرۆفۆنەکە ئیش دەکات */
+    .btn-mic.recording {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        animation: pulseRecord 1.5s infinite;
+    }
+    
+    @keyframes pulseRecord {
+        0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+    }
+
     #status { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 10px 20px; border-radius: 50px; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
-    /* مۆدێڵەکان */
     .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
     .modal-content { background-color: white; margin: 10% auto; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.3); line-height: 1.6; animation: modalIn 0.3s ease; }
     .dark-mode .modal-content { background-color: #1e1e1e; color: white; border: 1px solid #333; }
     .modal-header { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; font-size: 1.2rem; color: var(--primary); }
     .dark-mode .modal-header { border-bottom-color: #333; color: #4caf50; }
     .modal-body { font-size: 15px; }
-    .close-btn { background: var(--primary); padding: 8px 20px; border-radius: 6px; color: white; border: none; cursor: pointer; font-weight: bold; }
+    .close-btn { background: var(--primary); padding: 8px 20px; border-radius: 6px; color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 15px; width: 100%; }
 
-    .btn-download-pro, .btn-download-c4k { text-decoration: none; display: inline-block; padding: 12px 25px; font-size: 16px; font-weight: bold; color: #ffffff !important; border-radius: 8px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-top: 10px; }
-    .btn-download-pro { background-color: #2ea44f; }
-    .btn-download-pro:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); }
-    
-    #clock { cursor: pointer; padding: 0 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center; align-self: stretch; white-space: nowrap; min-width: fit-content; } 
-    #clock:hover { background: rgba(46, 125, 50, 0.1); }
-    .dark-mode #clock:hover { background: rgba(255, 255, 255, 0.05); }
-
+   #clock { padding: 0 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center; align-self: stretch; white-space: nowrap; min-width: fit-content; }
+   
     .btn-nav-dl { background: #e0e0e0 !important; color: #333 !important; }
     .dark-mode .btn-nav-dl { background: #333 !important; color: #fff !important; }
     .btn-nav-dl:hover { background: #ff0000 !important; color: #fff !important; transform: scale(1.05); }
@@ -205,277 +171,135 @@
     .dl-btn { width: 100%; background: #ff0000; color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     .dl-btn:hover { background: #cc0000; }
 
-   
-
-
-/* --- بەشی ڕیپۆنسیڤ بۆ مۆبایل --- */
-@media (max-width: 850px) {
-    .header {
-        /* گۆڕینی هێدەر بۆ فۆرماتێکی گونجاو بۆ مۆبایل */
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        padding: 15px;
-        height: auto;
+    @keyframes modalIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
     }
 
-    .h-right, .h-center, .h-left {
-        /* هەموو بەشەکان دەبنە سەنتەر بۆ ئەوەی ڕێک بن */
-        width: 100%;
-        justify-content: center;
-        text-align: center;
+    @media (max-width: 850px) {
+        .header { display: flex; flex-direction: column; gap: 12px; padding: 15px; height: auto; }
+        .h-right, .h-center, .h-left { width: 100%; justify-content: center; text-align: center; }
+        .h-right { order: 1; font-size: 18px; }
+        .h-center { order: 2; }
+        .h-left { order: 3; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .container { padding: 8px; }
+        textarea { font-size: 18px; padding: 15px; min-height: 350px; }
+        .btn-group { grid-template-columns: repeat(3, 1fr); gap: 5px; }
     }
 
-    .h-right {
-        order: 1; /* تایتڵەکە یەکەم شت بێت */
-        font-size: 18px;
+    @media (max-width: 480px) {
+        .btn-group { grid-template-columns: repeat(2, 1fr); }
+        .h-left { gap: 5px; }
     }
 
-    .h-center {
-        order: 2; /* ناوەڕۆکەکە دووەم بێت */
-    }
-
-    .h-left {
-        order: 3; /* دوگمەکان و کاتژمێر بێنە خوارەوە */
-        flex-wrap: wrap; /* ئەگەر جێگەیان نەبووەوە بچنە ڕیزی دواتر */
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .container {
-        padding: 8px;
-    }
-
-    textarea {
-        font-size: 18px;
-        padding: 15px;
-        min-height: 350px;
-    }
-
-    .btn-group {
-        /* دوگمەکان با ٣ دانە بن لە ڕیزێکدا بۆ ئەوەی نەبنە یەک دێڕی زۆر بچووک */
-        grid-template-columns: repeat(3, 1fr);
-        gap: 5px;
-    }
-}
-
-/* بۆ مۆبایلی زۆر بچووک */
-@media (max-width: 480px) {
-    .btn-group {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .h-left {
-        gap: 5px;
-    }
-}
-
-
-/* --- ستایلی هێڵی هەواڵەکان --- */
-.news-ticker {
-    display: flex;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.08);
-    border-radius: 8px;
-    padding: 2px 5px;
-    margin-top: 5px;
-    max-width: 100%;
-    overflow: hidden;
-}
-.dark-mode .news-ticker { background: rgba(255, 255, 255, 0.1); }
-.news-badge {
-    background: #4caf50;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    margin-left: 5px;
-    white-space: nowrap;
-}
-#news-text {
-    font-size: 13px;
-    color: inherit;
-    text-decoration: #f8f9fa;
-    white-space: #f8f9fa;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: opacity 0.5s;
-}
-.news-fade { opacity: 0; }
-
+    .news-ticker { display: flex; align-items: center; background: rgba(0, 0, 0, 0.08); border-radius: 8px; padding: 2px 5px; margin-top: 5px; max-width: 100%; overflow: hidden; }
+    .dark-mode .news-ticker { background: rgba(255, 255, 255, 0.1); }
+    .news-badge { background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px; white-space: nowrap; }
+    #news-text { font-size: 13px; color: inherit; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.5s; }
 </style>
 </head>
 
-
-
-<body onload="initApp()">
+<body>
 
     <div id="aboutModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">دەربارەی پڕۆژە</div>
             <div class="modal-body">
-                <p><strong>ناوی گەشەپێدەر:</strong> ئه‌ركان دارا </p>
+                <p><strong>ناوی گەشەپێدەر:</strong> ئه‌ركان دارا</p>
                 <p><strong>وەشانی پڕۆژەکە:</strong> 1.6</p>
-                <p><strong> دواین وه‌شان:</strong> 23/02/2026 </p>
+                <p><strong>دواین وه‌شان:</strong> 23/02/2026</p>
                 <p><strong>مافی كۆپیكردن:</strong> پارێزراوه‌</p>
-                <hr style="margin: 5px 0; opacity: 1.8;">
+                <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
                 <p><strong>زانیاری و ئاگاداری:</strong></p>
-                <p> نرخه‌كان كه‌ نوێبوونه‌وه‌ خۆیان دێنه‌ سه‌ر شاشه‌،مانشێتی هه‌واڵه‌كانیش نوێترینن و خۆیان نوێ ده‌بنه‌وه‌...</p>
+                <p>نرخه‌كان كه‌ نوێبوونه‌وه‌ خۆیان دێنه‌ سه‌ر شاشه‌، مانشێتی هه‌واڵه‌كانیش نوێترینن و خۆیان نوێ ده‌بنه‌وه‌.</p>
             </div>
-
             <div class="modal-footer">
                 <button class="close-btn" onclick="toggleAbout()">داخستن</button>
             </div>
         </div>
     </div>
 
-   
- 
+    <div id="dlModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">📥 داگرتنی ڤیدیۆ و دەنگ</div>
+            <div class="modal-body" style="text-align: center;">
+                <p style="font-size: 14px;">لینکی یوتیوب، فەیسبووک، یان تیکتۆک دابنێ و دوای داگرتن؛ كوالێتی ڤیدیۆكه‌ هه‌ڵبژێره‌ و داونڵوود بكه‌:</p>
+                <input type="text" id="videoUrl" class="dl-input" placeholder="https://...">
+                <button id="startDlBtn" onclick="processDownload()" class="dl-btn">كلیك بكه‌ بۆ داگرتنی ڤیدیۆكه‌</button>
+                <p id="dlStatus" style="margin-top: 15px; font-size: 13px; color: #ff0000; font-weight: bold;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="close-btn" onclick="toggleDlModal()">داخستن</button>
+            </div>
+        </div>
+    </div>
 
     <div class="header">
         <div class="h-right" id="clock">...</div>
-        <div class="h-buttons-area"> 
-
-        </div>
-
+        <div class="h-buttons-area"></div>
 
         <div class="h-center">
             <h1>وەرگێڕی فۆنت و فایل</h1>
             <span>Arkan Dara</span>
         </div>
 
-
-
         <div style="flex: 1;"></div>
         <div class="h-left">
+            <select id="fontSelect" onchange="changeFont()" style="display: none;">
+                <option value="'Noto Sans Arabic', sans-serif">فۆنتی نۆتۆ</option>
+                <option value="'Amiri', serif">فۆنتی ئەمیری</option>
+                <option value="'Lateef', cursive">فۆنتی لەتیف</option>
+                <option value="'Reem Kufi', sans-serif">فۆنتی ڕیم کوفی</option>
+            </select>
 
-<select id="fontSelect" onchange="changeFont()" style="display: none;">
-    <option value="'Noto Sans Arabic', sans-serif">فۆنتی نۆتۆ</option>
-    <option value="'Amiri', serif">فۆنتی ئەمیری</option>
-    <option value="'Lateef', cursive">فۆنتی لەتیف</option>
-    <option value="'Reem Kufi', sans-serif">فۆنتی ڕیم کوفی</option>
-</select>
-
-
-
-  </select>
-
-
-
-
-            <div class="font-ctrl">
-                <button class="font-btn" onclick="changeFontSize(2)">A+</button>
-                <button class="font-btn" onclick="changeFontSize(-2)">A-</button>
+            <div class="font-ctrl" title="قەبارەی فۆنت">
+                <span class="font-icon" style="font-size: 11px;">A</span>
+                <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
+                <span class="font-icon" style="font-size: 16px;">A</span>
             </div>
 
-           <div class="market-wrap">
-    <div class="live-market-bar">
-        <span id="gold">🟡 زێڕ: ...</span>
-        <span class="separator"> | </span>
-        <span id="silver">⚪ زیو: ...</span>
-    </div>
-</div>
+            <div class="market-wrap">
+                <div class="live-market-bar">
+                    <span id="gold">🟡 زێڕ: ...</span>
+                    <span class="separator"> | </span>
+                    <span id="silver">⚪ زیو: ...</span>
+                </div>
+            </div>
 
-   <div class="stat-item" id="textStats">وشە: ٠</div>
+            <div class="stat-item" id="textStats">وشە: ٠</div>
             <div style="cursor:pointer; font-size:18px;" onclick="toggleT()">🌙</div>
             <div style="cursor:pointer; font-size:18px;" onclick="toggleAbout()">ℹ️</div>
-
-
         </div>
     </div>
 
-<div class="news-ticker">
+    <div class="news-ticker">
         <span class="news-badge">مانشێتی گرینگترین هه‌واڵه‌كان</span>
         <a href="#" id="news-text" target="_blank">چاوەڕێی مانشێتی هەواڵەکان بن...</a>
     </div>
 
-
     <div class="container">
-        <textarea id="textBox" oninput="updateStats()" placeholder="لێره‌ بنووسه‌ یان ده‌قێك دابنێ..."></textarea>
+        <textarea id="textBox" placeholder="لێره‌ بنووسه‌ یان ده‌قێك دابنێ..."></textarea>
         <div class="btn-group">
             <button class="btn-uni" onclick="convert('toUni')">✨ گۆڕین بۆ یونیکۆد</button>
             <button class="btn-ali" onclick="convert('toAli')">🔄 گۆڕین بۆ عەلی کەی</button>
             <label for="fileInput" class="btn-file" style="cursor:pointer;"> 📁 فایلی WORD بهێنه‌ </label>
-            <input type="file" id="fileInput" accept=".pdf,.docx" style="display:none;">
+            <input type="file" id="fileInput" accept=".docx" style="display:none;">
             <button class="btn-copy" onclick="copyText()">📋 كۆپی بكه‌</button>
             <button class="btn-clear" onclick="clearText()">🗑️ بیسڕه‌وه‌</button>
-<button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
+            <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
+            <button id="micBtn" class="btn-mic" onclick="toggleSpeechRecognition()">🎤 دەنگ بۆ نووسین</button>
 
         </div>
     </div>
+    
     <div id="status"></div>
 
-<div id="dlModal" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">📥 داگرتنی ڤیدیۆ و دەنگ</div>
-
-        <div class="modal-body" style="text-align: center;">
-            <p style="font-size: 14px;">لینکی یوتیوب، فەیسبووک، یان تیکتۆک دابنێ و 
-دوای داگرتن؛ كوالێتی ڤیدیۆكه‌ هه‌ڵبژێره‌ و داونڵوود بكه‌:</p>
-
-            <input type="text" id="videoUrl" class="dl-input" placeholder="https://...">
-            <button id="startDlBtn" onclick="processDownload()" class="dl-btn">كلیك بكه‌ بۆ داگرتنی ڤیدیۆكه‌</button>
-            <p id="dlStatus" style="margin-top: 15px; font-size: 13px; color: #ff0000; font-weight: bold;"></p>
-        </div>
-        <div class="modal-footer">
-            <button class="close-btn" onclick="toggleDlModal()">داخستن</button>
-        </div>
-    </div>
-</div>
-
-
-
 <script>
-// تەنها چاودێری هەڵبژاردنی فایلی Word دەکات
-document.getElementById('fileInput').addEventListener('change', async function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    const extension = file.name.split('.').pop().toLowerCase();
-    
-    // پشکنین: تەنها ئەگەر docx بوو کاری لەسەر بکە
-    if (extension === 'docx') {
-        showStatus("خەریکە فایلی Word دەخوێنمەوە... 🔄");
-        try {
-            await readDocx(file);
-        } catch (error) {
-            console.error(error);
-            showStatus("هەڵەیەک ڕوویدا لە کاتی خوێندنەوەی وۆرد ❌");
-        }
-    } else {
-        alert("تکایە تەنها فایلی Word (.docx) هەڵبژێرە.");
-        e.target.value = ""; // پاککردنەوەی ئینپوتەکە
-        showStatus("فایلی هەڵە هەڵبژێردرا ⚠️");
-    }
-});
+// --- گۆڕاوە گشتییەکان ---
+let currentSize = 20;
 
-// فەنکشنی تایبەت بە خوێندنەوەی Word بە بەکارهێنانی Mammoth
-async function readDocx(file) {
-    try {
-        const arrayBuffer = await file.arrayBuffer();
-        // بەکارهێنانی mammoth بۆ دەرهێنانی دەق
-        const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-        
-        document.getElementById('textBox').value = result.value;
-        finalizeTask("📝 فایلی Word بە سەرکەوتوویی خوێندرایەوە");
-    } catch (err) {
-        throw err;
-    }
-}
-
-function finalizeTask(msg) {
-    if (typeof updateStats === "function") updateStats();
-    showStatus(msg);
-}
-
-function showStatus(msg) {
-    const statusEl = document.getElementById('statusDisplay');
-    if(statusEl) statusEl.innerText = msg;
-    else console.log(msg);
-}
-
-// --- وەرگێڕی فۆنت ---
-const conversionMap = [
+const conversionMap =[
     { uni: 'ڵا', ali: 'لآ' }, { uni: 'ڵا', ali: 'لأ' },
     { uni: 'ێ', ali: 'يَ' }, { uni: 'ۆ', ali: 'وَ' }, 
     { uni: 'ۆ', ali: 'ؤ' }, 
@@ -483,280 +307,17 @@ const conversionMap = [
     { uni: 'ڕ', ali: 'رِ' }, { uni: 'ڕ', ali: 'رَ' },
     { uni: 'پ', ali: 'ث' }, { uni: 'چ', ali: 'ض' }, 
     { uni: 'ژ', ali: 'ذ' }, { uni: 'ڤ', ali: 'ظ' }, 
-    { uni: 'گ', ali: 'ط' }, { uni: 'ه‌', ali: 'ة' },  { uni: 'ە', ali: 'ه‌' },    { ali: 'ة', uni: 'ه‌' },
+    { uni: 'گ', ali: 'ط' }, { uni: 'ه‌', ali: 'ة' },  
+    { uni: 'ە', ali: 'ه‌' }, { ali: 'ة', uni: 'ه‌' },
     { uni: 'ی', ali: 'ي' }, { uni: 'ک', ali: 'ك' },
     { uni: '٠', ali: '0' }, { uni: '١', ali: '1' }, 
-   { uni: '٢', ali: '2' }, { uni: '٣', ali: '3' }, 
-   { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
-       { uni: '٦', ali: '6' }, { uni: '٧', ali: '7' }, 
-       { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' }, 
+    { uni: '٢', ali: '2' }, { uni: '٣', ali: '3' }, 
+    { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
+    { uni: '٦', ali: '6' }, { uni: '٧', ali: '7' }, 
+    { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' }
 ];
 
-function convert(type) {
-    let box = document.getElementById("textBox");
-    let text = box.value;
-    if (type === 'toAli') {
-        conversionMap.forEach(item => { text = text.split(item.uni).join(item.ali); });
-        box.style.fontFamily = "Ali_K_Ali, 'Ali_K_Standard'";
-    } else {
-        conversionMap.forEach(item => { text = text.split(item.ali).join(item.uni); });
-        box.style.fontFamily = document.getElementById('fontSelect').value;
-    }
-    box.value = text;
-    updateStats();
-    showStatus(type === 'toUni' ? "✅ کرا بە یونیکۆد" : "🔃 کرا بە عەلی کەی");
-}
-
-// --- ستایل و خزمەتگوزارییەکان ---
-let currentSize = 20;
-function changeFontSize(delta) {
-    currentSize += delta;
-    document.getElementById('textBox').style.fontSize = currentSize + 'px';
-}
-
-function changeFont() {
-    document.getElementById('textBox').style.fontFamily = document.getElementById('fontSelect').value;
-}
-
-async function updateMarket() {
-    const fetchData = async (symbol) => {
-        try {
-            // بەکارهێنانی سێرڤەرێکی خێرا و جیهانی بۆ هەموو نرخەکان
-            const res = await fetch(`https://api.gold-api.com/price/${symbol}`);
-            const data = await res.json();
-            return data.price;
-        } catch (err) {
-            console.error(`هەڵە لە وەرگرتنی ${symbol}:`, err);
-            return null;
-        }
-    };
-
-    // ۱. وەرگرتنی نرخەکان بە شێوەی هاوتەریب (زۆر خێراترە)
-    const [gold, silver, brent, wti] = await Promise.all([
-        fetchData('XAU'),   // زێڕ
-        fetchData('XAG'),   // زیو
-
-    ]);
-
-    // ۲. نیشاندان لە UI (تەنها ئەگەر نرخەکە هاتبوو)
-    if (gold) document.getElementById('gold').innerText = `🟡 زێڕ: $${gold.toLocaleString()}`;
-    if (silver) document.getElementById('silver').innerText = `⚪ زیو: $${silver.toFixed(2)}`;
-   
-
-    // ۳. نیشاندانی نامەی سەرکەوتوو
-    const drop = document.getElementById("mDrop");
-    if (drop) {
-        drop.classList.add("show");
-        setTimeout(() => drop.classList.remove("show"), 4000);
-    }
-}
-
-// ٤. بۆ ئەوەی خۆی خۆکارانە (بێ ریفرێش) هەموو ٥ چركه جارێک ئەبده‌یت بێتەوە
-setInterval(updateMarket, 5000);async function updateWeather() {
-    try {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.56&longitude=45.42&current_weather=true`);
-        const d = await r.json();
-    } catch(e){}
-}
-
-function updateStats() {
-    const textarea = document.getElementById('textBox');
-    const fullText = textarea.value; // هەموو دەقەکە
-    
-    // وەرگرتنی ئەو بەشەی بە ماوس دیاری کراوە
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = fullText.substring(start, end).trim();
-    
-    // ئەژمارکردنی هەموو وشە و پیتەکان
-    const totalWords = fullText.trim() ? fullText.trim().split(/\s+/).length : 0;
-    const totalChars = fullText.length;
-
-    // ئەژمارکردنی وشە و پیتە دیاریکراوەکان
-    const selectedWords = selectedText ? selectedText.split(/\s+/).length : 0;
-    const selectedChars = selectedText.length;
-
-    const statsEl = document.getElementById('textStats');
-
-    // دروستکردنی پەیامەکە بۆ پیشاندان
-    if (selectedChars > 0) {
-        // ئەگەر بەشێک دیاری کرابوو
-        statsEl.innerText = `وشە: ${totalWords}, پیت: ${totalChars} | وشە: ${selectedWords}, پیت: ${selectedChars}`;
-    } else {
-        // ئەگەر هیچی دیاری نەکردبوو
-        statsEl.innerText = `وشە: ${totalWords} | پیت: ${totalChars}`;
-    }
-}
-
-// دڵنیابەرەوە ئەم دوو ئیڤێنتە لێرە بن بۆ ئەوەی لە کاتی نووسین و دیاریکردن یەکسەر بگۆڕێت
-document.getElementById('textBox').addEventListener('input', updateStats);
-document.getElementById('textBox').addEventListener('mouseup', updateStats);
-document.getElementById('textBox').addEventListener('keyup', updateStats);
-
-// --- ئیشپێکردنی بەرنامە ---
-function initApp() {
-    setInterval(() => {
-        const n = new Date();
-        const days = ["یەکشەممە", "دووشەممە", "سێشەممە", "چوارشەممە", "پێنجشەممە", "هەینی", "شەممە"];
-        
-        // ڕێکخستنی بەروار: ساڵ/مانگ/ڕۆژ
-        const year = n.getFullYear();
-        const month = n.getMonth() + 1;
-        const day = n.getDate();
-        const dateStr = `${year}/${month}/${day}`;
-
-        // ڕێکخستنی کات: کاتژمێر:خولەک:چرکە (بە شێوازی ٢٤ کاتژمێری)
-        const hours = String(n.getHours()).padStart(2, '0');
-        const minutes = String(n.getMinutes()).padStart(2, '0');
-        const seconds = String(n.getSeconds()).padStart(2, '0');
-
-        const timeStr = `${hours}:${minutes}:${seconds}`;
-
-        // نیشاندانی ئەنجامەکە
-        document.getElementById('clock').innerText = `${days[n.getDay()]} ${dateStr} کاتژمێر ${timeStr}`;
-    }, 1000); // ئێستا هەر ١ چرکە جارێک نوێ دەبێتەوە
-
-
-    
-
-    updateMarket();
-    setInterval(updateMarket, 5000);
-
-    document.addEventListener('selectionchange', updateStats);
-    window.onclick = function(event) {
-        const aboutModal = document.getElementById("aboutModal");
-        const fontModal = document.getElementById("fontModal");
-        const c4kModal = document.getElementById("c4kModal");
-        const timeModal = document.getElementById("timeModal");
-        if (event.target == aboutModal) aboutModal.style.display = "none";
-        if (event.target == fontModal) fontModal.style.display = "none";
-        if (event.target == c4kModal) c4kModal.style.display = "none";
-        if (event.target == timeModal) timeModal.style.display = "none";
-const dlModal = document.getElementById("dlModal");
-if (event.target == dlModal) dlModal.style.display = "none";
-    }
-}
-
-function toggleAbout() {
-    const modal = document.getElementById("aboutModal");
-    modal.style.display = (modal.style.display === "block") ? "none" : "block";
-}
-function toggleFontModal() {
-    const modal = document.getElementById("fontModal");
-    modal.style.display = (modal.style.display === "block") ? "none" : "block";
-}
-
-function toggleM() { document.getElementById("mDrop").classList.toggle("show"); }
-function toggleT() { document.body.classList.toggle('dark-mode'); }
-function showStatus(m) { const s = document.getElementById("status"); s.innerText=m; s.style.display="block"; setTimeout(() => s.style.display = "none", 5000); }
-function copyText() {
-    const textarea = document.getElementById("textBox");
-    const start = textarea.selectionStart;
-    const finish = textarea.selectionEnd;
-    const textToCopy = (start !== finish) ? textarea.value.substring(start, finish) : textarea.value;
-    if (textToCopy) {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            showStatus(start !== finish ? "📋 دەق کۆپی کرا" : "📋 هەموو دەقەکە کۆپی کرا");
-        });
-    }
-}
-
-function clearText() { 
-    const textBox = document.getElementById("textBox");
-    if (textBox.value !== "") {
-        textBox.value = ""; 
-        updateStats(); 
-        showStatus("🗑️ دەقەکە سڕایەوە");
-    }
-}
-
-let timerRef; 
-
-function toggleTimeModal() {
-    const m = document.getElementById("timeModal");
-    m.style.display = (m.style.display === "block") ? "none" : "block";
-    if(m.style.display === "block") showFullDates();
-}
-
-// لێرەدا فەنکشنی ڕیسێت تەواو دەبێت
-async function toggleWeatherModal() {
-    const modal = document.getElementById('weatherModal');
-    const isVisible = (modal.style.display === 'block');
-    
-    if (isVisible) {
-        modal.style.display = 'none';
-    } else {
-        modal.style.display = 'block';
-        document.getElementById('desc').innerText = "خەریکە زانیارییەکان دەهێنێت...";
-
-        try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=35.56&longitude=45.42&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`);
-            const data = await res.json();
-
-            if (data.current) {
-                const temp = Math.round(data.current.temperature_2m);
-                const humid = data.current.relative_humidity_2m;
-                const wind = data.current.wind_speed_10m;
-                const code = data.current.weather_code;
-
-               
-                          document.getElementById('desc').innerText = statusMsg;
-            }
-        } catch (error) {
-            document.getElementById('desc').innerText = "هەڵە لە پەیوەندی سێرڤەر";
-        }
-    }
-}
-
-// فەنکشنی کردنەوەی پەنجەرەکە
-function toggleDlModal() {
-    const m = document.getElementById("dlModal");
-    if(m) m.style.display = (m.style.display === "block") ? "none" : "block";
-}
-
-
-
-function processDownload() {
-    const urlInput = document.getElementById("videoUrl");
-    let url = urlInput.value.trim();
-    const status = document.getElementById("dlStatus");
-    const btn = document.getElementById("startDlBtn");
-
-    // ١. پشکنینی ئەوەی کە ئایا لینکەکە بەتاڵ نییە
-    if (!url) {
-        status.style.color = "red";
-        status.innerText = "❌ تکایە سەرەتا لینکەکە لێرە دابنێ";
-        return;
-    }
-
-    // ٢. نیشاندانی نامەی چاوەڕوانی
-    status.style.color = "blue";
-    status.innerText = "⏳ خەریکە دەتگوازمەوە بۆ پەڕەی داگرتن...";
-    btn.innerText = "کەمێک چاوەڕوان بە...";
-    btn.disabled = true;
-
-    // ٣. دروستکردنی لینکی نوێ (ئەمە زیرەکترین ڕێگەیە)
-    // ئێمە ناونیشانی سایتی داگرتنەکە دەخەینە پێش لینکە ئەسڵییەکە
-    let finalUrl = "";
-
-    if (url.includes("facebook.com") || url.includes("fb.watch")) {
-        // بۆ فەیسبووک ئەمە باشترینە
-        finalUrl = "https://fdown.net/download.php?url=" + encodeURIComponent(url);
-    } else {
-        // بۆ یوتیوب و هەموو سایتەکانی تری ڤیدیۆ
-        finalUrl = "https://savefrom.net/?url=" + encodeURIComponent(url);
-    }
-
-    // ٤. گواستنەوەی بەکارهێنەر (بێ شک لێرەدا کار دەکات)
-    // بەکارهێنانی setTimeout بۆ ئەوەی بەکارهێنەر هەست بە پڕۆسەکە بکات
-    setTimeout(() => {
-        window.location.href = finalUrl; 
-    }, 1000);
-}
-
-
-
-  const rssSources = [
+const rssSources =[
     { name: 'الجزيرة', url: 'https://www.aljazeera.net/rss' },
     { name: 'سكاى نيوز', url: 'https://www.skynewsarabia.com/rss' },
     { name: 'روسیا الیوم', url: 'https://arabic.rt.com/rss/' },
@@ -767,41 +328,219 @@ function processDownload() {
     { name: 'عربي جديد', url: 'https://www.alaraby.co.uk/rss' }
 ];
 
+// --- فەنکشنە سەرەکییەکان ---
+function showStatus(m) { 
+    const s = document.getElementById("status"); 
+    if(s) {
+        s.innerText = m; 
+        s.style.display = "block"; 
+        setTimeout(() => s.style.display = "none", 5000); 
+    }
+}
+
+function convert(type) {
+    let box = document.getElementById("textBox");
+    if(!box) return;
+    let text = box.value;
+    if (type === 'toAli') {
+        conversionMap.forEach(item => { text = text.split(item.uni).join(item.ali); });
+        box.style.fontFamily = "Ali_K_Ali, 'Ali_K_Standard'";
+    } else {
+        conversionMap.forEach(item => { text = text.split(item.ali).join(item.uni); });
+        let fontSel = document.getElementById('fontSelect');
+        box.style.fontFamily = fontSel ? fontSel.value : 'sans-serif';
+    }
+    box.value = text;
+    updateStats();
+    showStatus(type === 'toUni' ? "✅ کرا بە یونیکۆد" : "🔃 کرا بە عەلی کەی");
+}
+
+function setFontSize(newSize) {
+    currentSize = newSize;
+    const box = document.getElementById('textBox');
+    if(box) box.style.fontSize = currentSize + 'px';
+}
+
+function changeFont() {
+    const box = document.getElementById('textBox');
+    const fontSel = document.getElementById('fontSelect');
+    if(box && fontSel) box.style.fontFamily = fontSel.value;
+}
+
+function copyText() {
+    const textarea = document.getElementById("textBox");
+    if(!textarea) return;
+    const start = textarea.selectionStart;
+    const finish = textarea.selectionEnd;
+    const textToCopy = (start !== finish) ? textarea.value.substring(start, finish) : textarea.value;
+    if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showStatus(start !== finish ? "📋 دەق دیاریکراوەکە کۆپی کرا" : "📋 هەموو دەقەکە کۆپی کرا");
+        }).catch(() => showStatus("❌ هەڵە لە کۆپیکردن"));
+    }
+}
+
+function clearText() { 
+    const textBox = document.getElementById("textBox");
+    if (textBox && textBox.value !== "") {
+        textBox.value = ""; 
+        updateStats(); 
+        showStatus("🗑️ دەقەکە سڕایەوە");
+    }
+}
+
+function toggleAbout() {
+    const modal = document.getElementById("aboutModal");
+    if(modal) modal.style.display = (modal.style.display === "block") ? "none" : "block";
+}
+
+function toggleDlModal() {
+    const m = document.getElementById("dlModal");
+    if(m) m.style.display = (m.style.display === "block") ? "none" : "block";
+}
+
+function toggleT() { 
+    document.body.classList.toggle('dark-mode'); 
+}
+
+function processDownload() {
+    const urlInput = document.getElementById("videoUrl");
+    const status = document.getElementById("dlStatus");
+    const btn = document.getElementById("startDlBtn");
+    if(!urlInput || !status || !btn) return;
+
+    let url = urlInput.value.trim();
+    if (!url) {
+        status.style.color = "red";
+        status.innerText = "❌ تکایە سەرەتا لینکەکە لێرە دابنێ";
+        return;
+    }
+
+    status.style.color = "blue";
+    status.innerText = "⏳ خەریکە دەتگوازمەوە بۆ پەڕەی داگرتن...";
+    btn.innerText = "کەمێک چاوەڕوان بە...";
+    btn.disabled = true;
+
+    let finalUrl = "";
+    if (url.includes("facebook.com") || url.includes("fb.watch") || url.includes("fb.gg")) {
+        finalUrl = "https://fdown.net/download.php?url=" + encodeURIComponent(url);
+    } else {
+        finalUrl = "https://savefrom.net/?url=" + encodeURIComponent(url);
+    }
+
+    setTimeout(() => { 
+        window.location.href = finalUrl; 
+        btn.innerText = "كلیك بكه‌ بۆ داگرتنی ڤیدیۆكه‌";
+        btn.disabled = false;
+    }, 1000);
+}
+
+function updateStats() {
+    const textarea = document.getElementById('textBox');
+    const statsEl = document.getElementById('textStats');
+    if(!textarea || !statsEl) return;
+
+    const fullText = textarea.value; 
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const selectedText = fullText.substring(start, end).trim();
+    
+    const totalWords = fullText.trim() ? fullText.trim().split(/\s+/).length : 0;
+    const totalChars = fullText.length;
+
+    const selectedWords = selectedText ? selectedText.split(/\s+/).length : 0;
+    const selectedChars = selectedText.length;
+
+    if (selectedChars > 0) {
+        statsEl.innerText = `وشە: ${totalWords}, پیت: ${totalChars} | وشە: ${selectedWords}, پیت: ${selectedChars}`;
+    } else {
+        statsEl.innerText = `وشە: ${totalWords} | پیت: ${totalChars}`;
+    }
+}
+
+async function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const extension = file.name.split('.').pop().toLowerCase();
+    
+    if (extension === 'docx') {
+        showStatus("خەریکە فایلی Word دەخوێنمەوە... 🔄");
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            if (typeof mammoth === "undefined") {
+                showStatus("هەڵە: کتێبخانەی وۆرد بەردەست نییە ❌");
+                return;
+            }
+            const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+            const box = document.getElementById('textBox');
+            if(box) box.value = result.value;
+            updateStats();
+            showStatus("📝 فایلی Word بە سەرکەوتوویی خوێندرایەوە");
+        } catch (error) {
+            console.error(error);
+            showStatus("هەڵەیەک ڕوویدا لە کاتی خوێندنەوەی وۆرد ❌");
+        }
+    } else {
+        alert("تکایە تەنها فایلی Word (.docx) هەڵبژێرە.");
+        e.target.value = ""; 
+        showStatus("فایلی هەڵە هەڵبژێردرا ⚠️");
+    }
+}
+
+async function updateMarket() {
+    const fetchData = async (symbol) => {
+        try {
+            const res = await fetch(`https://api.gold-api.com/price/${symbol}`);
+            const data = await res.json();
+            return data.price;
+        } catch (err) {
+            return null;
+        }
+    };
+
+    const [gold, silver] = await Promise.all([
+        fetchData('XAU'),
+        fetchData('XAG')
+    ]);
+
+    const goldEl = document.getElementById('gold');
+    const silverEl = document.getElementById('silver');
+
+    if (gold && goldEl) goldEl.innerText = `🟡 زێڕ: $${Number(gold).toLocaleString()}`;
+    if (silver && silverEl) silverEl.innerText = `⚪ زیو: $${Number(silver).toFixed(2)}`;
+}
+
 async function getNews() {
     const textElement = document.getElementById('news-text');
     if (!textElement) return;
 
-    let allItems = [];
+    let allItems =[];
 
     for (const source of rssSources) {
         try {
-            // بەکارهێنانی API بۆ هێنانی داتا
             const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(source.url)}`);
             const data = await response.json();
             
-            if (data.status === 'ok' && data.items.length > 0) {
+            if (data.status === 'ok' && data.items && data.items.length > 0) {
                 const formattedItems = data.items.slice(0, 8).map(item => ({
-                    // لێرە ناوی دەزگاکە زۆر بە ڕوونی زیاد دەکەین
                     displayTitle: `[ ${source.name} ] : ${item.title}`,
                     link: item.link
                 }));
                 allItems = allItems.concat(formattedItems);
             }
         } catch (err) {
-            console.log(source.name + " بارنەکرا");
+            // تێپەڕاندن ئەگەر هەڵەیەک هەبوو
         }
     }
 
     if (allItems.length > 0) {
-        // تێکەڵکردنی هەواڵەکان
         allItems.sort(() => Math.random() - 0.7);
-
         let index = 0;
+        
         const updateDisplay = () => {
             textElement.style.opacity = '0';
-            
             setTimeout(() => {
-                // دڵنیابوون لەوەی تایتڵەکە بە تەواوی نیشان دەدرێت
                 textElement.textContent = allItems[index].displayTitle;
                 textElement.href = allItems[index].link;
                 textElement.style.opacity = '1';
@@ -810,13 +549,177 @@ async function getNews() {
         };
 
         updateDisplay();
-        setInterval(updateDisplay, 7000); // 7 چرکە بۆ ئەوەی کاتی خوێندنەوەی هەبێت
+        setInterval(updateDisplay, 7000); 
     } else {
         textElement.textContent = "چاوەڕێی مانشێتی هەواڵەکان بن...";
     }
 }
 
-window.addEventListener('load', getNews);
+function initClock() {
+    const clockEl = document.getElementById('clock');
+    if(!clockEl) return;
+    
+    setInterval(() => {
+        const n = new Date();
+        const days =["یەکشەممە", "دووشەممە", "سێشەممە", "چوارشەممە", "پێنجشەممە", "هەینی", "شەممە"];
+        
+        const year = n.getFullYear();
+        const month = n.getMonth() + 1;
+        const day = n.getDate();
+        const dateStr = `${year}/${month}/${day}`;
+
+        const hours = String(n.getHours()).padStart(2, '0');
+        const minutes = String(n.getMinutes()).padStart(2, '0');
+        const seconds = String(n.getSeconds()).padStart(2, '0');
+
+        clockEl.innerText = `${days[n.getDay()]} ${dateStr} کاتژمێر ${hours}:${minutes}:${seconds}`;
+    }, 1000);
+}
+
+// --- ئیشپێکردنی کۆتایی دوای لۆدبوونی پەڕەکە ---
+document.addEventListener('DOMContentLoaded', () => {
+    const textBox = document.getElementById('textBox');
+    if(textBox) {
+        textBox.addEventListener('input', updateStats);
+        textBox.addEventListener('mouseup', updateStats);
+        textBox.addEventListener('keyup', updateStats);
+    }
+
+    const fileInput = document.getElementById('fileInput');
+    if(fileInput) fileInput.addEventListener('change', handleFile);
+    
+    window.onclick = function(event) {
+        const aboutModal = document.getElementById("aboutModal");
+        const dlModal = document.getElementById("dlModal");
+        if (event.target == aboutModal) aboutModal.style.display = "none";
+        if (event.target == dlModal) dlModal.style.display = "none";
+    };
+
+    initClock();
+    updateMarket();
+    setInterval(updateMarket, 5000);
+    getNews();
+});
+
+// --- خزمەتگوزاری دەنگ بۆ نووسین (Speech to Text) ---
+// --- خزمەتگوزاری دەنگ بۆ نووسین (Speech to Text) ---
+let recognition;
+let isRecording = false;
+let finalTranscript = ''; 
+
+// پشکنین بۆ پشتگیری وێبگەڕەکە
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    
+    // ڕێکخستنە سەرەکییەکان
+    recognition.continuous = true; // بەردەوام بە لە گوێگرتن
+    recognition.interimResults = true; // نیشاندانی ئەنجامە کاتییەکان پێش تەواوبوون
+    recognition.lang = 'ckb-IQ'; // زمانی کوردی (سۆرانی) عێراق
+
+    recognition.onstart = function() {
+        isRecording = true;
+        const micBtn = document.getElementById('micBtn');
+        if(micBtn) {
+            micBtn.classList.add('recording');
+            micBtn.innerHTML = '🛑 ڕاگرتنی گوێگرتن...';
+        }
+        showStatus("🎤 دەستم کرد بە گوێگرتن... قسە بکە");
+    };
+
+    recognition.onresult = function(event) {
+        let interimTranscript = '';
+        const textBox = document.getElementById('textBox');
+        
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                // ئەگەر قسەکەی تەواو کرد، بیخە سەر دەقە سەرەکییەکە
+                finalTranscript += event.results[i][0].transcript + ' ';
+            } else {
+                // ئەگەر هێشتا قسە دەکات، بە کاتی نیشانی بدە
+                interimTranscript += event.results[i][0].transcript;
+            }
+        }
+        
+        // دەقەکە بنووسە ناو بۆکسەکەوە (دەقە کۆنەکە + ئەوەی ئێستا دەیڵێت)
+        if(textBox) {
+            textBox.value = finalTranscript + interimTranscript;
+            updateStats(); // ژمارەی وشە و پیتەکان نوێ بکەرەوە
+        }
+    };
+
+    recognition.onerror = function(event) {
+        console.error('هەڵەی مایکرۆفۆن:', event.error);
+        if (event.error === 'not-allowed') {
+            showStatus("❌ تکایە ڕێگە بە مایکرۆفۆنەکە بدە لە وێبگەڕەکەت");
+        } else if (event.error === 'network') {
+            showStatus("❌ کێشەی هێڵی ئینتەرنێت هەیە");
+        } else if (event.error === 'no-speech') {
+             // ئەگەر ماوەیەک قسەت نەکرد، پێویست ناکات دایبخات بە یەکجاری
+            console.log("هیچ دەنگێک نەبیسترا");
+        } else {
+            showStatus("⚠️ کێشەیەک ڕوویدا لە گوێگرتن: " + event.error);
+        }
+    };
+
+    recognition.onend = function() {
+        // ئەگەر بەڕاستی ئێمە راماننەگرتووە (خۆی وەستاوە بەهۆی بێدەنگی)، با دیسان دەست پێبکاتەوە
+        // ئەمە وا دەکات بۆ ماوەیەکی زۆر بەردەوام بێت
+        if (isRecording) {
+            try {
+                recognition.start();
+            } catch (e) {
+                // ئەگەر نەیتوانی دەستپێبکاتەوە، بە یەکجاری رایبگرە
+                stopRecording();
+            }
+        } else {
+            // ئەگەر بەکارهێنەر خۆی دوگمەکەی داگرت
+            stopRecording();
+        }
+    };
+
+} else {
+    console.log("وێبگەڕەکەت پشتگیری خزمەتگوزاری دەنگ بۆ نووسین ناکات.");
+}
+
+// فەنکشنی داگیرسان و کوژاندنەوە کاتێک کلیک لە دوگمەکە دەکەیت
+function toggleSpeechRecognition() {
+    if (!recognition) {
+        alert("ببورە، وێبگەڕەکەت پشتگیری ئەم خزمەتگوزارییە ناکات. تکایە Google Chrome یان Edge بەکاربهێنە.");
+        return;
+    }
+    
+    if (isRecording) {
+        // ئەگەر پێشتر کاری دەکرد، ئێستا ڕایبگرە
+        isRecording = false; // ئەمە زۆر گرنگە بۆ ئەوەی onend دووبارە دەستی پێ نەکاتەوە
+        recognition.stop();
+        stopRecordingUI();
+        showStatus("✅ گوێگرتن ڕاگیرا");
+    } else {
+        // ئەگەر کاری نەدەکرد، دەستی پێبکە
+        
+        // بۆ ئەوەی هەرچی پێشتر لە بۆکسەکەدا نووسراوە لەگەڵی تێکەڵ نەبێت (ئەگەر دەتەوێت بەیەکەوە بن، ئەم دێڕە بسڕەوە):
+        // finalTranscript = document.getElementById('textBox').value; // ئەگەر دەتەوێت لەسەر دەقە کۆنەکە بڕوات ئەمە بەکاربهێنە
+        finalTranscript = ''; 
+        document.getElementById('textBox').value = ''; 
+        
+        try {
+            recognition.start();
+        } catch(e) {
+            console.error("نەمتوانی دەست پێبکەم:", e);
+        }
+    }
+}
+
+// تەنها بۆ گۆڕینی شێوەی دوگمەکە بۆ باری ئاسایی
+function stopRecordingUI() {
+    const micBtn = document.getElementById('micBtn');
+    if(micBtn) {
+        micBtn.classList.remove('recording');
+        micBtn.innerHTML = '🎤 دەنگ بۆ نووسین';
+    }
+}
 
 </script>
 </body>

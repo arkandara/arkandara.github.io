@@ -238,57 +238,108 @@
 }
 
 
-.modal {
+/* مۆداڵەکە چاک دەکەین بۆ ئەوەی تەنها لە خوارەوە لای چەپ بێت */
+/* ستایلی نوێ بۆ مۆداڵەکە لە خوارەوە لای چەپ */
+/* دیزاینی نوێی مۆداڵی گەڕان و گۆڕین */
+#findReplaceModal {
     display: none;
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.4); /* کاڵکردنەوەی پشتەوە */
-    backdrop-filter: blur(5px); /* بلورکردنی پشتەوە بۆ دیمەنێکی مۆدێرن */
-    z-index: 2000;
+    bottom: 90px; /* کەمێک بەرزتر لە دوگمەکان */
+    left: 25px;
+    width: 320px;
+    z-index: 9999;
+    background: transparent;
 }
 
-.modal-content {
-    background: white;
-    width: 350px;
-    margin: 10% auto;
-    padding: 25px;
-    border-radius: 16px; /* گۆشە خڕەکان */
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2); /* سێبەری قووڵ */
-    animation: fadeIn 0.3s ease-out; /* جوڵەی هاتنە ناوەوە */
+.fr-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    border: 1px solid rgba(46, 125, 50, 0.2);
+    animation: frFadeIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* جوڵەی هاتنە ناوەوەی مۆداڵەکە */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+.dark-mode .fr-card {
+    background: rgba(30, 30, 30, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
-.modal-content h3 { margin-top: 0; color: #333; }
+@keyframes frFadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
-.modal-content input {
+.fr-header {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fr-input-group { margin-bottom: 12px; }
+
+.fr-input-group input {
     width: 100%;
-    padding: 12px;
-    margin: 10px 0;
+    padding: 10px 12px;
     border: 2px solid #eee;
-    border-radius: 8px;
-    box-sizing: border-box; /* بۆ ئەوەی پەراوێزەکان تێک نەچن */
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
     transition: 0.3s;
 }
 
-.modal-content input:focus { border-color: #6e8efb; outline: none; }
-
-.modal-actions { display: flex; gap: 10px; margin-top: 15px; }
-
-.btn-action { 
-    background: #6e8efb; color: white; border: none; 
-    padding: 10px 20px; border-radius: 8px; cursor: pointer; flex: 1;
+.dark-mode .fr-input-group input {
+    background: #252525;
+    border-color: #333;
+    color: white;
 }
 
-.btn-close { 
-    background: #eee; color: #555; border: none; 
-    padding: 10px 20px; border-radius: 8px; cursor: pointer;
+.fr-input-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
 }
 
+.fr-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-fr-exec {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    flex: 2;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-fr-close {
+    background: #f5f5f5;
+    color: #666;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    flex: 1;
+    cursor: pointer;
+}
+
+.dark-mode .btn-fr-close { background: #333; color: #ccc; }
+
+#statusMessage {
+    font-size: 12px;
+    margin-top: 10px;
+    text-align: center;
+    font-weight: bold;
+}
 
 </style>
 </head>
@@ -385,20 +436,28 @@
 
         <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
 
-<div id="findReplaceModal" class="modal">
-    <div class="modal-content">
-        <h3>بگه‌ڕێ بۆ وشه‌یه‌ك، له‌ خانه‌ی خواره‌وه‌ وشه‌ی جێگره‌وه‌ی بنووسه‌</h3>
-        <input type="text" id="findInput" placeholder="وشەیەک بدۆزەرەوە...">
-        <input type="text" id="replaceInput" placeholder="وشەی نوێ...">
-        <div class="modal-actions">
-            <button onclick="findAndReplace()" class="btn-action">جێبەجێکردن 🔄</button>
-            <button onclick="toggleFindReplace()" class="btn-close">داخستن ✖️</button>
+<div id="findReplaceModal">
+    <div class="fr-card">
+        <div class="fr-header">🔍 وشه‌كان بدۆزه‌ره‌وه‌ و بیانگۆڕه‌</div>
+        
+        <div class="fr-input-group">
+            <input type="text" id="findInput" placeholder="وشەیەک بدۆزەرەوە...">
         </div>
-<p id="statusMessage" style="margin-top: 15px; font-weight: bold;"></p>
-    </div>
-</div>
+        
+        <div class="fr-input-group">
+            <input type="text" id="replaceInput" placeholder="وشەی نوێ (جێگرەوە)...">
+        </div>
 
-    <div id="status"></div>
+        <div id="statusMessage">ئامادەیە بۆ گەڕان...</div>
+
+        <div class="fr-actions">
+            <button onclick="findAndReplace()" class="btn-fr-exec">جێبەجێکردن 🔄</button>
+            <button onclick="toggleFindReplace()" class="btn-fr-close">داخستن</button>
+        </div>
+    </div>
+</div>   
+
+ <div id="status"></div>
 
 <script>
 
@@ -809,41 +868,57 @@ function toggleFindReplace() {
 }
 
 // فەنکشنی گەڕان و گۆڕین
+// کردنەوە و داخستنی مۆداڵ بە شێوەیەکی نەرم
+function toggleFindReplace() {
+    const modal = document.getElementById('findReplaceModal');
+    if (modal.style.display === 'block') {
+        modal.style.display = 'none';
+    } else {
+        modal.style.display = 'block';
+        document.getElementById('findInput').focus(); // یەکسەر دەست بکات بە نووسین
+    }
+}
+
+// فەنکشنی سەرەکی گەڕان و گۆڕین لەناو Textarea
 function findAndReplace() {
     const textBox = document.getElementById('textBox');
-    const findInput = document.getElementById('findInput').value;
-    const replaceInput = document.getElementById('replaceInput').value;
+    const findVal = document.getElementById('findInput').value.trim();
+    let replaceVal = document.getElementById('replaceInput').value.trim();
     const statusMsg = document.getElementById('statusMessage');
 
-    if (!findInput) {
-        statusMsg.innerText = "⚠️ وشەیەک بنووسە!";
-        statusMsg.style.color = "orange";
+    if (!findVal) {
+        statusMsg.innerText = "⚠️ تکایە وشەیەک بنووسە";
+        statusMsg.style.color = "#f44336";
         return;
     }
 
-    const regex = new RegExp(findInput, 'gi');
+    // گەڕان بەدوای هەموو وشەکان (Global Search)
+    const regex = new RegExp(findVal, 'gi');
     const matches = textBox.value.match(regex);
     const count = matches ? matches.length : 0;
 
     if (count > 0) {
-        statusMsg.innerText = `🔍 ${count} جار دۆزرایەوە. چاوەڕوان بە...`;
-        statusMsg.style.color = "blue";
-
-        setTimeout(() => {
-            if (replaceInput !== "") {
-                textBox.value = textBox.value.replace(regex, replaceInput);
-                localStorage.setItem('autosave_text', textBox.value);
-                statusMsg.innerText = "✅ سەرکەوتوو بوو: هەمووی گۆڕدرا!";
-                statusMsg.style.color = "green";
-                if (typeof updateStats === 'function') updateStats();
-            } else {
-                statusMsg.innerText = "تەنها دۆزرایەوە، وشەی جێگرەوەت نەنووسیوە.";
-            }
-        }, 500);
+        if (replaceVal !== "") {
+            // زیادکردنی سپەیس بۆ ئەوەی نەلکێت بە وشەی دوای خۆی
+            const newWord = replaceVal + " "; 
+            textBox.value = textBox.value.replace(regex, newWord);
+            
+            statusMsg.innerHTML = `<span style="color:#2e7d32">✅ ${count} وشە گۆڕدرا   </span>`;
+        } else {
+            statusMsg.innerHTML = `<span style="color:#1976d2">🔍 ${count} جار دۆزرایەوە</span>`;
+            
+            // دیاریکردنی وشەکە بۆ ئەوەی بەکارهێنەر بیبینێت
+            const index = textBox.value.toLowerCase().indexOf(findVal.toLowerCase());
+            textBox.focus();
+            textBox.setSelectionRange(index, index + findVal.length);
+        }
     } else {
-        statusMsg.innerText = "❌ وشەکە نەدۆزرایەوە.";
-        statusMsg.style.color = "red";
+        statusMsg.innerHTML = `<span style="color:#f44336">❌ وشەکە نەدۆزرایەوە</span>`;
     }
+
+    // ئۆتۆ-سەیڤ و نوێکردنەوەی ئامارەکان
+    if (typeof updateStats === 'function') updateStats();
+    localStorage.setItem('autosave_text', textBox.value);
 }
 
 </script>

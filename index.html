@@ -184,6 +184,112 @@
     .dark-mode .news-ticker { background: rgba(255, 255, 255, 0.1); }
     .news-badge { background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px; white-space: nowrap; }
     #news-text { font-size: 13px; color: inherit; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.5s; }
+
+
+.btn-download {
+    background: #2b5797; /* ڕەنگی فەرمی Office Word */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-download:hover {
+    background: #1e3f70;
+    transform: translateY(-2px);
+}
+
+
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; }
+.modal-content { 
+    background: white; width: 300px; padding: 20px; margin: 15% auto; 
+    border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.dark-mode .modal-content { background: #2c2c2c; color: white; }
+.modal-content input { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 10px; }
+
+
+.btn-nav {
+    background: linear-gradient(135deg, #6e8efb, #a777e3); /* ڕەنگێکی گرادێنت و مۆدێرن */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease; /* بۆ جوڵەی نەرم */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-nav:hover {
+    background: linear-gradient(135deg, #5a7de0, #9565d0); /* کاتێک ماوسی دەبەیتە سەری تۆختر دەبێت */
+    transform: translateY(-2px); /* تۆزێک بەرز دەبێتەوە */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-nav:active {
+    transform: translateY(0); /* کاتێک کلیکی دەکەیت دادەبەزێتەوە */
+}
+
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4); /* کاڵکردنەوەی پشتەوە */
+    backdrop-filter: blur(5px); /* بلورکردنی پشتەوە بۆ دیمەنێکی مۆدێرن */
+    z-index: 2000;
+}
+
+.modal-content {
+    background: white;
+    width: 350px;
+    margin: 10% auto;
+    padding: 25px;
+    border-radius: 16px; /* گۆشە خڕەکان */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); /* سێبەری قووڵ */
+    animation: fadeIn 0.3s ease-out; /* جوڵەی هاتنە ناوەوە */
+}
+
+/* جوڵەی هاتنە ناوەوەی مۆداڵەکە */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-content h3 { margin-top: 0; color: #333; }
+
+.modal-content input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    box-sizing: border-box; /* بۆ ئەوەی پەراوێزەکان تێک نەچن */
+    transition: 0.3s;
+}
+
+.modal-content input:focus { border-color: #6e8efb; outline: none; }
+
+.modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+
+.btn-action { 
+    background: #6e8efb; color: white; border: none; 
+    padding: 10px 20px; border-radius: 8px; cursor: pointer; flex: 1;
+}
+
+.btn-close { 
+    background: #eee; color: #555; border: none; 
+    padding: 10px 20px; border-radius: 8px; cursor: pointer;
+}
+
+
 </style>
 </head>
 
@@ -268,16 +374,30 @@
     <div class="container">
         <textarea id="textBox" placeholder="لێره‌ بنووسه‌ یان ده‌قێك دابنێ..."></textarea>
         <div class="btn-group">
-            <button class="btn-uni" onclick="convert('toUni')">✨ گۆڕین بۆ یونیکۆد</button>
-            <button class="btn-ali" onclick="convert('toAli')">🔄 گۆڕین بۆ عەلی کەی</button>
-            <label for="fileInput" class="btn-file" style="cursor:pointer;"> 📁 فایلی WORD بهێنه‌ </label>
+            <button class="btn-uni" onclick="convert('toUni')">✨ یونیکۆد</button>
+            <button class="btn-ali" onclick="convert('toAli')">🔄  عەلی کەی</button>
+            <label for="fileInput" class="btn-file" style="cursor:pointer;"> 📁 WORD بهێنه‌ </label>
             <input type="file" id="fileInput" accept=".docx" style="display:none;">
-            <button class="btn-copy" onclick="copyText()">📋 كۆپی بكه‌</button>
+            <button class="btn-copy" onclick="copyText()">📋 كۆپی </button>
             <button class="btn-clear" onclick="clearText()">🗑️ بیسڕه‌وه‌</button>
             <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
+                    <button onclick="downloadAsWord()" class="btn-download">📄 داگرتن بە Word </button>
+
+        <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
+
+<div id="findReplaceModal" class="modal">
+    <div class="modal-content">
+        <h3>بگه‌ڕێ بۆ وشه‌یه‌ك، له‌ خوانه‌ی خواره‌وه‌ش وشه‌ی جێگره‌وه‌ی بنووسه‌</h3>
+        <input type="text" id="findInput" placeholder="وشەیەک بدۆزەرەوە...">
+        <input type="text" id="replaceInput" placeholder="وشەی نوێ...">
+        <div class="modal-actions">
+            <button onclick="findAndReplace()" class="btn-action">جێبەجێکردن 🔄</button>
+            <button onclick="toggleFindReplace()" class="btn-close">داخستن ✖️</button>
         </div>
+<p id="statusMessage" style="margin-top: 15px; font-weight: bold;"></p>
     </div>
-    
+</div>
+
     <div id="status"></div>
 
 <script>
@@ -586,6 +706,145 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateMarket, 5000);
     getNews();
 });
+
+
+function downloadAsWord() {
+    const content = document.getElementById('textBox').value;
+    if (!content.trim()) {
+        alert("سندوقی نووسینەکە بەتاڵە!");
+        return;
+    }
+
+    // دروستکردنی فۆرماتی فایلەکە
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+                   "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+                   "xmlns='http://www.w3.org/TR/REC-html40'>" +
+                   "<head><meta charset='utf-8'><title>Export to Word</title></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + content.replace(/\n/g, '<br>') + footer;
+
+    // دروستکردنی 'Blob' بۆ فایلی وۆرد
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const fileDownload = document.createElement("a");
+    document.body.appendChild(fileDownload);
+    
+    // ناونانی فایلەکە
+    fileDownload.href = source;
+    fileDownload.download = 'MyDocument.doc';
+    fileDownload.click();
+    document.body.removeChild(fileDownload);
+}
+
+
+
+// ١. کاتێک سایتەکە دەکرێتەوە، با بزانین پێشتر شتێک خەزن کراوە یان نا
+window.addEventListener('DOMContentLoaded', () => {
+    const textBox = document.getElementById('textBox');
+    
+    // هێنانەوەی دەقە خەزنکراوەکە لە Local Storage
+    const savedText = localStorage.getItem('autosave_text');
+    
+    if (savedText) {
+        textBox.value = savedText; // خستنەوە ناو سندوقەکە
+        
+        // ئەگەر فەنکشنی ژماردنی وشەکانت هەیە، با یەکسەر ئامارەکانیش نوێ ببنەوە
+        if (typeof updateStats === 'function') {
+            updateStats();
+        }
+    }
+});
+
+// ٢. کاتێک بەکارهێنەر شتێک دەنووسێت یان دەیسڕێتەوە، با یەکسەر خەزن ببێت
+document.getElementById('textBox').addEventListener('input', () => {
+    const textBox = document.getElementById('textBox');
+    
+    // خەزنکردنی دەقەکە لەناو Local Storage
+    localStorage.setItem('autosave_text', textBox.value);
+});
+
+
+// ١. ئیشپێکردنی ئۆتۆ-سەیڤ کاتێک سایتەکە دەکرێتەوە
+window.addEventListener('DOMContentLoaded', () => {
+    const textBox = document.getElementById('textBox');
+    const savedText = localStorage.getItem('autosave_text');
+    if (savedText) {
+        textBox.value = savedText;
+        updateStats();
+    }
+});
+
+// ٢. خەزنکردنی بەردەوام کاتێک دەنووسیت
+document.getElementById('textBox').addEventListener('input', () => {
+    localStorage.setItem('autosave_text', document.getElementById('textBox').value);
+    updateStats();
+});
+
+// ٣. ئاماری وشەکان
+function updateStats() {
+    const text = document.getElementById('textBox').value;
+    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+    document.getElementById('wordCountDisplay').innerText = `ژمارەی وشەکان: ${wordCount}`;
+}
+
+// ٤. داگرتنی فایلی وۆرد
+function downloadAsWord() {
+    const content = document.getElementById('textBox').value;
+    const sourceHTML = "<html><head><meta charset='utf-8'></head><body>" + content.replace(/\n/g, '<br>') + "</body></html>";
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const fileDownload = document.createElement("a");
+    fileDownload.href = source;
+    fileDownload.download = 'MyDocument.doc';
+    fileDownload.click();
+}
+
+// ٥. گەڕان و گۆڕین (مۆدال)
+// فەنکشنی کردنەوە و داخستنی پەنجەرەکە (ئەمە ئەو بەشەیە کە نەبوو)
+function toggleFindReplace() {
+    const modal = document.getElementById('findReplaceModal');
+    if (modal.style.display === 'block') {
+        modal.style.display = 'none';
+    } else {
+        modal.style.display = 'block';
+    }
+}
+
+// فەنکشنی گەڕان و گۆڕین
+function findAndReplace() {
+    const textBox = document.getElementById('textBox');
+    const findInput = document.getElementById('findInput').value;
+    const replaceInput = document.getElementById('replaceInput').value;
+    const statusMsg = document.getElementById('statusMessage');
+
+    if (!findInput) {
+        statusMsg.innerText = "⚠️ وشەیەک بنووسە!";
+        statusMsg.style.color = "orange";
+        return;
+    }
+
+    const regex = new RegExp(findInput, 'gi');
+    const matches = textBox.value.match(regex);
+    const count = matches ? matches.length : 0;
+
+    if (count > 0) {
+        statusMsg.innerText = `🔍 ${count} جار دۆزرایەوە. چاوەڕوان بە...`;
+        statusMsg.style.color = "blue";
+
+        setTimeout(() => {
+            if (replaceInput !== "") {
+                textBox.value = textBox.value.replace(regex, replaceInput);
+                localStorage.setItem('autosave_text', textBox.value);
+                statusMsg.innerText = "✅ سەرکەوتوو بوو: هەمووی گۆڕدرا!";
+                statusMsg.style.color = "green";
+                if (typeof updateStats === 'function') updateStats();
+            } else {
+                statusMsg.innerText = "تەنها دۆزرایەوە، وشەی جێگرەوەت نەنووسیوە.";
+            }
+        }, 500);
+    } else {
+        statusMsg.innerText = "❌ وشەکە نەدۆزرایەوە.";
+        statusMsg.style.color = "red";
+    }
+}
 
 </script>
 </body>

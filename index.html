@@ -838,12 +838,6 @@ document.getElementById('textBox').addEventListener('input', () => {
     updateStats();
 });
 
-// ٣. ئاماری وشەکان
-function updateStats() {
-    const text = document.getElementById('textBox').value;
-    const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
-    document.getElementById('wordCountDisplay').innerText = `ژمارەی وشەکان: ${wordCount}`;
-}
 
 // ٤. داگرتنی فایلی وۆرد
 function downloadAsWord() {

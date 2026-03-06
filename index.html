@@ -20,6 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
 <style>
+
     :root {
         --primary: #2e7d32;
         --primary-dark: #1b5e20;
@@ -43,6 +44,7 @@
         box-shadow: var(--shadow);
         backdrop-filter: blur(5px);
     }
+
     .dark-mode .header { background: rgba(30, 30, 30, 0.95); border-bottom-color: #4caf50; }
 
     .h-right { font-family: 'Amiri', serif; font-weight: bold; color: var(--primary); font-size: 20px; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.05); }
@@ -135,20 +137,6 @@
     .btn-clear { background: linear-gradient(135deg, #f44336, #e53935); } 
     .btn-file { background: #333; }
 
-/* ستایلی دوگمەی دەنگ بۆ نووسین */
-    .btn-mic { background: linear-gradient(135deg, #ff9800, #f57c00); position: relative; overflow: hidden; } 
-    
-    /* ئەنیمەیشنی شەپۆل کاتێک مایکرۆفۆنەکە ئیش دەکات */
-    .btn-mic.recording {
-        background: linear-gradient(135deg, #f44336, #d32f2f);
-        animation: pulseRecord 1.5s infinite;
-    }
-    
-    @keyframes pulseRecord {
-        0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
-    }
 
     #status { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 10px 20px; border-radius: 50px; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
@@ -206,8 +194,8 @@
             <div class="modal-header">دەربارەی پڕۆژە</div>
             <div class="modal-body">
                 <p><strong>ناوی گەشەپێدەر:</strong> ئه‌ركان دارا</p>
-                <p><strong>وەشانی پڕۆژەکە:</strong> 1.6</p>
-                <p><strong>دواین وه‌شان:</strong> 23/02/2026</p>
+                <p><strong>وەشانی پڕۆژەکە:</strong> 1.8</p>
+                <p><strong>دواین وه‌شان:</strong> 6/3/2026</p>
                 <p><strong>مافی كۆپیكردن:</strong> پارێزراوه‌</p>
                 <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
                 <p><strong>زانیاری و ئاگاداری:</strong></p>
@@ -287,8 +275,6 @@
             <button class="btn-copy" onclick="copyText()">📋 كۆپی بكه‌</button>
             <button class="btn-clear" onclick="clearText()">🗑️ بیسڕه‌وه‌</button>
             <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
-            <button id="micBtn" class="btn-mic" onclick="toggleSpeechRecognition()">🎤 دەنگ بۆ نووسین</button>
-
         </div>
     </div>
     
@@ -600,126 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateMarket, 5000);
     getNews();
 });
-
-// --- خزمەتگوزاری دەنگ بۆ نووسین (Speech to Text) ---
-// --- خزمەتگوزاری دەنگ بۆ نووسین (Speech to Text) ---
-let recognition;
-let isRecording = false;
-let finalTranscript = ''; 
-
-// پشکنین بۆ پشتگیری وێبگەڕەکە
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    
-    // ڕێکخستنە سەرەکییەکان
-    recognition.continuous = true; // بەردەوام بە لە گوێگرتن
-    recognition.interimResults = true; // نیشاندانی ئەنجامە کاتییەکان پێش تەواوبوون
-    recognition.lang = 'ckb-IQ'; // زمانی کوردی (سۆرانی) عێراق
-
-    recognition.onstart = function() {
-        isRecording = true;
-        const micBtn = document.getElementById('micBtn');
-        if(micBtn) {
-            micBtn.classList.add('recording');
-            micBtn.innerHTML = '🛑 ڕاگرتنی گوێگرتن...';
-        }
-        showStatus("🎤 دەستم کرد بە گوێگرتن... قسە بکە");
-    };
-
-    recognition.onresult = function(event) {
-        let interimTranscript = '';
-        const textBox = document.getElementById('textBox');
-        
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                // ئەگەر قسەکەی تەواو کرد، بیخە سەر دەقە سەرەکییەکە
-                finalTranscript += event.results[i][0].transcript + ' ';
-            } else {
-                // ئەگەر هێشتا قسە دەکات، بە کاتی نیشانی بدە
-                interimTranscript += event.results[i][0].transcript;
-            }
-        }
-        
-        // دەقەکە بنووسە ناو بۆکسەکەوە (دەقە کۆنەکە + ئەوەی ئێستا دەیڵێت)
-        if(textBox) {
-            textBox.value = finalTranscript + interimTranscript;
-            updateStats(); // ژمارەی وشە و پیتەکان نوێ بکەرەوە
-        }
-    };
-
-    recognition.onerror = function(event) {
-        console.error('هەڵەی مایکرۆفۆن:', event.error);
-        if (event.error === 'not-allowed') {
-            showStatus("❌ تکایە ڕێگە بە مایکرۆفۆنەکە بدە لە وێبگەڕەکەت");
-        } else if (event.error === 'network') {
-            showStatus("❌ کێشەی هێڵی ئینتەرنێت هەیە");
-        } else if (event.error === 'no-speech') {
-             // ئەگەر ماوەیەک قسەت نەکرد، پێویست ناکات دایبخات بە یەکجاری
-            console.log("هیچ دەنگێک نەبیسترا");
-        } else {
-            showStatus("⚠️ کێشەیەک ڕوویدا لە گوێگرتن: " + event.error);
-        }
-    };
-
-    recognition.onend = function() {
-        // ئەگەر بەڕاستی ئێمە راماننەگرتووە (خۆی وەستاوە بەهۆی بێدەنگی)، با دیسان دەست پێبکاتەوە
-        // ئەمە وا دەکات بۆ ماوەیەکی زۆر بەردەوام بێت
-        if (isRecording) {
-            try {
-                recognition.start();
-            } catch (e) {
-                // ئەگەر نەیتوانی دەستپێبکاتەوە، بە یەکجاری رایبگرە
-                stopRecording();
-            }
-        } else {
-            // ئەگەر بەکارهێنەر خۆی دوگمەکەی داگرت
-            stopRecording();
-        }
-    };
-
-} else {
-    console.log("وێبگەڕەکەت پشتگیری خزمەتگوزاری دەنگ بۆ نووسین ناکات.");
-}
-
-// فەنکشنی داگیرسان و کوژاندنەوە کاتێک کلیک لە دوگمەکە دەکەیت
-function toggleSpeechRecognition() {
-    if (!recognition) {
-        alert("ببورە، وێبگەڕەکەت پشتگیری ئەم خزمەتگوزارییە ناکات. تکایە Google Chrome یان Edge بەکاربهێنە.");
-        return;
-    }
-    
-    if (isRecording) {
-        // ئەگەر پێشتر کاری دەکرد، ئێستا ڕایبگرە
-        isRecording = false; // ئەمە زۆر گرنگە بۆ ئەوەی onend دووبارە دەستی پێ نەکاتەوە
-        recognition.stop();
-        stopRecordingUI();
-        showStatus("✅ گوێگرتن ڕاگیرا");
-    } else {
-        // ئەگەر کاری نەدەکرد، دەستی پێبکە
-        
-        // بۆ ئەوەی هەرچی پێشتر لە بۆکسەکەدا نووسراوە لەگەڵی تێکەڵ نەبێت (ئەگەر دەتەوێت بەیەکەوە بن، ئەم دێڕە بسڕەوە):
-        // finalTranscript = document.getElementById('textBox').value; // ئەگەر دەتەوێت لەسەر دەقە کۆنەکە بڕوات ئەمە بەکاربهێنە
-        finalTranscript = ''; 
-        document.getElementById('textBox').value = ''; 
-        
-        try {
-            recognition.start();
-        } catch(e) {
-            console.error("نەمتوانی دەست پێبکەم:", e);
-        }
-    }
-}
-
-// تەنها بۆ گۆڕینی شێوەی دوگمەکە بۆ باری ئاسایی
-function stopRecordingUI() {
-    const micBtn = document.getElementById('micBtn');
-    if(micBtn) {
-        micBtn.classList.remove('recording');
-        micBtn.innerHTML = '🎤 دەنگ بۆ نووسین';
-    }
-}
 
 </script>
 </body>

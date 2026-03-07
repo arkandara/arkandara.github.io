@@ -33,7 +33,8 @@
         --transition: 0.3s ease;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; transition: var(--transition); }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Arabic', sans-serif; transition: var(--transition); }
+
     
     body { background: #f4f7f6; min-height: 100vh; display: flex; flex-direction: column; }
     body.dark-mode { background: #121212; color: #ffffff; }
@@ -52,14 +53,13 @@
 
     .dark-mode .header { background: rgba(30, 30, 30, 0.95); border-bottom-color: #4caf50; }
 
-    .h-right { font-family: 'Amiri', serif; font-weight: bold; color: var(--primary); font-size: 20px; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .dark-mode .h-right { color: #4caf50; }
+.h-right { font-family: 'Noto Sans Arabic', sans-serif; font-weight: bold; color: var(--primary); font-size: 20px; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.05); }    .dark-mode .h-right { color: #4caf50; }
 
     .btn-nav { font-size: 12px; font-weight: bold; cursor: pointer; padding: 6px 12px; border-radius: 6px; color: white; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .btn-nav:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
     .h-center { text-align: center; display: flex; flex-direction: column; justify-content: center; padding: 0 10px; }
-    .h-center h1 { font-family: 'Amiri', serif; font-size: 1.2rem; color: var(--primary); margin: 0; line-height: 1; }
+    .h-center h1 { font-family: 'Noto Sans Arabic', sans-serif; font-size: 1.2rem; color: var(--primary); margin: 0; line-height: 1; }
     .h-center span { font-size: 11px; color: #888; font-weight: bold; letter-spacing: 0.5px; }
     .dark-mode .h-center h1 { color: #4caf50; }
 
@@ -119,7 +119,7 @@
 
     .container { flex: 1; display: flex; flex-direction: column; padding: 10px; gap: 1px; max-width: 100%; margin: 0 auto; width: 100%; }
     textarea { 
-        flex: 1; min-height: 400px; padding: 20px; border-radius: 12px; 
+        flex: 1; min-height: 378px; padding: 20px; border-radius: 10px; 
         border: 2px solid #e2e8f0; font-size: 20px; line-height: 1.8; 
         resize: none; text-align: right; direction: rtl; outline: none;
         background: #ffffff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
@@ -129,7 +129,7 @@
     
     .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 7px; margin-top: 5px; }
     button, .btn-file { 
-        padding: 10px; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; 
+        padding: 6px 10px; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; 
         color: white; font-size: 14px; text-align: center; 
         display: flex; align-items: center; justify-content: center;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -188,7 +188,17 @@
     .news-ticker { display: flex; align-items: center; background: rgba(0, 0, 0, 0.08); border-radius: 8px; padding: 2px 5px; margin-top: 5px; max-width: 100%; overflow: hidden; }
     .dark-mode .news-ticker { background: rgba(255, 255, 255, 0.1); }
     .news-badge { background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px; white-space: nowrap; }
-    #news-text { font-size: 13px; color: inherit; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.5s; }
+    
+#news-text { 
+    font-size: 14px; /* لێرەدا قەبارەکەی دەگۆڕیت، بۆ نموونە من کردم بە ١٥ */
+    font-weight: none; /* ئەمە نووسینەکە دەکات بە بۆڵد و تۆخ */
+    color: black; 
+    text-decoration: none; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    transition: opacity 0.5s; 
+}
 
 
 .btn-download {
@@ -220,17 +230,18 @@
 
 
 .btn-nav {
-    background: linear-gradient(135deg, #6e8efb, #a777e3); /* ڕەنگێکی گرادێنت و مۆدێرن */
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 3px 10px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 14px;
-    transition: all 0.3s ease; /* بۆ جوڵەی نەرم */
+    transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 
 .btn-nav:hover {
     background: linear-gradient(135deg, #5a7de0, #9565d0); /* کاتێک ماوسی دەبەیتە سەری تۆختر دەبێت */

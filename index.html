@@ -19,6 +19,11 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
+<!-- Font Awesome بۆ لینكی فیسبووك -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+
+
 <style>
 
     :root {
@@ -341,28 +346,112 @@
     font-weight: bold;
 }
 
+
+/* ستایلی لینکی فەیسبووک لەناو مۆداڵ */
+/* ستایلی سەرەکی دوگمە شاردراوەکە */
+.fb-hover-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: #1877f2;
+    color: white !important;
+    padding: 6px 10px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: bold;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* جوڵەی نەرم */
+    overflow: hidden;
+    max-width: 35px; /* تەنها ئایکۆنەکە دیار دەبێت لە سەرەتادا */
+    white-space: nowrap;
+}
+
+/* کاتێک ماوس دەچێتە سەری */
+.fb-hover-btn:hover {
+    max-width: 200px; /* درێژ دەبێتەوە بۆ ئەوەی نووسینەکە دەربکەوێت */
+    padding-right: 15px;
+    box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4);
+}
+
+/* ستایلی ئایکۆنەکە */
+.fb-hover-btn i {
+    font-size: 18px;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* ستایلی نووسینە شاردراوەکە */
+.fb-hover-text {
+    opacity: 0;
+    margin-right: 0px;
+    transition: opacity 0.3s ease, margin 0.3s ease;
+}
+
+/* کاتێک ماوس دەچێتە سەری نووسینەکە دەردەکەوێت */
+.fb-hover-btn:hover .fb-hover-text {
+    opacity: 1;
+    margin-right: 8px; /* مەودای نێوان ئایکۆن و نووسین */
+}
+
+/* ئەنیمەیشن بۆ پیتەکان (وەک ئەوەی بنووسرێت) */
+.fb-hover-btn:hover .fb-hover-text {
+    animation: typing 0.5s steps(20, end);
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+
+/* ستایلی تایبەت تەنها بۆ مۆداڵی دەربارەی پڕۆژە */
+#aboutModal .modal-content {
+    /* ۱. پانایی مۆداڵەکە (بە ئارەزووی خۆت بیگۆڕە) */
+    max-width: 1500px !important; 
+
+    /* ۲. بەرزی مۆداڵەکە بە شێوەی جێگیر (بۆ ئەوەی درێژ بێت) */
+    height: 300px !important; 
+
+    /* ۳. ئەگەر ویستت ناوەوەی مۆداڵەکە زۆرتر یان کەمتر بۆشایی هەبێت */
+    padding: 30px !important;
+
+    /* ٤. بۆ ئەوەی ناوەڕۆکەکە لە ناوەڕاست بێت ئەگەر بەرزییەکەت زۆر زیاد کرد */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
 </style>
 </head>
 
 <body>
 
-    <div id="aboutModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">دەربارەی پڕۆژە</div>
-            <div class="modal-body">
-                <p><strong>ناوی گەشەپێدەر:</strong> ئه‌ركان دارا</p>
-                <p><strong>وەشانی پڕۆژەکە:</strong> 1.8</p>
-                <p><strong>دواین وه‌شان:</strong> 6/3/2026</p>
-                <p><strong>مافی كۆپیكردن:</strong> پارێزراوه‌</p>
-                <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
-                <p><strong>زانیاری و ئاگاداری:</strong></p>
-                <p>نرخه‌كان كه‌ نوێبوونه‌وه‌ خۆیان دێنه‌ سه‌ر شاشه‌، مانشێتی هه‌واڵه‌كانیش نوێترینن و خۆیان نوێ ده‌بنه‌وه‌.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="close-btn" onclick="toggleAbout()">داخستن</button>
-            </div>
+   <div id="aboutModal" class="modal">
+<div class="modal-content" style="width: 400px !important; max-width: 95% !important; height: 290px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important;">
+        <div class="modal-header">زانیاری پڕۆژه‌ و په‌یوه‌ندیكردن</div>
+        <div class="modal-body">
+            
+            <!-- ناوی گەشەپێدەر و فەیسبووک لە یەک ڕیزدا -->
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+    <p style="margin: 0;"><strong>ناوی گەشەپێدەر:</strong> ئه‌ركان دارا</p>
+    
+    <!-- دوگمەی فەیسبووک بە ستایلی جوڵاو -->
+    <a href="https://web.facebook.com/arkanndara" target="_blank" class="fb-hover-btn">
+        <i class="fab fa-facebook-f"></i>
+        <span class="fb-hover-text">بۆ په‌یوه‌ندیكردن  </span>
+    </a>
+</div>
+
+           <p><strong>دواین ئه‌بده‌یت:</strong> 7/3/2026</p>
+            <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
+            <p><strong>زانیاری:</strong></p>
+            <p>نرخه‌كان و مانشێتی هه‌واڵه‌كان خۆیان نوێ ده‌بنه‌وه‌.</p>
+
+        </div>
+        <div class="modal-footer">
+            <button class="close-btn" onclick="toggleAbout()">داخستن</button>
         </div>
     </div>
+</div>
 
     <div id="dlModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">

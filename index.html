@@ -447,6 +447,35 @@ button, .btn-file {
     justify-content: space-between;
 }
 
+
+/* ستایلی تایبەت بۆ دوگمەی جیمینای */
+.btn-gemini {
+    background: linear-gradient(135deg, #1a73e8, #8ab4f8, #9b72cb);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.btn-gemini:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(26, 115, 232, 0.3);
+    opacity: 0.9;
+}
+
+.btn-gemini:active {
+    transform: scale(0.98);
+}
+
+
 </style>
 </head>
 
@@ -537,12 +566,15 @@ button, .btn-file {
         <div class="btn-group">
             <button class="btn-uni" onclick="convert('toUni')">✨ یونیکۆد</button>
             <button class="btn-ali" onclick="convert('toAli')">🔄  عەلی کەی</button>
-            <label for="fileInput" class="btn-file" style="cursor:pointer;"> 📁 WORD بهێنه‌ </label>
+            <label for="fileInput" class="btn-file" style="cursor:pointer;"> 📁 Word </label>
             <input type="file" id="fileInput" accept=".docx" style="display:none;">
-            <button class="btn-copy" onclick="copyText()">📋 كۆپی </button>
-            <button class="btn-clear" onclick="clearText()">🗑️ بیسڕه‌وه‌</button>
+            <button class="btn-copy" onclick="copyText()">📋 كۆپیكردن </button>
+            <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
+
+<button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✨ Gemini</button>
+
             <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
-                    <button onclick="downloadAsWord()" class="btn-download">📄 داگرتن بە Word </button>
+                    <button onclick="downloadAsWord()" class="btn-download">⬇️ Word</button>
 
         <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
 
@@ -651,7 +683,7 @@ function copyText() {
     const textToCopy = (start !== finish) ? textarea.value.substring(start, finish) : textarea.value;
     if (textToCopy) {
         navigator.clipboard.writeText(textToCopy).then(() => {
-            showStatus(start !== finish ? "📋 دەق دیاریکراوەکە کۆپی کرا" : "📋 هەموو دەقەکە کۆپی کرا");
+            showStatus(start !== finish ? "📋 دەقه‌ دیاریکراوەکە کۆپی کرا" : "📋 هەموو دەقەکە کۆپی کرا");
         }).catch(() => showStatus("❌ هەڵە لە کۆپیکردن"));
     }
 }
@@ -969,6 +1001,43 @@ function findAndReplace() {
     if (typeof updateStats === 'function') updateStats();
     localStorage.setItem('autosave_text', textBox.value);
 }
+
+
+async function sendToGemini() {
+    const textBox = document.getElementById('textBox');
+    const start = textBox.selectionStart;
+    const finish = textBox.selectionEnd;
+    
+    // وەرگرتنی ئەو دەقەی سەڵێکت کراوە
+    let selectedText = textBox.value.substring(start, finish).trim();
+
+    // ئەگەر هیچ شتێک سەڵێکت نەکرابوو، هەموو دەقەکە دەبات
+    if (!selectedText) {
+        selectedText = textBox.value.trim();
+    }
+
+    if (selectedText) {
+        // ١. یەکەمجار دەقەکە کۆپی دەکەین بۆ کڵیپبۆرد (Clipboard)
+        try {
+            await navigator.clipboard.writeText(selectedText);
+        } catch (err) {
+            console.error('نەتوانرا کۆپی بکرێت', err);
+        }
+
+        // ٢. گۆڕینی لینکەکە بۆ جۆرێکی تر کە گوگڵ باشتر دەیناسێتەوە (بەکارهێنانی ?q= لەبری ?prompt=)
+        const encodedText = encodeURIComponent(selectedText);
+        const geminiUrl = `https://gemini.google.com/app?q=${encodedText}`;
+
+        // ٣. کردنەوەی جیمینای
+        window.open(geminiUrl, '_blank');
+
+        // ٤. پیشاندانی نامەیەک بۆ دڵنیایی بەکارهێنەر
+        showStatus("📋 دەقەکە کۆپی کرا و جیمینای کرایەوە، تەنها Paste بکە");
+    } else {
+        showStatus("⚠️ تکایە دەقێک بنووسە یان سەڵێکتی بکە");
+    }
+}
+
 
 </script>
 </body>

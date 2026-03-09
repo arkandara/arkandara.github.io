@@ -476,6 +476,78 @@ button, .btn-file {
 }
 
 
+
+/* ستایلی لیستی بازدەر */
+/* ستایلی نوێی لیستی بازدەر (Dropdown) */
+.dropdown {
+       padding: 5px 8px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-bottom: 5px; /* وەک پردێک بۆ ئەوەی ماوسەکە نەپچڕێت کاتێک دەچێتە سەر لیستەکە */
+}
+
+.dropdown-btn {
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+       width: 230px;
+    position: absolute;
+    top: 100%; /* ڕێک لە ژێر دوگمەکە دەست پێ دەکات */
+    left: 0;
+    background-color: #ffffff;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    z-index: 1001;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    overflow: hidden;
+    animation: fadeInDropdown 0.2s ease;
+}
+
+/* مۆدی تاریك بۆ لیستەکە */
+.dark-mode .dropdown-content {
+    background-color: #1e1e1e;
+    border-color: #333;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.5);
+}
+
+/* پیشاندان لە کاتی Hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    color: #333;
+    padding: 3px 3px;
+    text-decoration: none;
+    display: block;
+    font-size: 13px;
+    text-align: right;
+    transition: 0.2s;
+}
+
+.dark-mode .dropdown-content a {
+    color: #eee;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+    color: var(--primary);
+}
+
+.dark-mode .dropdown-content a:hover {
+    background-color: #2c2c2c;
+    color: #4caf50;
+}
+
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 </style>
 </head>
 
@@ -553,7 +625,14 @@ button, .btn-file {
             <div class="stat-item" id="textStats">وشە: ٠</div>
             <div style="cursor:pointer; font-size:18px;" onclick="toggleT()">🌙</div>
             <div style="cursor:pointer; font-size:18px;" onclick="toggleAbout()">ℹ️</div>
-        </div>
+<!-- لیستی بژاردەکان بە ستایلی هاوشێوەی پارچەکانی تر -->
+<div class="dropdown">
+    <div class="stat-item dropdown-btn" onclick="toggleDropdown()" title="بژاردە زیاتر">▼</div>
+    <div id="myDropdown" class="dropdown-content">
+        <a href="#" onclick="removeEmptyLines()">✨ نەهێشتنی بۆشایی نێوان دێڕه‌كان</a>
+<a href="#" onclick="splitByDot()">📑 بۆشایی دوای خاڵ</a>
+    </div>
+</div>     </div>
     </div>
 
     <div class="news-ticker">
@@ -1036,6 +1115,57 @@ async function sendToGemini() {
     } else {
         showStatus("⚠️ تکایە دەقێک بنووسە یان سەڵێکتی بکە");
     }
+}
+
+
+// فەنکشن بۆ پیشاندان و شاردنەوەی لیستەکە
+function toggleDropdown() {
+    document.getElementById("myDropdown").classList.toggle("show");
+}
+
+// فەنکشن بۆ سڕینەوەی دێڕە بەتاڵەکان
+// فەنکشن بۆ سڕینەوەی دێڕە بەتاڵەکان بە شێوەیەکی خێرا
+function removeEmptyLines() {
+    const textBox = document.getElementById("textBox");
+    if (!textBox || !textBox.value.trim()) return;
+
+    const originalText = textBox.value;
+    
+    // سڕینەوەی ئەو دێڕانەی کە بەتاڵن یان تەنها سپەیسیان تێدایە
+    const cleanedText = originalText
+        .split('\n')
+        .filter(line => line.trim() !== '')
+        .join('\n');
+
+    textBox.value = cleanedText;
+    
+    // نوێکردنەوەی ئامارەکان و سەیڤکردنی ئۆتۆماتیکی
+    if (typeof updateStats === 'function') updateStats();
+    if (typeof showStatus === 'function') showStatus("✨ دێڕە بەتاڵەکان سڕانەوە");
+    
+    // سەیڤکردن لە لۆکاڵ ستۆریج
+    localStorage.setItem('autosave_text', cleanedText);
+}
+
+// فەنکشن بۆ ئەوەی دوای هەر خاڵێک بچێتە دێڕێکی نوێ
+function splitByDot() {
+    const textBox = document.getElementById("textBox");
+    if (!textBox || !textBox.value.trim()) return;
+
+    let text = textBox.value;
+
+    // لێرەدا دەڵێین: هەر خاڵێک بدۆزەرەوە کە لەدوایدا سپەیس یان دێڕی نوێ هەبێت
+    // و بیگۆڕە بۆ (خاڵ + دوو دێڕی نوێ) بۆ ئەوەی پەرەگرافێکی جوان دروست بێت
+    // بەکارهێنانی trim() بۆ ئەوەی سپەیسە زیادەکانی دوای خاڵەکە نەمێنن
+    let formattedText = text.replace(/\.\s*/g, ".\n\n");
+
+    // سڕینەوەی ئەو دوو دێڕە زیادەی کە لە کۆتایی دەقەکە دروست دەبن
+    textBox.value = formattedText.trim();
+
+    // نوێکردنەوەی ئامارەکان و سەیڤکردن
+    if (typeof updateStats === 'function') updateStats();
+    if (typeof showStatus === 'function') showStatus("📑 دەقەکە کرا بە پەرەگراف");
+    localStorage.setItem('autosave_text', textBox.value);
 }
 
 

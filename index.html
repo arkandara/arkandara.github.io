@@ -480,7 +480,8 @@ button, .btn-file {
 /* ستایلی لیستی بازدەر */
 /* ستایلی نوێی لیستی بازدەر (Dropdown) */
 .dropdown {
-       padding: 5px 8px;
+    padding: 5px 8px;
+    margin: 0px 0px;
     position: relative;
     display: flex;
     align-items: center;
@@ -489,6 +490,8 @@ button, .btn-file {
 
 .dropdown-btn {
     cursor: pointer;
+    padding: 5px 8px;
+    margin: 0px -8px;
 }
 
 .dropdown-content {
@@ -623,16 +626,21 @@ button, .btn-file {
         
 
             <div class="stat-item" id="textStats">وشە: ٠</div>
-            <div style="cursor:pointer; font-size:18px;" onclick="toggleT()">🌙</div>
-            <div style="cursor:pointer; font-size:18px;" onclick="toggleAbout()">ℹ️</div>
+
 <!-- لیستی بژاردەکان بە ستایلی هاوشێوەی پارچەکانی تر -->
 <div class="dropdown">
-    <div class="stat-item dropdown-btn" onclick="toggleDropdown()" title="بژاردەی زیاتر">ڕێكخستن▼</div>
+    <div class="stat-item dropdown-btn" onclick="toggleDropdown()" title="بژاردەی زیاتر">ڕێكخستن ▼ </div>
     <div id="myDropdown" class="dropdown-content">
-        <a href="#" onclick="removeEmptyLines()">✨ نەهێشتنی بۆشایی نێوان دێڕه‌كان</a>
-              <a href="#" onclick="splitByDot()">📑 بۆشایی دوای خاڵ</a>
+        <a href="#" onclick="removeEmptyLines()"> لابردنی بۆشایی نێوان دێڕه‌كان</a>
+              <a href="#" onclick="splitByDot()"> بۆشایی دوای خاڵ</a>
     </div>
-</div>     </div>
+</div> 
+
+
+            <div style="cursor:pointer; font-size:18px;" onclick="toggleT()">🌙</div>
+            <div style="cursor:pointer; font-size:18px;" onclick="toggleAbout()">ℹ️</div>
+
+    </div>
     </div>
 
     <div class="news-ticker">
@@ -643,16 +651,16 @@ button, .btn-file {
     <div class="container">
         <textarea id="textBox" placeholder="لێره‌ بنووسه‌ یان ده‌قێك دابنێ..."></textarea>
         <div class="btn-group">
-            <button class="btn-uni" onclick="convert('toUni')">✨ یونیکۆد</button>
-            <button class="btn-ali" onclick="convert('toAli')">🔄  عەلی کەی</button>
+            <button class="btn-uni" onclick="convert('toUni')">↺ یونیکۆد</button>
+            <button class="btn-ali" onclick="convert('toAli')">↻  عەلی کەی</button>
             <label for="fileInput" class="btn-file" style="cursor:pointer;"> 📁 Word </label>
             <input type="file" id="fileInput" accept=".docx" style="display:none;">
-            <button class="btn-copy" onclick="copyText()">📋 كۆپیكردن </button>
+            <button class="btn-copy" onclick="copyText()">📄 كۆپیكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
-                     <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✨ Gemini</button>
+            <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
             <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
             <button onclick="downloadAsWord()" class="btn-download">⬇️ Word</button>
-               <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
+            <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
 
 <div id="findReplaceModal">
     <div class="fr-card">
@@ -967,33 +975,59 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function downloadAsWord() {
+async function downloadAsWord() {
     const content = document.getElementById('textBox').value;
     if (!content.trim()) {
         alert("سندوقی نووسینەکە بەتاڵە!");
         return;
     }
 
-    // دروستکردنی فۆرماتی فایلەکە
+    // دروستکردنی فۆرماتی فایلەکە بە شێوازێک کە وۆرد 2003 بە باشی بیخوێنێتەوە
     const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
                    "xmlns:w='urn:schemas-microsoft-com:office:word' " +
                    "xmlns='http://www.w3.org/TR/REC-html40'>" +
-                   "<head><meta charset='utf-8'><title>Export to Word</title></head><body>";
+                   "<head><meta charset='utf-8'>" +
+                   "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->" +
+                   "</head><body>";
     const footer = "</body></html>";
+    
+    // گۆڕینی ئینتەر (New line) بۆ تاگی <br> بۆ ئەوەی لە وۆرددا دێڕەکان تێک نەچن
     const sourceHTML = header + content.replace(/\n/g, '<br>') + footer;
 
-    // دروستکردنی 'Blob' بۆ فایلی وۆرد
-    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
-    const fileDownload = document.createElement("a");
-    document.body.appendChild(fileDownload);
-    
-    // ناونانی فایلەکە
-    fileDownload.href = source;
-    fileDownload.download = 'MyDocument.doc';
-    fileDownload.click();
-    document.body.removeChild(fileDownload);
-}
+    // دروستکردنی Blob (ئەمە باشترە لە شێوازە کۆنەکە بۆ پیتە کوردییەکان)
+    const blob = new Blob(['\ufeff', sourceHTML], {
+        type: 'application/msword'
+    });
 
+    // بەکارهێنانی سیستەمی نوێ بۆ ئەوەی پرسیار بکات لەکوێ خەزن بکرێت
+    if ('showSaveFilePicker' in window) {
+        try {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: 'MyDocument.doc',
+                types: [{
+                    description: 'Word 97-2003 Document',
+                    accept: {'application/msword': ['.doc']},
+                }],
+            });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+        } catch (err) {
+            // ئەگەر بەکارهێنەر پاشگەز بووەوە یان پەنجەرەکەی داخست
+            console.log('کرداری خەزنکردن هەڵوەشایەوە');
+        }
+    } else {
+        // ئەگەر براوزەرەکە (وەک Firefox یان وێبگەڕە کۆنەکان) پاڵپشتی ئەو سیستەمە نوێیەی نەدەکرد
+        const url = URL.createObjectURL(blob);
+        const fileDownload = document.createElement("a");
+        fileDownload.href = url;
+        fileDownload.download = 'MyDocument.doc';
+        document.body.appendChild(fileDownload);
+        fileDownload.click();
+        document.body.removeChild(fileDownload);
+        URL.revokeObjectURL(url);
+    }
+}
 
 
 

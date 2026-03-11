@@ -627,10 +627,10 @@ button, .btn-file {
             <div style="cursor:pointer; font-size:18px;" onclick="toggleAbout()">ℹ️</div>
 <!-- لیستی بژاردەکان بە ستایلی هاوشێوەی پارچەکانی تر -->
 <div class="dropdown">
-    <div class="stat-item dropdown-btn" onclick="toggleDropdown()" title="بژاردە زیاتر">▼</div>
+    <div class="stat-item dropdown-btn" onclick="toggleDropdown()" title="بژاردەی زیاتر">ڕێكخستن▼</div>
     <div id="myDropdown" class="dropdown-content">
         <a href="#" onclick="removeEmptyLines()">✨ نەهێشتنی بۆشایی نێوان دێڕه‌كان</a>
-<a href="#" onclick="splitByDot()">📑 بۆشایی دوای خاڵ</a>
+              <a href="#" onclick="splitByDot()">📑 بۆشایی دوای خاڵ</a>
     </div>
 </div>     </div>
     </div>
@@ -649,13 +649,10 @@ button, .btn-file {
             <input type="file" id="fileInput" accept=".docx" style="display:none;">
             <button class="btn-copy" onclick="copyText()">📋 كۆپیكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
-
-<button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✨ Gemini</button>
-
+                     <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✨ Gemini</button>
             <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
-                    <button onclick="downloadAsWord()" class="btn-download">⬇️ Word</button>
-
-        <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
+            <button onclick="downloadAsWord()" class="btn-download">⬇️ Word</button>
+               <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
 
 <div id="findReplaceModal">
     <div class="fr-card">
@@ -700,7 +697,12 @@ const conversionMap =[
     { uni: '٢', ali: '2' }, { uni: '٣', ali: '3' }, 
     { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
     { uni: '٦', ali: '6' }, { uni: '٧', ali: '7' }, 
-    { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' }
+    { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' },
+
+    { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ 4 په‌ره‌گرافدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها مانشێتیكی سه‌رنجڕاكێشیشی بۆ دابنێ، هه‌ر وشه‌یه‌كیش هه‌بوو به‌ناوی ئیسرائیل یان سوپای ئیسرائیل تۆ بیكه‌ به‌ قه‌واره‌ی زایۆنی یان سوپای زایۆنی له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا هه‌روه‌ها هه‌رچییه‌ك ژماره‌ هه‌بوو له‌ ناوه‌ڕۆكی هه‌واڵه‌كه‌دا بیهێڵه‌وه‌ چونكه‌ ئامار هه‌واڵه‌كه‌ به‌هادارتر ده‌كات ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانی پڕۆفیشناڵم ده‌وێت ' }
+
+
+
 ];
 
 const rssSources =[
@@ -1082,40 +1084,44 @@ function findAndReplace() {
 }
 
 
+
+    // كۆدی تایبه‌تی جییمنایی
+
 async function sendToGemini() {
     const textBox = document.getElementById('textBox');
     const start = textBox.selectionStart;
     const finish = textBox.selectionEnd;
     
-    // وەرگرتنی ئەو دەقەی سەڵێکت کراوە
+    // وەرگرتنی دەق (ئەگەر سەڵێکت کرابوو یان هەمووی)
     let selectedText = textBox.value.substring(start, finish).trim();
-
-    // ئەگەر هیچ شتێک سەڵێکت نەکرابوو، هەموو دەقەکە دەبات
     if (!selectedText) {
         selectedText = textBox.value.trim();
     }
 
     if (selectedText) {
-        // ١. یەکەمجار دەقەکە کۆپی دەکەین بۆ کڵیپبۆرد (Clipboard)
+        // ١. هێشتا کۆپی دەکەین بۆ دڵنیایی (چونکە ئەگەر دەقەکە زۆر درێژ بێت لە لینکدا جێ نابێتەوە)
         try {
             await navigator.clipboard.writeText(selectedText);
         } catch (err) {
             console.error('نەتوانرا کۆپی بکرێت', err);
         }
 
-        // ٢. گۆڕینی لینکەکە بۆ جۆرێکی تر کە گوگڵ باشتر دەیناسێتەوە (بەکارهێنانی ?q= لەبری ?prompt=)
+        // ٢. بەکارهێنانی قاڵبێکی ئامادەکراو بۆ ناردن (URL Encoding)
+        // ئێمە دەقەکە دەخەینە دوای ?q= 
         const encodedText = encodeURIComponent(selectedText);
+        
+        // لینکی چاتبۆتە تایبەتەکەی خۆت + دەقەکە
         const geminiUrl = `https://gemini.google.com/app?q=${encodedText}`;
 
-        // ٣. کردنەوەی جیمینای
-        window.open(geminiUrl, '_blank');
+        // ٣. کردنەوەی جیمینای (بە شێوەیەک کە دەقەکە خۆکارانە لەوێ دادەنێت)
+        window.open(geminiUrl, 'GeminiFixedTab');
 
-        // ٤. پیشاندانی نامەیەک بۆ دڵنیایی بەکارهێنەر
-        showStatus("📋 دەقەکە کۆپی کرا و جیمینای کرایەوە، تەنها Paste بکە");
+        showStatus("✨ دەقەکە نێردرا، جیمینای خۆی پڕی دەکاتەوە");
     } else {
         showStatus("⚠️ تکایە دەقێک بنووسە یان سەڵێکتی بکە");
     }
 }
+
 
 
 // فەنکشن بۆ پیشاندان و شاردنەوەی لیستەکە

@@ -572,10 +572,11 @@ button, .btn-file {
     </a>
 </div>
 
-           <p><strong>دواین نوێكردنه‌وه‌:</strong> 8/3/2026</p>
+           <p><strong>دواین نوێكردنه‌وه‌:</strong> 11/3/2026</p>
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
             <p><strong>زانیاری:</strong></p>
             <p>نرخه‌كان و مانشێتی هه‌واڵه‌كان خۆیان نوێ ده‌بنه‌وه‌.</p>
+                         <p>ته‌نها -- له‌خانه‌ی تێكست بنووسه‌ لینكی كۆنڤێرتی گشتیت پێ ده‌دات‌.</p>
 
         </div>
         <div class="modal-footer">
@@ -706,7 +707,7 @@ const conversionMap =[
     { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
     { uni: '٦', ali: '6' }, { uni: '٧', ali: '7' }, 
     { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' },
-
+    { uni: '--', ali: 'https://image.online-convert.com/' },
     { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ 4 په‌ره‌گرافدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها مانشێتیكی سه‌رنجڕاكێشیشی بۆ دابنێ، هه‌ر وشه‌یه‌كیش هه‌بوو به‌ناوی ئیسرائیل یان سوپای ئیسرائیل تۆ بیكه‌ به‌ قه‌واره‌ی زایۆنی یان سوپای زایۆنی له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا هه‌روه‌ها هه‌رچییه‌ك ژماره‌ هه‌بوو له‌ ناوه‌ڕۆكی هه‌واڵه‌كه‌دا بیهێڵه‌وه‌ چونكه‌ ئامار هه‌واڵه‌كه‌ به‌هادارتر ده‌كات ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانی پڕۆفیشناڵم ده‌وێت ' }
 
 
@@ -840,20 +841,23 @@ function updateStats() {
     const fullText = textarea.value; 
     const start = textarea.selectionStart || 0;
     const end = textarea.selectionEnd || 0;
-    const selectedText = fullText.substring(start, end).trim();
     
-    const totalWords = fullText.trim() ? fullText.trim().split(/\s+/).length : 0;
-    const totalChars = fullText.length;
-
-    const selectedWords = selectedText ? selectedText.split(/\s+/).length : 0;
-    const selectedChars = selectedText.length;
-
-    if (selectedChars > 0) {
-        statsEl.innerText = `وشە: ${totalWords}, پیت: ${totalChars} | وشە: ${selectedWords}, پیت: ${selectedChars}`;
+    // لێره‌دا trim ناكه‌ین بۆ ئه‌وه‌ی ئه‌گه‌ر بۆشاییش دیاری كرا، وه‌ك نووسین هه‌ژمار بكرێت
+    const selectedText = fullText.substring(start, end);
+    
+    if (selectedText.length > 0) {
+        // ئه‌گه‌ر ده‌ق دیاریكرابوو: ته‌نها زانیاری به‌شه‌ دیاریكراوه‌كه‌ نیشان بده‌
+        const selectedWords = selectedText.trim() ? selectedText.trim().split(/\s+/).length : 0;
+        const selectedChars = selectedText.length;
+        statsEl.innerText = ` وشە: ${selectedWords}, پیت: ${selectedChars}`;
     } else {
-        statsEl.innerText = `وشە: ${totalWords} | پیت: ${totalChars}`;
+        // ئه‌گه‌ر هیچی دیاری نه‌كرابوو: زانیاری گشتی هه‌موو ده‌قه‌كه‌ نیشان بده‌
+        const totalWords = fullText.trim() ? fullText.trim().split(/\s+/).length : 0;
+        const totalChars = fullText.length;
+        statsEl.innerText = ` وشە: ${totalWords}, پیت: ${totalChars}`;
     }
 }
+
 
 async function handleFile(e) {
     const file = e.target.files[0];
@@ -947,7 +951,7 @@ function initClock() {
         const minutes = String(n.getMinutes()).padStart(2, '0');
         const seconds = String(n.getSeconds()).padStart(2, '0');
 
-        clockEl.innerText = `${days[n.getDay()]} ${dateStr}  🕰️  کاتژمێر ${hours}:${minutes}:${seconds}`;
+        clockEl.innerText = `${days[n.getDay()]} ${dateStr}  🕰️  ${hours}:${minutes}:${seconds}`;
     }, 1000);
 }
 

@@ -431,21 +431,39 @@ button, .btn-file {
 
 
 /* ستایلی تایبەت تەنها بۆ مۆداڵی دەربارەی پڕۆژە */
+
+
 #aboutModal .modal-content {
-    /* ۱. پانایی مۆداڵەکە (بە ئارەزووی خۆت بیگۆڕە) */
-    max-width: 1500px !important; 
+    /* ۱. پانایی: لێرەدا بیکە بە ٩٠٪ بۆ ئەوەی لە مۆبایل تێکنەچێت، بەڵام max-width زیاد بکە */
+    min-height: 70% !important; 
+    max-height: 50% !important; 
+       max-width: 10% !important; 
+    min-width: 60% !important; 
 
-    /* ۲. بەرزی مۆداڵەکە بە شێوەی جێگیر (بۆ ئەوەی درێژ بێت) */
-    height: 300px !important; 
 
-    /* ۳. ئەگەر ویستت ناوەوەی مۆداڵەکە زۆرتر یان کەمتر بۆشایی هەبێت */
-    padding: 30px !important;
-
-    /* ٤. بۆ ئەوەی ناوەڕۆکەکە لە ناوەڕاست بێت ئەگەر بەرزییەکەت زۆر زیاد کرد */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    padding: 10px !important; /* بڕێکی کەم بۆ ئەوەی تەسکی نەکاتەوە */
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
 }
+
+/* ۲. تەنها سڕینەوەی بۆشایی دەقەکان (نەک دوگمە و وێنە) */
+#aboutModal p, 
+#aboutModal h1, 
+#aboutModal h2, 
+#aboutModal h3, 
+#aboutModal span {
+    margin: 0 !important;
+    padding: 2px 0 !important; /* کەمێک بۆشایی نێوان دێڕەکان */
+}
+
+/* ۳. پاراستنی دوگمەکان: ڕێگە مەدە دوگمەکان شێوەیان تێک بچێت */
+#aboutModal button, 
+#aboutModal .btn,
+#aboutModal .close-btn {
+    display: inline-block !important; /* دڵنیابوون لەوەی دوگمەکە پان نابێتەوە */
+}
+
 
 
 /* ستایلی تایبەت بۆ دوگمەی جیمینای */
@@ -555,36 +573,40 @@ button, .btn-file {
 </head>
 
 <body>
-
-   <div id="aboutModal" class="modal">
-<div class="modal-content" style="width: 400px !important; max-width: 95% !important; height: 290px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important;">
-        <div class="modal-header">زانیاری پڕۆژه‌ و په‌یوه‌ندیكردن</div>
+<div id="aboutModal" class="modal">
+    <!-- من بەرزی (height) مۆداڵەکەم کەمێک زیاد کرد بۆ 310px بۆ ئەوەی هەموو دەقەکان بە جوانی جێیان ببێتەوە -->
+    <div class="modal-content" style="width: 450px !important; max-width: 95% !important; height: auto !important; min-height: 310px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; padding: 20px !important;">
+        
+        <div class="modal-header" style="font-weight: bold; margin-bottom: 15px;">زانیاری پڕۆژه‌ و په‌یوه‌ندیكردن</div>
+        
         <div class="modal-body">
-            
-            <!-- ناوی گەشەپێدەر و فەیسبووک لە یەک ڕیزدا -->
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-    <p style="margin: 0;"><strong>ناوی گەشەپێدەر:</strong> ئه‌ركان دارا</p>
-    
-    <!-- دوگمەی فەیسبووک بە ستایلی جوڵاو -->
-    <a href="https://web.facebook.com/arkanndara" target="_blank" class="fb-hover-btn">
-        <i class="fab fa-facebook-f"></i>
-        <span class="fb-hover-text">بۆ په‌یوه‌ندیكردن  </span>
-    </a>
-</div>
+            <!-- هەموو زانیارییە سەرەکییەکان لە یەک ڕیزدا -->
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                <p style="margin: 0;"><strong>گەشەپێدەر:</strong> ئه‌ركان دارا</p>
+                
+                <!-- دوگمەی فەیسبووک -->
+                <a href="https://web.facebook.com/arkanndara" target="_blank" class="fb-hover-btn" style="text-decoration: none;">
+                    <i class="fab fa-facebook-f"></i>
+                    <span class="fb-hover-text">بۆ په‌یوه‌ندیكردن</span>
+                </a>
 
-           <p><strong>دواین نوێكردنه‌وه‌:</strong> 11/3/2026</p>
+                <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
+                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 8/3/2026</p>
+            </div>
+
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
-            <p><strong>زانیاری:</strong></p>
-            <p>نرخه‌كان و مانشێتی هه‌واڵه‌كان خۆیان نوێ ده‌بنه‌وه‌.</p>
-                         <p>ته‌نها -- له‌خانه‌ی تێكست بنووسه‌ لینكی كۆنڤێرتی گشتیت پێ ده‌دات‌.</p>
-
+            
+            <p style="margin: 5px 0;"><strong>زانیاری:</strong></p>
+            <p style="margin: 3px 0; font-size: 0.95em;">نرخه‌كان و مانشێتی هه‌واڵه‌كان خۆیان نوێ ده‌بنه‌وه‌.</p>
+            <p style="margin: 3px 0; font-size: 0.95em;">ته‌نها -- له‌خانه‌ی تێكست بنووسه‌ و دوگمه‌ی عه‌لی كه‌ی دابگره‌ لینكی كۆنڤێرتی گشتیت پێ ده‌دات‌.</p>
+            <p style="margin: 3px 0; font-size: 0.95em;">كه‌ كلیك له‌سه‌ر دوگمه‌ی جیمینای ده‌كه‌یت تێكسته‌كه‌ت بۆ cut ده‌كات و جیمینای ده‌كاته‌وه‌‌.</p>
         </div>
-        <div class="modal-footer">
+
+        <div class="modal-footer" style="text-align: left; margin-top: 25px;">
             <button class="close-btn" onclick="toggleAbout()">داخستن</button>
         </div>
     </div>
 </div>
-
     <div id="dlModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">📥 داگرتنی ڤیدیۆ و دەنگ</div>
@@ -630,10 +652,16 @@ button, .btn-file {
 
 <!-- لیستی بژاردەکان بە ستایلی هاوشێوەی پارچەکانی تر -->
 <div class="dropdown">
-    <div class="stat-item dropdown-btn" onclick="toggleDropdown()" title="بژاردەی زیاتر">ڕێكخستن ▼ </div>
+    <div class="stat-item dropdown-btn" onclick="toggleDropdown()">ڕێكخستن ▼</div>
     <div id="myDropdown" class="dropdown-content">
+<a href="#" onclick="undo()">↩️ گەڕانەوە (Undo)</a>
+<a href="#" onclick="redo()">↪️ چوونە پێش (Redo)</a>
+          <a href="#" onclick="fixPunctuation()"> ڕێکخستنی فاریزە و خاڵ</a>
         <a href="#" onclick="removeEmptyLines()"> لابردنی بۆشایی نێوان دێڕه‌كان</a>
               <a href="#" onclick="splitByDot()"> بۆشایی دوای خاڵ</a>
+<a href="#" onclick="sortLines()"> ڕیزکردن(A-Z)</a>
+<a href="#" onclick="formatKurdishNumbers()">ڕێنووسی ژمارەکان</a>
+
     </div>
 </div> 
 
@@ -1127,39 +1155,59 @@ function findAndReplace() {
 
 async function sendToGemini() {
     const textBox = document.getElementById('textBox');
+    if (!textBox) return;
+
     const start = textBox.selectionStart;
     const finish = textBox.selectionEnd;
+    const fullText = textBox.value;
     
-    // وەرگرتنی دەق (ئەگەر سەڵێکت کرابوو یان هەمووی)
-    let selectedText = textBox.value.substring(start, finish).trim();
-    if (!selectedText) {
-        selectedText = textBox.value.trim();
+    let textToCut = "";
+    let newText = "";
+
+    // ١. دیاریکردنی ئەوەی چی ببڕدرێت (سەڵێکت یان هەمووی)
+    if (start !== finish) {
+        // ئەگەر بەشێکی دیاریکراو بوو
+        textToCut = fullText.substring(start, finish);
+        // لادانی ئەو بەشە لەناو دەقە گشتییەکە
+        newText = fullText.substring(0, start) + fullText.substring(finish);
+    } else {
+        // ئەگەر هیچی دیارینەکرابوو، هەمووی دەبڕێت
+        textToCut = fullText;
+        newText = "";
     }
 
-    if (selectedText) {
-        // ١. هێشتا کۆپی دەکەین بۆ دڵنیایی (چونکە ئەگەر دەقەکە زۆر درێژ بێت لە لینکدا جێ نابێتەوە)
+    if (textToCut.trim()) {
         try {
-            await navigator.clipboard.writeText(selectedText);
+            // ٢. کۆپی کردنی دەقە بڕدراوەکە بۆ ناو میمۆری (Clipboard)
+            await navigator.clipboard.writeText(textToCut);
+
+            // ٣. سڕینەوەی دەقەکە لەناو خانەکە (کرداری Cut)
+            textBox.value = newText;
+            
+            // گەڕاندنەوەی فۆکس و نیشاندەر بۆ شوێنی بڕینەکە
+            textBox.setSelectionRange(start, start);
+            textBox.focus();
+
+            // ٤. نوێکردنەوەی ئامارەکان (ئەگەر فەنکشنەکەت هەبێت)
+            if (typeof updateStats === "function") updateStats();
+
+            // ٥. کردنەوەی جیمینای بەو دەقەوە
+            const encodedText = encodeURIComponent(textToCut);
+            const geminiUrl = `https://gemini.google.com/app?q=${encodedText}`;
+            window.open(geminiUrl, '_blank');
+
+            if (typeof showStatus === "function") {
+                showStatus("✂️ دەقەکە بڕدرا و بۆ جیمینای نێردرا");
+            }
         } catch (err) {
-            console.error('نەتوانرا کۆپی بکرێت', err);
+            console.error('هەڵە لە بڕینی دەقەکە:', err);
         }
-
-        // ٢. بەکارهێنانی قاڵبێکی ئامادەکراو بۆ ناردن (URL Encoding)
-        // ئێمە دەقەکە دەخەینە دوای ?q= 
-        const encodedText = encodeURIComponent(selectedText);
-        
-        // لینکی چاتبۆتە تایبەتەکەی خۆت + دەقەکە
-        const geminiUrl = `https://gemini.google.com/app?q=${encodedText}`;
-
-        // ٣. کردنەوەی جیمینای (بە شێوەیەک کە دەقەکە خۆکارانە لەوێ دادەنێت)
-        window.open(geminiUrl, 'GeminiFixedTab');
-
-        showStatus("✨ دەقەکە نێردرا، جیمینای خۆی پڕی دەکاتەوە");
     } else {
-        showStatus("⚠️ تکایە دەقێک بنووسە یان سەڵێکتی بکە");
+        if (typeof showStatus === "function") {
+            showStatus("⚠️ خانەکە خاڵییە");
+        }
     }
 }
-
 
 
 // فەنکشن بۆ پیشاندان و شاردنەوەی لیستەکە
@@ -1210,6 +1258,180 @@ function splitByDot() {
     if (typeof updateStats === 'function') updateStats();
     if (typeof showStatus === 'function') showStatus("📑 دەقەکە کرا بە پەرەگراف");
     localStorage.setItem('autosave_text', textBox.value);
+}
+
+    // كۆدی تایبه‌تی فاریزه‌ و خاڵ له‌ دوگمه‌ی ڕێكخستن
+function fixPunctuation() {
+    const textBox = document.getElementById("textBox");
+    if (!textBox || !textBox.value.trim()) return;
+
+    let text = textBox.value;
+
+    // ١. لابردنی هەر سپەیسێک کە کەوتووەتە پێش فاریزە، خاڵ، نیشانەی پرسیار، یان دوو خاڵ
+    // نموونە: "سڵاو ،" دەبێتە "سڵاو،"
+    text = text.replace(/\s+([،.؟:!])/g, "$1");
+
+    // ٢. دانانی تەنها یەک سپەیس لە دوای فاریزە و نیشانەکانی تر ئەگەر سپەیسی لێ نەبوو
+    // نموونە: "باشم،تۆ" دەبێتە "باشم، تۆ"
+    text = text.replace(/([،.؟:!])(?!\s|$)/g, "$1 ");
+
+    // ٣. ئەگەر زیاتر لە سپەیسێک لە دوای فاریزە هەبوو، دەیکاتە یەک سپەیس
+    text = text.replace(/([،.؟:!])\s+/g, "$1 ");
+
+    textBox.value = text;
+
+    // نوێکردنەوەی زانیارییەکان و سەیڤکردن
+    if (typeof updateStats === 'function') updateStats();
+    if (typeof showStatus === 'function') showStatus("✨ فاریزە و خاڵبەندی ڕێکخرایەوە");
+    localStorage.setItem('autosave_text', textBox.value);
+}
+
+
+// --- كۆدی ئیندۆ و ریدۆ ---
+let historyStack = [];
+let historyIndex = -1;
+const maxHistory = 40; // چەند هەنگاو خەزن بکات
+
+// فەنکشن بۆ خەزنکردنی دەق پێش هەر گۆڕانکارییەک
+function saveState() {
+    const textBox = document.getElementById("textBox");
+    if (!textBox) return;
+    
+    const currentText = textBox.value;
+
+    // ئەگەر دەقەکە وەک دواین هەنگاو بوو، خەزنی مەکە
+    if (historyIndex >= 0 && historyStack[historyIndex] === currentText) return;
+
+    // ئەگەر لە ناوەڕاستی ئیندۆ بووین و گۆڕانکاری کرا، هەنگاوەکانی دواتر بسڕەوە
+    historyStack = historyStack.slice(0, historyIndex + 1);
+
+    // زیادکردنی دەقە نوێیەکە بۆ لیستەکە
+    historyStack.push(currentText);
+
+    // ئەگەر لیستەکە لە ٤٠ زیاتر بوو، کۆنترین بسڕەوە
+    if (historyStack.length > maxHistory) {
+        historyStack.shift();
+    }
+
+    historyIndex = historyStack.length - 1;
+}
+
+// فەنکشنی گەڕانەوە بۆ دواوە
+function undo() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        const textBox = document.getElementById("textBox");
+        textBox.value = historyStack[historyIndex];
+        
+        // نوێکردنەوەی ئامارەکان (وشە و پیت)
+        if (typeof updateStats === "function") updateStats();
+        showStatus("↩️ گەڕایەوە دواوە");
+    } else {
+        showStatus("⚠️ هیچ هەنگاوێکی تر نییە بۆ دواوە");
+    }
+}
+
+// فەنکشنی چوونە پێشەوە
+function redo() {
+    if (historyIndex < historyStack.length - 1) {
+        historyIndex++;
+        const textBox = document.getElementById("textBox");
+        textBox.value = historyStack[historyIndex];
+        
+        if (typeof updateStats === "function") updateStats();
+        showStatus("↪️ چوو بۆ پێشەوە");
+    } else {
+        showStatus("⚠️ هەنگاوی داهاتوو نییە");
+    }
+}
+
+// خەزنکردنی دەقی سەرەتا کاتێک سایتەکە لۆد دەبێت
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(saveState, 1000);
+});
+
+// خەزنکردنی ئۆتۆماتیکی کاتێک بەکارهێنەر سپەیس یان ئینتەر دادەگرێت
+document.getElementById("textBox").addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+        saveState();
+    }
+});
+
+
+
+// كۆدی ریزبه‌ندی ئه‌لیف و بێ
+function sortLines() {
+    saveState();
+    const textBox = document.getElementById("textBox");
+    let lines = textBox.value.split('\n').filter(line => line.trim() !== "");
+    lines.sort((a, b) => a.localeCompare(b, 'ku'));
+    textBox.value = lines.join('\n');
+    showStatus("🔠 دێڕەکان بەپێی ئەلفوبێ ڕیزکران");
+}
+
+// رێنووسی ژماره‌كان
+function formatKurdishNumbers() {
+    if (typeof saveState === "function") saveState();
+    const box = document.getElementById("textBox");
+    if (!box || !box.value.trim()) return;
+
+    let text = box.value;
+
+    const lowWords = {
+        "0": " سفر", "1": "یەک", "2": "دوو", "3": "سێ", "4": "چوار", "5": "پێنج",
+        "6": "شەش", "7": "حەوت", "8": "هەشت", "9": "نۆ", "10": "دە"
+    };
+
+    // گەڕان بەدوای هەموو ژمارەکان لە دەقەکەدا
+    text = text.replace(/\d+/g, function(match) {
+        // بەکارهێنانی BigInt بۆ ژمارە زۆر گەورەکان تا وردی لەدەست نەدات
+        let n = BigInt(match);
+
+        // ئەگەر ژمارەکە لە ١٠ بچووکتر یان یەکسان بوو
+        if (n <= 10n) {
+            return lowWords[n.toString()];
+        }
+
+        let result = [];
+
+        // پێناسی قۆناغەکان: ترلیۆن، ملیار، ملیۆن، هەزار
+        const scales = [
+            { name: "تریلیۆن", value: 1000000000000n },
+            { name: "ملیار", value: 1000000000n },
+            { name: "ملیۆن", value: 1000000n },
+            { name: "هەزار", value: 1000n }
+        ];
+
+        let tempN = n;
+
+        for (let scale of scales) {
+            let count = tempN / scale.value;
+            if (count > 0n) {
+                let partStr = "";
+                if (count === 1n) {
+                    partStr = scale.name;
+                } else if (count >= 2n && count <= 10n) {
+                    partStr = lowWords[count.toString()] + " " + scale.name;
+                } else {
+                    partStr = count.toString() + " " + scale.name;
+                }
+                result.push(partStr);
+                tempN %= scale.value;
+            }
+        }
+
+        // پاشماوەی ژمارەکە (ئەو بەشەی لە ١٠٠٠ بچووکترە)
+        if (tempN > 0n) {
+            result.push(tempN.toString());
+        }
+
+        // بەیەکەوەبەستنی هەموو بەشەکان بە " و "
+        return result.join(" و ");
+    });
+
+    box.value = text;
+    if (typeof updateStats === "function") updateStats();
+    if (typeof showStatus === "function") showStatus("🔢 ژمارەکان تا ترلیۆن ڕێکخران");
 }
 
 

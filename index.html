@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="Oy9JEJJiI4doCd0hF4JZZP3dZYv06DNlfVMq38pGUJ4" />
-    <title>وەرگێڕی فۆنت</title>
+    <title>سه‌كۆی ڕۆژنامه‌نووس</title>
     <meta name="description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode), خوێندنەوەی فایلی PDF و Word بە کوردی, نرخی دراو و زێڕ و هەواڵەکان بەشێوەی راستەوخۆ.">
     <meta name="keywords" content="وەرگێڕی فۆنت, گۆڕینی فۆنت, عەلی کەی, Ali K to Unicode, PDF to Text, کورد ئایتی, گۆڕینی کیبۆرد, وه‌رگێڕی ئه‌ركان, Arkan Dara, Font Converter Kurdish">
     <meta name="author" content="Arkan Dara">
@@ -22,7 +22,12 @@
 <!-- Font Awesome بۆ لینكی فیسبووك -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
+<!-- بۆ دروستكردنی وێنه‌ی خانه‌ی تێكست -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
+
+<!-- بۆ دروستكردنی پی دی ئێف خانه‌ی تێكست -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
 
@@ -542,10 +547,10 @@ button, .btn-file {
 
 .dropdown-content a {
     color: #333;
-    padding: 3px 3px;
+    padding: 1px 11px;
     text-decoration: none;
     display: block;
-    font-size: 13px;
+    font-size: 14px;
     text-align: right;
     transition: 0.2s;
 }
@@ -627,7 +632,7 @@ button, .btn-file {
         <div class="h-buttons-area"></div>
 
         <div class="h-center">
-            <h1>وەرگێڕی فۆنت و فایل</h1>
+            <h1>سه‌كۆی ڕۆژنامه‌نووس</h1>
             <span>Arkan Dara</span>
         </div>
 
@@ -652,19 +657,27 @@ button, .btn-file {
 
 <!-- لیستی بژاردەکان بە ستایلی هاوشێوەی پارچەکانی تر -->
 <div class="dropdown">
-    <div class="stat-item dropdown-btn" onclick="toggleDropdown()">ڕێكخستن ▼</div>
+    <div class="stat-item dropdown-btn" onclick="toggleDropdown()">ڕێنووس ▼</div>
     <div id="myDropdown" class="dropdown-content">
-<a href="#" onclick="undo()">↩️ گەڕانەوە (Undo)</a>
-<a href="#" onclick="redo()">↪️ چوونە پێش (Redo)</a>
           <a href="#" onclick="fixPunctuation()"> ڕێکخستنی فاریزە و خاڵ</a>
         <a href="#" onclick="removeEmptyLines()"> لابردنی بۆشایی نێوان دێڕه‌كان</a>
               <a href="#" onclick="splitByDot()"> بۆشایی دوای خاڵ</a>
-<a href="#" onclick="sortLines()"> ڕیزکردن(A-Z)</a>
 <a href="#" onclick="formatKurdishNumbers()">ڕێنووسی ژمارەکان</a>
+<a href="#" onclick="sortLines()"> ڕیزکردن (A-Z)</a>
 
     </div>
 </div> 
 
+<div class="dropdown">
+    <div class="stat-item dropdown-btn" onclick="toggleDropdown()">ڕێكخستن ▼ </div>
+    <div id="myDropdown" class="dropdown-content">
+<a href="#" onclick="undo()"> گەڕانەوە (Undo)</a>
+<a href="#" onclick="redo()"> چوونە پێش (Redo)</a>
+<a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز (Focus)</a>
+<a href="#" onclick="convertTextToImage()"> پاشکەوتکردن وەک وێنە (JPG)</a>
+<a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
+    </div>
+</div> 
 
             <div style="cursor:pointer; font-size:18px;" onclick="toggleT()">🌙</div>
             <div style="cursor:pointer; font-size:18px;" onclick="toggleAbout()">ℹ️</div>
@@ -1262,30 +1275,32 @@ function splitByDot() {
 
     // كۆدی تایبه‌تی فاریزه‌ و خاڵ له‌ دوگمه‌ی ڕێكخستن
 function fixPunctuation() {
+    if (typeof saveState === 'function') saveState(); // بۆ ئەوەی ئیندۆی بۆ بکرێت
+    
     const textBox = document.getElementById("textBox");
     if (!textBox || !textBox.value.trim()) return;
 
     let text = textBox.value;
 
-    // ١. لابردنی هەر سپەیسێک کە کەوتووەتە پێش فاریزە، خاڵ، نیشانەی پرسیار، یان دوو خاڵ
-    // نموونە: "سڵاو ،" دەبێتە "سڵاو،"
+    // ١. لابردنی هەر سپەیسێک کە کەوتووەتە پێش نیشانەکان (، . ؟ : !)
     text = text.replace(/\s+([،.؟:!])/g, "$1");
 
-    // ٢. دانانی تەنها یەک سپەیس لە دوای فاریزە و نیشانەکانی تر ئەگەر سپەیسی لێ نەبوو
-    // نموونە: "باشم،تۆ" دەبێتە "باشم، تۆ"
-    text = text.replace(/([،.؟:!])(?!\s|$)/g, "$1 ");
+    // ٢. ڕێکخستنی فاریزە، نیشانەی پرسیار، نیشانەی سەرسوڕمان و دوو خاڵ (تەنها سپەیس لەدوایان)
+    // ئەمانە ئینتەریان بۆ نەکات، تەنها یەک سپەیس دابنێت
+    text = text.replace(/([،؟:!])\s*/g, "$1 ");
 
-    // ٣. ئەگەر زیاتر لە سپەیسێک لە دوای فاریزە هەبوو، دەیکاتە یەک سپەیس
-    text = text.replace(/([،.؟:!])\s+/g, "$1 ");
+    // ٣. تایبەت بۆ خاڵ (.): لابردنی سپەیسەکانی دوای و دانانی یەک ئینتەر (دێڕی نوێ)
+    // هەر خاڵێک بدۆزێتەوە، دەیکاتە (خاڵ + ئینتەر)
+    text = text.replace(/\.\s*/g, ".\n");
 
-    textBox.value = text;
+    // سڕینەوەی سپەیسە زیادەکانی کۆتایی و سەرەتای دەقەکە
+    textBox.value = text.trim();
 
     // نوێکردنەوەی زانیارییەکان و سەیڤکردن
     if (typeof updateStats === 'function') updateStats();
-    if (typeof showStatus === 'function') showStatus("✨ فاریزە و خاڵبەندی ڕێکخرایەوە");
+    if (typeof showStatus === 'function') showStatus("✨ خاڵبەندی ڕێکخرا و کرا بە دێڕ");
     localStorage.setItem('autosave_text', textBox.value);
 }
-
 
 // --- كۆدی ئیندۆ و ریدۆ ---
 let historyStack = [];
@@ -1434,6 +1449,179 @@ function formatKurdishNumbers() {
     if (typeof showStatus === "function") showStatus("🔢 ژمارەکان تا ترلیۆن ڕێکخران");
 }
 
+
+
+// كۆدی تایبه‌تی دۆخی ته‌ركیز)
+function toggleFocusMode() {
+    // ١. دەستنیشانکردنی ئەو بەشانەی دەمانەوێت بیانشارینەوە
+    const header = document.querySelector('.header');
+    const ticker = document.querySelector('.news-ticker');
+    const btnGroup = document.querySelector('.btn-group');
+    const textBox = document.getElementById('textBox');
+    const container = document.querySelector('.container');
+
+    // ٢. پشکنین: ئایا ئێستا لە دۆخی تەرکیزدایە؟
+    if (header.style.display !== 'none') {
+        // --- چوونە ناو دۆخی تەرکیز ---
+        header.style.display = 'none';
+        ticker.style.display = 'none';
+        btnGroup.style.display = 'none';
+        
+        // گەورەکردنی سندوقی نووسین
+        textBox.style.height = '92vh';
+        container.style.maxWidth = '1220px';
+        container.style.margin = '0 auto';
+        container.style.paddingTop = '20px';
+
+        // دروستکردنی دوگمەیەکی کاتی بۆ گەڕانەوە (چونکە هێدەرەکە نەماوە)
+        const exitBtn = document.createElement('div');
+        exitBtn.id = 'tempExitBtn';
+        exitBtn.innerHTML = '🏠 گه‌ڕانه‌وه‌';
+        exitBtn.style.cssText = `
+            position: fixed; top: 10px; left: 10px; 
+            background: #f44336; color: white; 
+            padding: 8px 15px; border-radius: 5px; 
+            cursor: pointer; font-weight: bold; z-index: 10000;
+            font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        exitBtn.onclick = toggleFocusMode; // کاتێک کلیکی لێکرا هەمان ئەم فەنکشنە بانگ دەکاتەوە
+        document.body.appendChild(exitBtn);
+
+        showStatus("👁️ دۆخی تەرکیز چالاک کرا");
+    } else {
+        // --- گەڕانەوە بۆ دۆخی ئاسایی ---
+        header.style.display = 'grid'; // یان 'flex' بەپێی ستایلە ئەسڵییەکەت
+        ticker.style.display = 'flex';
+        btnGroup.style.display = 'grid';
+        
+        // گەڕاندنەوەی قەبارەی سندوقی نووسین
+        textBox.style.height = '378px'; // هەمان ئەو بەرزییەی لە ستایلەکەت هەیە
+        container.style.maxWidth = '100%';
+        container.style.paddingTop = '10px';
+
+        // سڕینەوەی دوگمە کاتییەکە
+        const tempBtn = document.getElementById('tempExitBtn');
+        if (tempBtn) tempBtn.remove();
+
+        showStatus("🏠 گەڕایەوە دۆخی ئاسایی");
+    }
+}
+
+
+
+  // كۆدی وێنه‌ی نێو خانه‌ی تێكست
+async function convertTextToImage() {
+    const textBox = document.getElementById("textBox");
+    const text = textBox.value.trim();
+
+    if (!text) {
+        showStatus("⚠️ تکایە سەرەتا دەقێک بنووسە");
+        return;
+    }
+
+    showStatus("⏳ خەریکە وێنەکە دروست دەکرێت...");
+
+    // ١. دروستکردنی توخمێکی کاتی بۆ ئەوەی وێنەکەی لێ بگرین
+    const tempDiv = document.createElement("div");
+    tempDiv.style.position = "absolute";
+    tempDiv.style.left = "-9999px"; // شاردنەوە لە چاو
+    tempDiv.style.width = "600px"; // پانایی وێنەکە
+    tempDiv.style.padding = "40px";
+    tempDiv.style.background = "#ffffff"; // ڕەنگی پاشبنەما
+    tempDiv.style.color = "#333333"; // ڕەنگی دەق
+    tempDiv.style.fontSize = "24px";
+    tempDiv.style.lineHeight = "1.8";
+    tempDiv.style.direction = "rtl";
+    tempDiv.style.textAlign = "right";
+    tempDiv.style.fontFamily = textBox.style.fontFamily || "'Noto Sans Arabic', sans-serif";
+    tempDiv.style.whiteSpace = "pre-wrap"; // بۆ ئەوەی دێڕەکان وەک خۆی بمێننەوە
+    tempDiv.style.borderRadius = "10px";
+
+    // ٢. دانانی دەقەکە و ناو نیشانێکی بچووک (Credit)
+    tempDiv.innerText = text;
+    
+    // زیادکردنی ناوی سایتەکەت لە خوارەوەی وێنەکە وەک مارکە (ئارەزوومەندانەیە)
+    const footer = document.createElement("div");
+    footer.innerText = "https://arkandara.github.io";
+    footer.style.fontSize = "14px";
+    footer.style.marginTop = "30px";
+    footer.style.color = "#888";
+    footer.style.textAlign = "left";
+    tempDiv.appendChild(footer);
+
+    document.body.appendChild(tempDiv);
+
+    // ٣. بەکارهێنانی html2canvas بۆ دروستکردنی وێنەکە
+    try {
+        const canvas = await html2canvas(tempDiv, {
+            backgroundColor: "#ffffff",
+            scale: 2 // بۆ ئەوەی کوالێتی وێنەکە بەرز بێت
+        });
+
+        // ٤. گۆڕین بۆ JPG و داگرتن
+        const imageData = canvas.toDataURL("image/jpeg", 0.9);
+        const link = document.createElement("a");
+        link.download = "kurdish-text-image.jpg";
+        link.href = imageData;
+        link.click();
+
+        showStatus("✅ وێنەکە بە سەرکەوتوویی داگیرا");
+    } catch (error) {
+        console.error("هەڵە لە دروستکردنی وێنە:", error);
+        showStatus("❌ هەڵەیەک ڕوویدا لە دروستکردنی وێنەکە");
+    } finally {
+        document.body.removeChild(tempDiv); // سڕینەوەی توخمە کاتییەکە
+    }
+}
+
+
+
+// دروستكردنی پی دی ئێف له‌ خانه‌ی تێكست
+
+async function convertTextToPDF() {
+    const textBox = document.getElementById("textBox");
+    const text = textBox.value.trim();
+
+    if (!text) {
+        showStatus("⚠️ تکایە سەرەتا دەقێک بنووسە");
+        return;
+    }
+
+    showStatus("⏳ خەریکە فایلی PDF دروست دەکرێت...");
+
+    // ١. دروستکردنی توخمێکی کاتی بۆ ناو فایلی PDF
+    const element = document.createElement("div");
+    element.style.padding = "50px";
+    element.style.background = "#ffffff";
+    element.style.color = "#000000";
+    element.style.fontSize = "18px";
+    element.style.lineHeight = "2";
+    element.style.direction = "rtl";
+    element.style.textAlign = "justify"; // بۆ ئەوەی دێڕەکان ڕێک بن
+    element.style.fontFamily = textBox.style.fontFamily || "'Noto Sans Arabic', sans-serif";
+    element.style.whiteSpace = "pre-wrap"; 
+
+    // دانانی دەقەکە
+    element.innerText = text;
+
+    // ٢. ڕێکخستنی بژاردەکانی PDF (قەبارەی لاپەڕە و کوالێتی)
+    const opt = {
+        margin:       10,
+        filename:     'kurdish-document.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // ٣. جێبەجێکردنی گۆڕین و داگرتن
+    try {
+        await html2pdf().set(opt).from(element).save();
+        showStatus("✅ فایلی PDF بە سەرکەوتوویی داگیرا");
+    } catch (error) {
+        console.error("هەڵە لە دروستکردنی PDF:", error);
+        showStatus("❌ هەڵەیەک ڕوویدا لە دروستکردنی فایلی PDF");
+    }
+}
 
 </script>
 </body>

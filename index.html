@@ -2,14 +2,23 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="Oy9JEJJiI4doCd0hF4JZZP3dZYv06DNlfVMq38pGUJ4" />
-    <title>سه‌كۆی ڕۆژنامه‌نووس</title>
-    <meta name="description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode), خوێندنەوەی فایلی PDF و Word بە کوردی, نرخی دراو و زێڕ و هەواڵەکان بەشێوەی راستەوخۆ.">
-    <meta name="keywords" content="وەرگێڕی فۆنت, گۆڕینی فۆنت, عەلی کەی, Ali K to Unicode, PDF to Text, کورد ئایتی, گۆڕینی کیبۆرد, وه‌رگێڕی ئه‌ركان, Arkan Dara, Font Converter Kurdish">
-    <meta name="author" content="Arkan Dara">
-    <meta property="og:title" content="وەرگێڕی فۆنت و فایلەکان - بەخۆڕایی">
-    <meta property="og:description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد و بەپێچەوانەوە، لەگەڵ خوێندنەوەی دەقی ناو وێنە و فایل.">
+<!-- Meta Tags بۆ ناساندنی سەکۆی ڕۆژنامەنووس -->
+<title>سەکۆی نووسینی ڕۆژنامەنووس</title>
+<meta name="description" content="سەکۆی ڕۆژنامەنووس: باشترین و خێراترین ئامراز بۆ گۆڕینی فۆنتی عەلی بۆ یونیکۆد، ڕێکخستنی ڕێنووسی کوردی، گۆڕینی لاتینی، و خوێندنەوەی فایلەکانی Word و PDF.">
+<meta name="keywords" content="سەکۆی ڕۆژنامەنووس, ڕێنووسی کوردی, وەرگێڕی فۆنت, گۆڕینی فۆنت, عەلی کەی, Ali K to Unicode, نووسینی کوردی, لاتینی بۆ سۆرانی, ئامرازی ڕۆژنامەوانی, Arkan Dara">
+<meta name="author" content="Arkan Dara">
+
+<!-- Open Graph / Facebook (بۆ کاتی بڵاوکردنەوە لە سۆشیاڵ میدیا) -->
+<meta property="og:title" content="سەکۆی ڕۆژنامەنووس - هەموو ئامرازەکان لە یەک شوێن">
+<meta property="og:description" content="گۆڕینی فۆنت، ڕێکخستنی خاڵبەندی، گۆڕینی ژمارە و لاتینی، خوێندنەوەی فایل و پاشکەوتکردن وەک وێنە و PDF.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://arkandara.github.io/preview.jpg"> <!-- دڵنیابە ئەم لینکە وێنەیەکی دروستی تێدایە -->
+<meta property="og:url" content="https://arkandara.github.io/">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="سەکۆی ڕۆژنامەنووس">
+<meta name="twitter:description" content="ئامرازە پێشکەوتووەکانی نووسین و داڕشتن بۆ ڕۆژنامەنووسانی کورد.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://arkandara.github.io/preview.jpg">
     <meta property="og:url" content="https://arkandara.github.io/">
@@ -471,9 +480,9 @@ button, .btn-file {
 
 
 
-/* ستایلی تایبەت بۆ دوگمەی جیمینای */
-.btn-gemini {
-    background: linear-gradient(135deg, #1a73e8, #8ab4f8, #9b72cb);
+/* ستایلی دوگمەی ژیری دەستکرد */
+.btn-ai {
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
     color: white;
     border: none;
     padding: 6px 10px;
@@ -484,20 +493,19 @@ button, .btn-file {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
 }
 
-.btn-gemini:hover {
+.btn-ai:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(26, 115, 232, 0.3);
+    box-shadow: 0 6px 12px rgba(110, 142, 251, 0.3);
     opacity: 0.9;
 }
 
-.btn-gemini:active {
+.btn-ai:active {
     transform: scale(0.98);
 }
-
 
 
 /* ستایلی لیستی بازدەر */
@@ -582,7 +590,7 @@ button, .btn-file {
     <!-- من بەرزی (height) مۆداڵەکەم کەمێک زیاد کرد بۆ 310px بۆ ئەوەی هەموو دەقەکان بە جوانی جێیان ببێتەوە -->
     <div class="modal-content" style="width: 450px !important; max-width: 95% !important; height: auto !important; min-height: 310px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; padding: 20px !important;">
         
-        <div class="modal-header" style="font-weight: bold; margin-bottom: 15px;">زانیاری پڕۆژه‌ و په‌یوه‌ندیكردن</div>
+        <div class="modal-header" style="font-weight: bold; margin-bottom: 15px;">زانیاری پڕۆژه‌</div>
         
         <div class="modal-body">
             <!-- هەموو زانیارییە سەرەکییەکان لە یەک ڕیزدا -->
@@ -663,7 +671,7 @@ button, .btn-file {
         <a href="#" onclick="removeEmptyLines()"> لابردنی بۆشایی نێوان دێڕه‌كان</a>
               <a href="#" onclick="splitByDot()"> بۆشایی دوای خاڵ</a>
 <a href="#" onclick="formatKurdishNumbers()">ڕێنووسی ژمارەکان</a>
-<a href="#" onclick="sortLines()"> ڕیزکردن (A-Z)</a>
+<a href="#" onclick="sortLines()"> ڕیزکردن A-Z (بۆ ناو) </a>
 
     </div>
 </div> 
@@ -674,8 +682,11 @@ button, .btn-file {
 <a href="#" onclick="undo()"> گەڕانەوە (Undo)</a>
 <a href="#" onclick="redo()"> چوونە پێش (Redo)</a>
 <a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز (Focus)</a>
+<a href="#" onclick="checkWordFrequency()">پشکنینی وشەکان</a>
 <a href="#" onclick="convertTextToImage()"> پاشکەوتکردن وەک وێنە (JPG)</a>
 <a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
+<a href="#" onclick="sendToWhatsApp()">ناردن بۆ واتسئەپ</a>
+
     </div>
 </div> 
 
@@ -699,7 +710,9 @@ button, .btn-file {
             <input type="file" id="fileInput" accept=".docx" style="display:none;">
             <button class="btn-copy" onclick="copyText()">📄 كۆپیكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
-            <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
+
+<button class="btn-ai" onclick="arkanAiEditor()">چاكسازی</button>
+
             <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
             <button onclick="downloadAsWord()" class="btn-download">⬇️ Word</button>
             <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
@@ -726,6 +739,20 @@ button, .btn-file {
 </div>   
 
  <div id="status"></div>
+
+
+<!-- مۆداڵی پشکنینی وشە باوەکان -->
+<div id="freqModal" class="modal" style="display:none; position:fixed; z-index:9999; bottom:90px; left:25px; width:320px;">
+    <div class="fr-card" style="padding: 20px;">
+        <div class="fr-header">📊 وشە باوەکان (دووبارەبووەوە)</div>
+        <div id="freqList" style="max-height: 250px; overflow-y: auto; margin: 10px 0; font-size: 14px; line-height: 2;">
+            <!-- ئەنجامەکان لێرە دەردەکەون -->
+        </div>
+        <div class="fr-actions">
+            <button onclick="closeFreqModal()" class="btn-fr-close" style="width: 100%; flex: none;">داخستن</button>
+        </div>
+    </div>
+</div>
 
 <script>
 
@@ -1164,63 +1191,67 @@ function findAndReplace() {
 
 
 
-    // كۆدی تایبه‌تی جییمنایی
-
-async function sendToGemini() {
-    const textBox = document.getElementById('textBox');
-    if (!textBox) return;
-
-    const start = textBox.selectionStart;
-    const finish = textBox.selectionEnd;
-    const fullText = textBox.value;
+    // كۆدی تایبه‌تی چاكسازی ڕێنووس
+async function arkanAiEditor() {
+    const textBox = document.getElementById("textBox");
+    const text = textBox.value.trim();
     
-    let textToCut = "";
-    let newText = "";
+    // کلیلەکەت
+    const apiKey = "AIzaSyANLIIZym_zeASqkn1vCZvc1vu2f2SE7kQ"; 
 
-    // ١. دیاریکردنی ئەوەی چی ببڕدرێت (سەڵێکت یان هەمووی)
-    if (start !== finish) {
-        // ئەگەر بەشێکی دیاریکراو بوو
-        textToCut = fullText.substring(start, finish);
-        // لادانی ئەو بەشە لەناو دەقە گشتییەکە
-        newText = fullText.substring(0, start) + fullText.substring(finish);
-    } else {
-        // ئەگەر هیچی دیارینەکرابوو، هەمووی دەبڕێت
-        textToCut = fullText;
-        newText = "";
+    if (!text) {
+        showStatus("⚠️ تکایە سەرەتا دەقێک بنووسە");
+        return;
     }
 
-    if (textToCut.trim()) {
-        try {
-            // ٢. کۆپی کردنی دەقە بڕدراوەکە بۆ ناو میمۆری (Clipboard)
-            await navigator.clipboard.writeText(textToCut);
+    showStatus("✨ خەریکی پەیوەندی بە ژیری دەستکرد...");
+    if (typeof saveState === 'function') saveState(); 
 
-            // ٣. سڕینەوەی دەقەکە لەناو خانەکە (کرداری Cut)
-            textBox.value = newText;
-            
-            // گەڕاندنەوەی فۆکس و نیشاندەر بۆ شوێنی بڕینەکە
-            textBox.setSelectionRange(start, start);
-            textBox.focus();
+    const myPrompt = `وەک رۆژنامەنووسێکی زیرەک مامەڵە بکە و ئەم دەقەی خوارەوە بەپێی ئەم یاسایانە دابڕێژەرەوە:
+1. بیکە بە هەواڵێکی کوردی و دووبارە داڕشتنەوەی بۆ بکە.
+2. مانشێتێکی بۆ دابنێ و وشەی ئیسرائیل بگۆڕە بۆ قەوارەی زایۆنی.
+3. تەنها دەقە ڕاستکراوەکە بنێرە بەبێ هیچ قسەیەکی زیادە.
+دەقەکە: ${text}`;
 
-            // ٤. نوێکردنەوەی ئامارەکان (ئەگەر فەنکشنەکەت هەبێت)
-            if (typeof updateStats === "function") updateStats();
+    try {
+        // گۆڕینی مۆدێل بۆ gemini-1.5-flash-latest کە زیرەکتر و بەردەستترە
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-            // ٥. کردنەوەی جیمینای بەو دەقەوە
-            const encodedText = encodeURIComponent(textToCut);
-            const geminiUrl = `https://gemini.google.com/app?q=${encodedText}`;
-            window.open(geminiUrl, '_blank');
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: myPrompt }]
+                }]
+            })
+        });
 
-            if (typeof showStatus === "function") {
-                showStatus("✂️ دەقەکە بڕدرا و بۆ جیمینای نێردرا");
-            }
-        } catch (err) {
-            console.error('هەڵە لە بڕینی دەقەکە:', err);
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("Error Detail:", data);
+            // لێرەدا دەردەکەوێت بۆچی مدلەکە نادۆزێتەوە
+            showStatus("❌ ئێرەر: " + (data.error ? data.error.message : "پەیوەندی بڕا"));
+            return;
         }
-    } else {
-        if (typeof showStatus === "function") {
-            showStatus("⚠️ خانەکە خاڵییە");
+        
+        if (data.candidates && data.candidates[0].content) {
+            let result = data.candidates[0].content.parts[0].text;
+            result = result.replace(/```html|```|```text|```/g, "");
+            textBox.value = result.trim();
+            updateStats(); 
+            showStatus("✅ بە سەرکەوتوویی ڕاستکرایەوە");
+        } else {
+            showStatus("❌ AI وەڵامی نەبوو، دووبارە تاقی بکەرەوە");
         }
+    } catch (error) {
+        console.error("Network Error:", error);
+        showStatus("❌ هەڵە لە پەیوەندی ئینتەرنێت");
     }
 }
+
+
 
 
 // فەنکشن بۆ پیشاندان و شاردنەوەی لیستەکە
@@ -1446,7 +1477,7 @@ function formatKurdishNumbers() {
 
     box.value = text;
     if (typeof updateStats === "function") updateStats();
-    if (typeof showStatus === "function") showStatus("🔢 ژمارەکان تا ترلیۆن ڕێکخران");
+    if (typeof showStatus === "function") showStatus("🔢 ژمارەکان  ڕێکخران");
 }
 
 
@@ -1621,6 +1652,69 @@ async function convertTextToPDF() {
         console.error("هەڵە لە دروستکردنی PDF:", error);
         showStatus("❌ هەڵەیەک ڕوویدا لە دروستکردنی فایلی PDF");
     }
+}
+
+
+
+    // بۆ دۆزینه‌وه‌ی زۆرترین وشه‌ی دووباره‌
+function checkWordFrequency() {
+    const textBox = document.getElementById("textBox");
+    const text = textBox.value.trim();
+    
+    if (!text) {
+        showStatus("⚠️ تکایە سەرەتا دەقێک بنووسە");
+        return;
+    }
+
+    // جیاکردنەوەی وشەکان و سڕینەوەی نیشانەکان
+    const words = text.toLowerCase()
+        .replace(/[،.؟!؛:()""''\-_]/g, " ")
+        .split(/\s+/)
+        .filter(w => w.length > 2); // تەنها ئەو وشانەی لە ٢ پیت زیاترن
+
+    const freq = {};
+    words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+
+    // ڕیزکردنی وشەکان بەپێی زۆری دووبارەبوونەوە
+    const sorted = Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8); // تەنها ٨ وشە یەکەمەکە نیشان بدە
+
+    const listContainer = document.getElementById("freqList");
+    listContainer.innerHTML = ""; // پاککردنەوەی لیستی پێشوو
+
+    if (sorted.length === 0) {
+        listContainer.innerHTML = "<p style='color:gray;'>هیچ وشەیەکی گونجاو نەدۆزرایەوە.</p>";
+    } else {
+        sorted.forEach(([word, count]) => {
+            const item = document.createElement("div");
+            item.style.display = "flex";
+            item.style.justifyContent = "space-between";
+            item.style.borderBottom = "1px solid rgba(0,0,0,0.05)";
+            item.innerHTML = `<span>${word}</span> <b style="color:var(--primary);">${count} جار</b>`;
+            listContainer.appendChild(item);
+        });
+    }
+
+    // پیشاندانی مۆداڵەکە
+    document.getElementById("freqModal").style.display = "block";
+}
+
+function closeFreqModal() {
+    document.getElementById("freqModal").style.display = "none";
+}
+
+    // كۆدی واتس ئه‌پ
+
+function sendToWhatsApp() {
+    const text = document.getElementById("textBox").value.trim();
+    if (!text) {
+        showStatus("⚠️ خانەکە بەتاڵە!");
+        return;
+    }
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
 }
 
 </script>

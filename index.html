@@ -734,10 +734,12 @@ button, .btn-file {
 <a href="#" onclick="undo()"> گەڕانەوە Undo</a>
 <a href="#" onclick="redo()"> چوونە پێش Redo</a>
 <a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز Focus</a>
+<a href="#" onclick="checkRepeatedWords()"> پشکنینی وشەکان </a>
 <a href="#" onclick="convertTextToImage()"> پاشکەوتکردن وەک JPG</a>
 <a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
 <a href="#" onclick="downloadAsWord()"> پاشکەوتکردن وەک Word </a>
 <label for="fileInput">هێنانی فایلی Word </label>
+
 
 
 
@@ -794,6 +796,23 @@ button, .btn-file {
 
 
 
+<!-- مۆداڵی پشکنینی وشەکان -->
+<div id="wordCheckModal" class="modal">
+    <div class="fr-card" style="width: 350px; margin: 10% auto; position: relative;">
+        <div class="fr-header">📊 زۆرترین وشە دووبارەبووەکان</div>
+        <div id="wordListArea" style="margin: 15px 0; line-height: 2;">
+            <!-- لێرە وشەکان نیشان دەدرێن -->
+            چاوەڕێ بکە...
+        </div>
+        <div class="fr-actions">
+            <button onclick="toggleWordCheck()" class="btn-fr-close" style="flex: 1;">داخستن</button>
+        </div>
+    </div>
+</div>
+
+
+
+
 <script>
 
 // --- گۆڕاوە گشتییەکان ---
@@ -834,6 +853,7 @@ const rssSources =[
     { name: 'عربي جديد', url: 'https://www.alaraby.co.uk/rss' }
 ];
 
+
 // --- فەنکشنە سەرەکییەکان ---
 function showStatus(m) { 
     const s = document.getElementById("status"); 
@@ -843,6 +863,8 @@ function showStatus(m) {
         setTimeout(() => s.style.display = "none", 5000); 
     }
 }
+
+
 
 function convert(type) {
     let box = document.getElementById("textBox");
@@ -869,17 +891,23 @@ function convert(type) {
     showStatus(type === 'toUni' ? "✅ كرا به‌ یونیكۆد و ڕێنووسیش چاككرا" : "🔃 کرا بە عەلی کەی");
 }
 
+
+
 function setFontSize(newSize) {
     currentSize = newSize;
     const box = document.getElementById('textBox');
     if(box) box.style.fontSize = currentSize + 'px';
 }
 
+
+
 function changeFont() {
     const box = document.getElementById('textBox');
     const fontSel = document.getElementById('fontSelect');
     if(box && fontSel) box.style.fontFamily = fontSel.value;
 }
+
+
 
 function copyText() {
     const textarea = document.getElementById("textBox");
@@ -893,6 +921,8 @@ function copyText() {
         }).catch(() => showStatus("❌ هەڵە لە کۆپیکردن"));
     }
 }
+
+
 
 function clearText() { 
     const textBox = document.getElementById("textBox");
@@ -916,6 +946,7 @@ function toggleDlModal() {
 function toggleT() { 
     document.body.classList.toggle('dark-mode'); 
 }
+
 
 function processDownload() {
     const urlInput = document.getElementById("videoUrl");
@@ -1175,7 +1206,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 // فەنکشنی گەڕان و گۆڕین
-// کردنەوە و داخستنی مۆداڵ بە شێوەیەکی نەرم
 function toggleFindReplace() {
     const modal = document.getElementById('findReplaceModal');
     if (modal.style.display === 'block') {
@@ -1243,7 +1273,6 @@ function findAndReplace() {
 
 
     // كۆدی تایبه‌تی جییمنایی
-
 async function sendToGemini() {
     const textBox = document.getElementById('textBox');
     if (!textBox) return;
@@ -1761,6 +1790,66 @@ function printText() {
 }
 
 
+
+
+// فەنکشن بۆ کردنەوە و داخستنی مۆداڵی پشکنین
+function toggleWordCheck() {
+    const modal = document.getElementById('wordCheckModal');
+    modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+}
+
+function checkRepeatedWords() {
+    const text = document.getElementById("textBox").value.trim();
+    const wordListArea = document.getElementById("wordListArea");
+    
+    if (!text) {
+        showStatus("⚠️ تکایە سەرەتا دەقێک بنووسە");
+        return;
+    }
+
+    // ١. پاککردنەوەی دەقەکە و جیاکردنەوەی وشەکان
+    // ئەم ڕێگەیە تەنها پیتە کوردی و ئینگلیزییەکان وەک وشە دەناسێت
+    const words = text.toLowerCase().match(/[ئ-ێa-zA-Z]+/g);
+
+    if (!words || words.length === 0) {
+        wordListArea.innerHTML = "هیچ وشەیەک نەدۆزرایەوە.";
+        toggleWordCheck();
+        return;
+    }
+
+    // ٢. هەژمارکردنی دووبارەبوونەوە
+    const freqMap = {};
+    words.forEach(w => {
+        if (w.length > 2) { // وشە زۆر کورتەکان (وەک: و، لە، بە) فلتەر دەکات
+            freqMap[w] = (freqMap[w] || 0) + 1;
+        }
+    });
+
+    // ٣. ڕیزبەندی وشەکان بەپێی زۆری دووبارەبوونەوە
+    const sortedWords = Object.entries(freqMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 7); // تەنها ٧ وشە یەکەمەکە وەرگرە
+
+    // ٤. نیشاندان لەناو مۆداڵ
+    if (sortedWords.length === 0) {
+        wordListArea.innerHTML = "وشەی دووبارەبوو (زیاتر لە ٢ پیت) نەدۆزرایەوە.";
+    } else {
+        let html = '<ul style="list-style: none; padding: 0; margin: 0;">';
+        sortedWords.forEach(([word, count], index) => {
+            html += `
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 5px 0;">
+                    <span>${index + 1}. <b>${word}</b></span>
+                    <span style="background: var(--primary); color: white; padding: 0 8px; border-radius: 10px; font-size: 12px;">${count} جار</span>
+                </li>`;
+        });
+        html += '</ul>';
+        wordListArea.innerHTML = html;
+    }
+
+    toggleWordCheck();
+}
+
+ 
 
 </script>
 </body>

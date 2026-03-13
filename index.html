@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="Oy9JEJJiI4doCd0hF4JZZP3dZYv06DNlfVMq38pGUJ4" />
     <title>سه‌كۆی ڕۆژنامه‌نووس</title>
-    <meta name="description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode), خوێندنەوەی فایلی PDF و Word بە کوردی, نرخی دراو و زێڕ و هەواڵەکان بەشێوەی راستەوخۆ.">
-    <meta name="keywords" content="وەرگێڕی فۆنت, گۆڕینی فۆنت, عەلی کەی, Ali K to Unicode, PDF to Text, کورد ئایتی, گۆڕینی کیبۆرد, وه‌رگێڕی ئه‌ركان, Arkan Dara, Font Converter Kurdish">
+    <meta name="description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode), سه‌كۆی ڕۆژنامه‌نووس .">
+    <meta name="keywords" content="وەرگێڕی فۆنت, گۆڕینی فۆنت, عەلی کەی, Ali K to Unicode, PDF to Text, کورد ئایتی,  سه‌كۆی ڕۆژنامه‌نووس,  سه‌كۆی ڕۆژنامه‌نووس, Arkan Dara, Font Converter Kurdish">
     <meta name="author" content="Arkan Dara">
-    <meta property="og:title" content="وەرگێڕی فۆنت و فایلەکان - بەخۆڕایی">
-    <meta property="og:description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد و بەپێچەوانەوە، لەگەڵ خوێندنەوەی دەقی ناو وێنە و فایل.">
+    <meta property="og:title" content="سه‌كۆی ڕۆژنامه‌نووس">
+    <meta property="og:description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد و بەپێچەوانەوە، سه‌كۆی ڕۆژنامه‌نووس.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://arkandara.github.io/preview.jpg">
     <meta property="og:url" content="https://arkandara.github.io/">
@@ -574,6 +574,27 @@ button, .btn-file {
     to { opacity: 1; transform: translateY(0); }
 }
 
+
+/* کورتکردنەوەی درێژی سڵایدەری زوومەکە */
+.font-slider {
+    width: 80px; /* لێرەدا دەتوانیت بیکەیت بە 60 یان 100 بەپێی ئارەزووی خۆت */
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+/* ئەگەر ویستت هەموو پارچەکە کورت بێتەوە */
+.font-ctrl { 
+    display: flex; 
+    align-items: center; 
+    gap: 5px; 
+    background: #e0e0e0; 
+    border-radius: 6px; 
+    padding: 4px 8px; 
+    height: 28px; 
+    border: 1px solid rgba(0,0,0,0.05); 
+}
+
+
 </style>
 </head>
 
@@ -596,13 +617,12 @@ button, .btn-file {
                 </a>
 
                 <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
-                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 8/3/2026</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 13/3/2026</p>
             </div>
 
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
             
             <p style="margin: 5px 0;"><strong>زانیاری:</strong></p>
-            <p style="margin: 3px 0; font-size: 0.95em;">نرخه‌كان و مانشێتی هه‌واڵه‌كان خۆیان نوێ ده‌بنه‌وه‌.</p>
             <p style="margin: 3px 0; font-size: 0.95em;">ته‌نها -- له‌خانه‌ی تێكست بنووسه‌ و دوگمه‌ی عه‌لی كه‌ی دابگره‌ لینكی كۆنڤێرتی گشتیت پێ ده‌دات‌.</p>
             <p style="margin: 3px 0; font-size: 0.95em;">كه‌ كلیك له‌سه‌ر دوگمه‌ی جیمینای ده‌كه‌یت تێكسته‌كه‌ت بۆ cut ده‌كات و جیمینای ده‌كاته‌وه‌‌.</p>
         </div>
@@ -654,6 +674,9 @@ button, .btn-file {
         
 
             <div class="stat-item" id="textStats">وشە: ٠</div>
+<div class="stat-item" id="readingTimeDisplay">٠ خولەک و ٠ چرکە</div>
+
+
 
 <!-- لیستی بژاردەکان بە ستایلی هاوشێوەی پارچەکانی تر -->
 <div class="dropdown">
@@ -680,7 +703,9 @@ button, .btn-file {
 </div> 
 
             <div style="cursor:pointer; font-size:18px;" onclick="toggleT()">🌙</div>
+                   <div style="cursor:pointer; font-size:18px;" onclick="printText()">🖨️</div>
             <div style="cursor:pointer; font-size:18px;" onclick="toggleAbout()">ℹ️</div>
+
 
     </div>
     </div>
@@ -727,6 +752,8 @@ button, .btn-file {
 
  <div id="status"></div>
 
+
+
 <script>
 
 // --- گۆڕاوە گشتییەکان ---
@@ -735,7 +762,7 @@ let currentSize = 20;
 const conversionMap =[
     { uni: 'ڵا', ali: 'لآ' }, { uni: 'ڵا', ali: 'لأ' },
     { uni: 'ێ', ali: 'يَ' }, { uni: 'ۆ', ali: 'وَ' }, 
-    { uni: 'ۆ', ali: 'ؤ' }, 
+    { uni: 'ۆ', ali: 'ؤ' },  { uni: 'وتی', ali: 'گوتی' },
     { uni: 'ڵ', ali: 'لَ' }, { uni: 'ڵ', ali: 'ڵ' },
     { uni: 'ڕ', ali: 'رِ' }, { uni: 'ڕ', ali: 'رَ' },
     { uni: 'پ', ali: 'ث' }, { uni: 'چ', ali: 'ض' }, 
@@ -1020,10 +1047,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+// كۆدی خه‌زنكردن به‌ وۆرد
 async function downloadAsWord() {
     const content = document.getElementById('textBox').value;
+    
+    // لێرەدا گۆڕانکارییەکەمان کردووە بۆ ئەوەی showStatus بەکاربهێنێت
     if (!content.trim()) {
-        alert("سندوقی نووسینەکە بەتاڵە!");
+        showStatus("⚠️ سندوقی نووسینەکە بەتاڵە!");
         return;
     }
 
@@ -1033,13 +1063,13 @@ async function downloadAsWord() {
                    "xmlns='http://www.w3.org/TR/REC-html40'>" +
                    "<head><meta charset='utf-8'>" +
                    "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->" +
-                   "</head><body>";
+                   "</head><body style='direction:rtl; text-align:right;'>"; // زیادکردنی RTL بۆ ناو وۆردەکە
     const footer = "</body></html>";
     
     // گۆڕینی ئینتەر (New line) بۆ تاگی <br> بۆ ئەوەی لە وۆرددا دێڕەکان تێک نەچن
     const sourceHTML = header + content.replace(/\n/g, '<br>') + footer;
 
-    // دروستکردنی Blob (ئەمە باشترە لە شێوازە کۆنەکە بۆ پیتە کوردییەکان)
+    // دروستکردنی Blob
     const blob = new Blob(['\ufeff', sourceHTML], {
         type: 'application/msword'
     });
@@ -1057,12 +1087,12 @@ async function downloadAsWord() {
             const writable = await handle.createWritable();
             await writable.write(blob);
             await writable.close();
+            showStatus("✅ فایلەکە بە سەرکەوتوویی پاشکەوت کرا");
         } catch (err) {
-            // ئەگەر بەکارهێنەر پاشگەز بووەوە یان پەنجەرەکەی داخست
             console.log('کرداری خەزنکردن هەڵوەشایەوە');
         }
     } else {
-        // ئەگەر براوزەرەکە (وەک Firefox یان وێبگەڕە کۆنەکان) پاڵپشتی ئەو سیستەمە نوێیەی نەدەکرد
+        // ئەگەر براوزەرەکە پشتگیری نەدەکرد
         const url = URL.createObjectURL(blob);
         const fileDownload = document.createElement("a");
         fileDownload.href = url;
@@ -1071,9 +1101,9 @@ async function downloadAsWord() {
         fileDownload.click();
         document.body.removeChild(fileDownload);
         URL.revokeObjectURL(url);
+        showStatus("✅ داگرتنی فایلەکە دەستی پێکرد");
     }
 }
-
 
 
 // ٢. کاتێک بەکارهێنەر شتێک دەنووسێت یان دەیسڕێتەوە، با یەکسەر خەزن ببێت
@@ -1622,6 +1652,63 @@ async function convertTextToPDF() {
         showStatus("❌ هەڵەیەک ڕوویدا لە دروستکردنی فایلی PDF");
     }
 }
+
+// كۆدی تایبه‌ت به‌ كاتی خوێندنه‌وه‌
+function updateStats() {
+    const textarea = document.getElementById('textBox');
+    const statsEl = document.getElementById('textStats');
+    const readingTimeEl = document.getElementById('readingTimeDisplay'); 
+    
+    if(!textarea || !statsEl || !readingTimeEl) return;
+
+    const fullText = textarea.value; 
+    
+    // ١. هەژمارکردنی وشە و پیت
+    const totalWords = fullText.trim() ? fullText.trim().split(/\s+/).length : 0;
+    const totalChars = fullText.length;
+
+    // ٢. هەژمارکردنی کاتی خوێندنەوە (١٢٥ وشە لە خولەکێکدا)
+    // ئەمە واتە هەر وشەیەک ٠.٤٨ چرکە دەخایەنێت
+    let totalSeconds = Math.floor(totalWords * 0.48); 
+    let minutes = Math.floor(totalSeconds / 60);
+    let seconds = totalSeconds % 60;
+
+    let timeStr = "";
+    if (totalWords === 0) {
+        timeStr = "٠ خولەک و ٠ چرکە";
+    } else {
+        if (minutes > 0) {
+            timeStr = minutes + " خولەک و " + seconds + " چرکە";
+        } else {
+            timeStr = seconds + " چرکە";
+        }
+    }
+
+    // ٣. نوێکردنەوەی ناوەڕۆکی دوگمەکان
+    statsEl.innerText = `وشە: ${totalWords} | پیت: ${totalChars}`;
+    readingTimeEl.innerText = `⏱️ ${timeStr}`;
+    
+    // پاشکەوتکردنی ئۆتۆماتیکی دەقەکە لە براوسەردا
+    localStorage.setItem('autosave_text', fullText);
+}
+
+
+    //كۆدی پرنت
+function printText() {
+    const text = document.getElementById("textBox").value;
+    const font = document.getElementById("fontSelect").value;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head><style>body { font-family: ${font}; direction: rtl; padding: 50px; line-height: 1.8; }</style></head>
+            <body>${text.replace(/\n/g, '<br>')}</body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+
 
 </script>
 </body>

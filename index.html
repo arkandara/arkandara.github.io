@@ -29,8 +29,8 @@
 <!-- بۆ دروستكردنی پی دی ئێف خانه‌ی تێكست -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- بۆ خوێندنه‌وه‌ی تێكستی ناو وێنه‌ -->
-<script src="https://unpkg.com/tesseract.js@v5.0.2/dist/tesseract.min.js"></script>
+
+
 <style>
 
     :root {
@@ -697,12 +697,14 @@ button, .btn-file {
 <div class="dropdown">
     <div class="stat-item dropdown-btn" onclick="toggleDropdown()">ڕێكخستن ▼ </div>
     <div id="myDropdown" class="dropdown-content">
-<a href="#" onclick="undo()"> گەڕانەوە (Undo)</a>
-<a href="#" onclick="redo()"> چوونە پێش (Redo)</a>
-<a href="#" onclick="readImageText()">دەرهێنانی دەق لە وێنە</a>
-<a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز (Focus)</a>
-<a href="#" onclick="convertTextToImage()"> پاشکەوتکردن وەک وێنە (JPG)</a>
+<a href="#" onclick="undo()"> گەڕانەوە Undo</a>
+<a href="#" onclick="redo()"> چوونە پێش Redo</a>
+<a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز Focus</a>
+<a href="#" onclick="convertTextToImage()"> پاشکەوتکردن وەک JPG</a>
 <a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
+<a href="#" onclick="downloadAsWord()"> پاشکەوتکردن وەک Word </a>
+
+
     </div>
 </div> 
 
@@ -730,7 +732,6 @@ button, .btn-file {
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
             <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
-            <button onclick="downloadAsWord()" class="btn-download">⬇️ Word</button>
             <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
 
 <div id="findReplaceModal">
@@ -1713,55 +1714,7 @@ function printText() {
 }
 
 
-    //كۆدی خوێندنه‌وه‌ی تێكستی ناو وێنه‌
-async function readImageText() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
     
-    fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const textBox = document.getElementById("textBox");
-        showStatus("⏳ خەریکی ئامادەکردنی مۆبایلی زیرەکم...");
-
-        try {
-            // دروستکردنی وۆرکەر بە شێوەیەکی دەستی بۆ ئەوەی کۆنتڕۆڵمان هەبێت
-            const worker = await Tesseract.createWorker('ckb+ara+eng', 1, {
-                logger: m => {
-                    if (m.status === 'loading tesseract core') showStatus("⏳ بارکردنی ناوکەی OCR...");
-                    if (m.status === 'loading language traineddata') showStatus("⏳ بارکردنی فایلی زمانەکان...");
-                    if (m.status === 'initializing api') showStatus("⏳ دەستپێکردنی سیستەم...");
-                    if (m.status === 'recognizing text') {
-                        showStatus(`📝 خەریکی خوێندنەوەی دەق: ${Math.round(m.progress * 100)}%`);
-                    }
-                }
-            });
-
-            // ئەنجامدانی خوێندنەوەکە
-            const { data: { text } } = await worker.recognize(file);
-            
-            // کۆتایی هێنان بە وۆرکەر (بۆ ئەوەی مۆبایل یان کۆمپیوتەرەکە گەرم دانەهێت)
-            await worker.terminate();
-
-            if (text && text.trim().length > 0) {
-                saveState();
-                textBox.value += "\n\n--- دەقی دەرهێنراو لە وێنە ---\n" + text;
-                updateStats();
-                showStatus("✅ دەقەکە بە سەرکەوتوویی خوێندرایەوە");
-            } else {
-                showStatus("❌ هیچی لێ نەخوێندرایەوە، وێنەکە ڕوون نییە");
-            }
-
-        } catch (error) {
-            console.error("OCR Error:", error);
-            showStatus("❌ هەڵەیەک ڕوویدا؛ دڵنیابە ئینتەرنێتت هەیە");
-        }
-    };
-    
-    fileInput.click();
-}
 
 
 

@@ -722,8 +722,7 @@ button, .btn-file {
     <div id="myDropdown" class="dropdown-content">
 
         <a href="#" onclick="removeEmptyLines()"> لابردنی بۆشایی نێوان دێڕه‌كان</a>
-              <a href="#" onclick="splitByDot()"> بۆشایی دوای خاڵ</a>
-<a href="#" onclick="sortLines()"> ڕیزکردن (A-Z)</a>
+              <a href="#" onclick="sortLines()"> ڕیزکردن (A-Z)</a>
 
     </div>
 </div> 
@@ -786,7 +785,7 @@ button, .btn-file {
         <div id="statusMessage">ئامادەیە بۆ گەڕان...</div>
 
         <div class="fr-actions">
-            <button onclick="findAndReplace()" class="btn-fr-exec">جێبەجێکردن 🔄</button>
+            <button onclick="findAndReplace()" class="btn-fr-exec">دۆزینه‌وه‌ - گۆڕین 🔄</button>
             <button onclick="toggleFindReplace()" class="btn-fr-close">داخستن</button>
         </div>
     </div>
@@ -1358,28 +1357,6 @@ function removeEmptyLines() {
     // سەیڤکردن لە لۆکاڵ ستۆریج
     localStorage.setItem('autosave_text', cleanedText);
 }
-
-// فەنکشن بۆ ئەوەی دوای هەر خاڵێک بچێتە دێڕێکی نوێ
-function splitByDot() {
-    const textBox = document.getElementById("textBox");
-    if (!textBox || !textBox.value.trim()) return;
-
-    let text = textBox.value;
-
-    // لێرەدا دەڵێین: هەر خاڵێک بدۆزەرەوە کە لەدوایدا سپەیس یان دێڕی نوێ هەبێت
-    // و بیگۆڕە بۆ (خاڵ + دوو دێڕی نوێ) بۆ ئەوەی پەرەگرافێکی جوان دروست بێت
-    // بەکارهێنانی trim() بۆ ئەوەی سپەیسە زیادەکانی دوای خاڵەکە نەمێنن
-    let formattedText = text.replace(/\.\s*/g, ".\n\n");
-
-    // سڕینەوەی ئەو دوو دێڕە زیادەی کە لە کۆتایی دەقەکە دروست دەبن
-    textBox.value = formattedText.trim();
-
-    // نوێکردنەوەی ئامارەکان و سەیڤکردن
-    if (typeof updateStats === 'function') updateStats();
-    if (typeof showStatus === 'function') showStatus("📑 دەقەکە کرا بە پەرەگراف");
-    localStorage.setItem('autosave_text', textBox.value);
-}
-
 
 
 

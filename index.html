@@ -369,10 +369,10 @@ button, .btn-file {
     display: none;
     position: fixed;
     bottom: 115px;
-    left: 20px;
+    left: 60px;
     z-index: 9999;
     width: 340px;
-    max-width: calc(100vw - 40px);
+    max-width: calc(100vw - 80px);
 }
 
 #findReplaceModal.fr-open {
@@ -1552,11 +1552,20 @@ async function sendToGemini() {
     const start = textBox.selectionStart;
     const finish = textBox.selectionEnd;
     const fullText = textBox.value;
-    const textToCopy = (start !== finish) ? fullText.substring(start, finish) : fullText;
+    const textToCut = (start !== finish) ? fullText.substring(start, finish) : fullText;
     try {
-        await navigator.clipboard.writeText(textToCopy);
+        await navigator.clipboard.writeText(textToCut);
+        // كه‌تكردنی ده‌قه‌كه‌ (سڕینەوەی دەقی هەڵبژێردراو یان هەموو دەقەکە)
+        if (start !== finish) {
+            textBox.value = fullText.substring(0, start) + fullText.substring(finish);
+            textBox.setSelectionRange(start, start);
+        } else {
+            textBox.value = "";
+        }
+        updateStats();
+        localStorage.setItem('autosave_text', textBox.value);
         window.open('https://gemini.google.com/app', '_blank');
-        showStatus("✅ کۆپی کرا — Gemini کراوەتەوە، Ctrl+V بکە");
+        showStatus("✂️ كه‌تكرا — Gemini کراوەتەوە، Ctrl+V بکە");
     } catch (err) {
         showStatus("❌ هەڵەیەک ڕوویدا");
     }
@@ -1603,9 +1612,12 @@ function removeEmptyLines() {
     text = text.replace(/\(\s+/g, "(");
     text = text.replace(/\s+\)/g, ")");
 
-    // ٢. ڕێکخستنی نیشانەی تەنبێ ("): لابردنی سپەیسی ناوەوە " دەق " -> "دەق"
-    text = text.replace(/"\s+/g, '"');
-    text = text.replace(/\s+"/g, '"');
+    // ٢. ڕێکخستنی نیشانەی تەنبێ ("): سپەیس لە دەرەوە، بەبێ سپەیس لە ناوەوە
+    // سەرەتا سپەیسی ناوەوە دەسڕدرێت
+    text = text.replace(/"\s*(.*?)\s*"/g, (_, inner) => '"' + inner.trim() + '"');
+    // سپەیس لە دەرەوە زیاد دەکرێت ئەگەر نەبوو
+    text = text.replace(/([^\s])"([^"])/g, '$1 "$2');
+    text = text.replace(/([^"])"([^\s"])/g, '$1" $2');
 
     // ٣. ڕێکخستنی نیشانەی (٪): پێوەلکاندنی بە ژمارەکەی پێش خۆی
     text = text.replace(/(\d|[٠-٩])\s+٪/g, "$1٪");
@@ -1619,8 +1631,8 @@ function removeEmptyLines() {
     // ٦. ڕێکخستنی فاریزە، نیشانەی پرسیار، نیشانەی سەرسوڕمان و دوو خاڵ (تەنها یەک سپەیس لەدوایان)
     text = text.replace(/([،؟:!])\s*/g, "$1 ");
 
-    // (.\n) وا دەکات وشەکەی دوای خاڵەکە بێتە خوارەوە
-    text = text.replace(/(?<!\.)\.(?!\.)\s*/g, ".\n");
+    // خاڵ: دێڕێکی تازە لەدوای خاڵ (Enter) 
+    text = text.replace(/(?<!\.)\.(?!\.)\s*/g, ".\n\n");
    
 
     // سڕینەوەی سپەیسە زیادەکانی کۆتایی و سەرەتای دەقەکە
@@ -1695,48 +1707,7 @@ function sortLines() {
     showStatus("🔠 دێڕەکان بەپێی ئەلفوبێ ڕیزکران");
 }
 
-function formatKurdishNumbers() {
-    if (typeof saveState === "function") saveState();
-    const box = document.getElementById("textBox");
-    if (!box || !box.value.trim()) return;
 
-    let text = box.value;
-    
-    const toKuDigit = (num) => num.toString().replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[d]);
-
-    const lowWords = {
-        "0": "سفر", "1": "یەک", "2": "دوو", "3": "سێ", "4": "چوار", "5": "پێنج",
-        "6": "شەش", "7": "حەوت", "8": "هەشت", "9": "نۆ", "10": "دە"
-    };
-
-    text = text.replace(/[0-9٠-٩]+/g, function(match) {
-        let standardNumbers = match.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
-        let n = BigInt(standardNumbers);
-
-        if (n <= 10n) return lowWords[n.toString()];
-
-        let result = [];
-        const scales = [
-            { name: "تریلیۆن", value: 1000000000000n },
-            { name: "ملیار", value: 1000000000n },
-            { name: "ملیۆن", value: 1000000n },
-        ];
-
-        let tempN = n;
-        for (let scale of scales) {
-            let count = tempN / scale.value;
-            if (count > 0n) {
-                let partStr = (count === 1n) ? scale.name : (count >= 2n && count <= 10n) ? lowWords[count.toString()] + " " + scale.name : toKuDigit(count) + " " + scale.name;
-                result.push(partStr);
-                tempN %= scale.value;
-            }
-        }
-        if (tempN > 0n) result.push(toKuDigit(tempN));
-        return result.join(" و ");
-    });
-
-    box.value = text;
-}
 
 function toggleFocusMode() {
     const header = document.querySelector('.header');

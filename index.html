@@ -258,6 +258,41 @@ button, .btn-file {
     @media (max-width: 480px) {
         .btn-group { grid-template-columns: repeat(2, 1fr); }
         .h-left { gap: 5px; }
+
+        /* ریسپۆنسیڤی مۆداڵەکان */
+        .modal-content,
+        #aboutModal .modal-content,
+        #dlModal .modal-content,
+        #wordCheckModal .fr-card {
+            width: 95% !important;
+            max-width: 95% !important;
+            margin: 4% auto !important;
+            padding: 16px !important;
+        }
+
+        .fr-card {
+            width: 95vw !important;
+            max-width: 95vw !important;
+            padding: 18px 16px 16px !important;
+            border-radius: 18px !important;
+        }
+
+        #findReplaceModal {
+            width: 95vw;
+            left: 2.5vw;
+            transform: none;
+            bottom: 100px;
+        }
+
+        .fr-actions {
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .btn-fr-exec, .btn-fr-close {
+            font-size: 12px !important;
+            padding: 10px 6px !important;
+        }
     }
 
     .news-ticker { display: flex; align-items: center; background: rgba(0, 0, 0, 0.08); border-radius: 8px; padding: 2px 5px; margin-top: 5px; max-width: 100%; }
@@ -333,16 +368,15 @@ button, .btn-file {
 #findReplaceModal {
     display: none;
     position: fixed;
-    inset: 0;
+    bottom: 115px;
+    left: 20px;
     z-index: 9999;
-    background: rgba(0,0,0,0.45);
-    backdrop-filter: blur(6px);
-    align-items: center;
-    justify-content: center;
+    width: 340px;
+    max-width: calc(100vw - 40px);
 }
 
 #findReplaceModal.fr-open {
-    display: flex;
+    display: block;
 }
 
 .fr-card {
@@ -384,20 +418,25 @@ button, .btn-file {
 
 .fr-close-x {
     position: absolute;
-    top: 16px;
-    left: 18px;
-    background: none;
+    top: 14px;
+    left: 14px;
+    background: #f0f0f0;
     border: none;
-    font-size: 20px;
+    font-size: 14px;
     cursor: pointer;
-    color: #aaa;
-    line-height: 1;
-    padding: 2px 6px;
-    border-radius: 6px;
+    color: #666;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
     transition: 0.2s;
+    font-weight: bold;
 }
-.fr-close-x:hover { background: #f0f0f0; color: #555; }
-.dark-mode .fr-close-x:hover { background: #2a2a2a; color: #ccc; }
+.fr-close-x:hover { background: #e53935; color: #fff; }
+.dark-mode .fr-close-x { background: #333; color: #ccc; }
+.dark-mode .fr-close-x:hover { background: #e53935; color: #fff; }
 
 .fr-input-group { margin-bottom: 14px; }
 
@@ -795,14 +834,13 @@ button, .btn-file {
                 </a>
 
                 <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
-                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 8/3/2026</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 16/3/2026</p>
             </div>
 
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
             
             <p style="margin: 5px 0;"><strong>زانیاری:</strong></p>
-            <p style="margin: 3px 0; font-size: 0.95em;">نرخه‌كان و مانشێتی هه‌واڵه‌كان خۆیان نوێ ده‌بنه‌وه‌.</p>
-            <p style="margin: 3px 0; font-size: 0.95em;">ته‌نها -- له‌خانه‌ی تێكست بنووسه‌ و دوگمه‌ی عه‌لی كه‌ی دابگره‌ لینكی كۆنڤێرتی گشتیت پێ ده‌دات‌.</p>
+            <p style="margin: 3px 0; font-size: 0.95em;">له‌ په‌نجه‌ره‌ی گه‌ڕان بنووسه‌ font یان c4kurd یان link دواتر دوگمه‌ی دۆزینه‌وه‌ دابگره‌، لینكی ئه‌وانه‌ت پێ ده‌دات كه‌ نووسیوته‌ و ئه‌توانی سوودیان لێ وه‌ربگریت‌.</p>
             <p style="margin: 3px 0; font-size: 0.95em;">كه‌ كلیك له‌سه‌ر دوگمه‌ی جیمینای ده‌كه‌یت تێكسته‌كه‌ت بۆ cut ده‌كات و جیمینای ده‌كاته‌وه‌‌.</p>
         </div>
 
@@ -919,7 +957,7 @@ button, .btn-file {
         </div>
         <div id="statusMessage">ئامادەیە بۆ گەڕان...</div>
         <div class="fr-actions">
-            <button onclick="frFind()" class="btn-fr-exec btn-fr-find" id="frFindBtn">دۆزینەوە 🔍</button>
+            <button onclick="frFindOrSnippet()" class="btn-fr-exec btn-fr-find" id="frFindBtn">دۆزینەوە 🔍</button>
             <button onclick="frReplace()" class="btn-fr-exec btn-fr-replace">گۆڕینی ئێستا ✏️</button>
             <button onclick="frReplaceAll()" class="btn-fr-exec btn-fr-all">گۆڕینی هەموو 🔄</button>
         </div>
@@ -958,12 +996,49 @@ const conversionMap =[
     { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
     { uni: '٦', ali: '6' }, { uni: '٧', ali: '7' }, 
     { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' },
-    { uni: '--', ali: 'https://image.online-convert.com/' },
     { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ 4 په‌ره‌گرافدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها مانشێتیكی سه‌رنجڕاكێشیشی بۆ دابنێ، هه‌ر وشه‌یه‌كیش هه‌بوو به‌ناوی ئیسرائیل یان سوپای ئیسرائیل تۆ بیكه‌ به‌ قه‌واره‌ی زایۆنی یان سوپای زایۆنی له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا هه‌روه‌ها هه‌رچییه‌ك ژماره‌ هه‌بوو له‌ ناوه‌ڕۆكی هه‌واڵه‌كه‌دا بیهێڵه‌وه‌ چونكه‌ ئامار هه‌واڵه‌كه‌ به‌هادارتر ده‌كات ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانی پڕۆفیشناڵم ده‌وێت ' }
 
 ];
 
-const rssSources =[
+// =================== سیستەمی کلیلەوشەکان (Snippets) ===================
+// بۆ زیادکردنی کلیلەوشەی نوێ، تەنها ڕیزێک زیاد بکە بە ئەم شێوەیە:
+// { key: '@@', label: 'ناوی نیشاندان', value: () => 'ئەو شتەی دەنرێتە خانەکە' }
+// یان بۆ نرخی ئاساوی (نه‌ فەنکشن): { key: '/web', label: 'ماڵپەڕ', value: 'https://example.com' }
+
+const snippets = [
+    { key: 'c4kurd',  label: 'سی فۆر كورد',       value: () => 'https://github.com/arkandara/arkandara.github.io/releases/tag/v2.c4kurd' },
+    { key: 'font',  label: 'نزیكه‌ی 900 فۆنت', value: () => 'https://github.com/arkandara/arkandara.github.io/releases/download/V.1/829.Font.zip' },
+    { key: 'link', label: 'واژوو',      value: () => 'https: //image.online-convert.com/' },
+];
+
+// =========================================================================
+
+function getSnippetValue(snip) {
+    return typeof snip.value === 'function' ? snip.value() : snip.value;
+}
+
+// دوگمەی دۆزینەوە: ئەگەر کلیلەوشە بوو دادەنێت، وەرنا دەگەڕێت
+function frFindOrSnippet() {
+    const val = document.getElementById('findInput').value.trim();
+    const snip = snippets.find(s => s.key === val);
+    if (snip) {
+        const textBox = document.getElementById('textBox');
+        const result  = getSnippetValue(snip);
+        const start   = textBox.selectionStart;
+        const end     = textBox.selectionEnd;
+        textBox.value = textBox.value.substring(0, start) + result + textBox.value.substring(end);
+        textBox.setSelectionRange(start + result.length, start + result.length);
+        textBox.focus();
+        if (typeof updateStats === 'function') updateStats();
+        localStorage.setItem('autosave_text', textBox.value);
+        document.getElementById('findInput').value = '';
+        toggleFindReplace();
+    } else {
+        frFind();
+    }
+}
+
+const rssSources = [
     { name: 'الجزيرة', url: 'https://www.aljazeera.net/rss' },
     { name: 'سكاى نيوز', url: 'https://www.skynewsarabia.com/rss' },
     { name: 'روسیا الیوم', url: 'https://arabic.rt.com/rss/' },
@@ -1233,9 +1308,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const ocrInput = document.getElementById('ocrImageInput');
     if (ocrInput) ocrInput.addEventListener('change', handleOcrImage);
 
-    // findInput — پاکردنەوەی نتیجە کاتێک وشە گۆڕدرا
+    // findInput
     const findInput = document.getElementById('findInput');
-    if (findInput) findInput.addEventListener('input', frReset);
+    if (findInput) {
+        findInput.addEventListener('input', frReset);
+        findInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') frFindOrSnippet();
+        });
+    }
 
     // modal close
     window.onclick = e => {

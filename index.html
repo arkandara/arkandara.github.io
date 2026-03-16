@@ -1600,49 +1600,51 @@ function removeEmptyLines() {
     localStorage.setItem('autosave_text', cleanedText);
 }
 
-    function fixPunctuation() {
+
+function fixPunctuation() {
     if (typeof saveState === 'function') saveState(); 
     
     const textBox = document.getElementById("textBox");
     if (!textBox || !textBox.value.trim()) return;
-
     let text = textBox.value;
 
-    // ١. ڕێکخستنی کەوانەکان: لابردنی سپەیسی ناوەوە ( دەق ) -> (دەق)
+    // ١. کەوانەکان: سپەیس لە ناوەوە نەبێ، لە دەرەوە هەبێ
     text = text.replace(/\(\s+/g, "(");
     text = text.replace(/\s+\)/g, ")");
+    text = text.replace(/([^\s])\(/g, "$1 (");
+    text = text.replace(/\)([^\s])/g, ") $1");
 
-    // ٢. ڕێکخستنی نیشانەی تەنبێ ("): سپەیس لە دەرەوە، بەبێ سپەیس لە ناوەوە
-    // سەرەتا سپەیسی ناوەوە دەسڕدرێت
-    text = text.replace(/"\s*(.*?)\s*"/g, (_, inner) => '"' + inner.trim() + '"');
-    // سپەیس لە دەرەوە زیاد دەکرێت ئەگەر نەبوو
-    text = text.replace(/([^\s])"([^"])/g, '$1 "$2');
-    text = text.replace(/([^"])"([^\s"])/g, '$1" $2');
+    // ٢. کۆتیشن: سپەیس لە ناوەوە نەبێ، لە دەرەوە هەبێ
+    // ١. لادانی هەر بۆشاییەک کە لە ناوەوەی کۆتێشنەکاندا هەبێت
+// ١. یەکەمجار هەموو بۆشاییە زیادەکانی ناوەوە و دەرەوە لادەبەین و ڕێکی دەخەینەوە
+text = text.replace(/\s*"\s*([^"]+?)\s*"\s*/g, ' "$1" ');
 
-    // ٣. ڕێکخستنی نیشانەی (٪): پێوەلکاندنی بە ژمارەکەی پێش خۆی
+// ٢. ئەگەر کۆتێشنەکە لە کۆتایی ڕستە بوو و خاڵ یان نیشانەی تری بەدوادابوو، بۆشاییە زیادەکە لادەبات
+text = text.replace(/"\s+([،.؟:!])/g, '"$1');
+
+
+    // ٣. نیشانەی ٪
     text = text.replace(/(\d|[٠-٩])\s+٪/g, "$1٪");
 
-    // ٤. ڕێکخستنی سێ خاڵ: گۆڕینی هەرچی خاڵی زۆر و دووبارەیە بۆ تەنها سێ خاڵ (...)
+    // ٤. سێ خاڵ
     text = text.replace(/\.{2,}/g, "...");
 
-    // ٥. لابردنی هەر سپەیسێک کە کەوتووەتە پێش نیشانەکان (، . ؟ : !)
+    // ٥. سپەیس پێش نیشانەکان
     text = text.replace(/\s+([،.؟:!])/g, "$1");
 
-    // ٦. ڕێکخستنی فاریزە، نیشانەی پرسیار، نیشانەی سەرسوڕمان و دوو خاڵ (تەنها یەک سپەیس لەدوایان)
+    // ٦. سپەیس لەدوای نیشانەکان
     text = text.replace(/([،؟:!])\s*/g, "$1 ");
 
- // 7 له‌دوای حاڵ سپه‌یسێ داده‌نێت
-   text = text.replace(/(?<!\.)\.(?!\.)\s*/g, ". ");
-   
+    // ٧. سپەیس لەدوای خاڵ
+    text = text.replace(/(?<!\.)\.(?!\.)[ \t]*/g, ". ");
 
-    // سڕینەوەی سپەیسە زیادەکانی کۆتایی و سەرەتای دەقەکە
     textBox.value = text.trim();
-
-    // نوێکردنەوەی زانیارییەکان و سەیڤکردن
     if (typeof updateStats === 'function') updateStats();
     if (typeof showStatus === 'function') showStatus("✨ خاڵبەندی و دێڕەکان ڕێکخران");
     localStorage.setItem('autosave_text', textBox.value);
 }
+
+
 
 let historyStack = [];
 let historyIndex = -1;

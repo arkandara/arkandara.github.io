@@ -1665,23 +1665,36 @@ function removeEmptyLines() {
     const textBox = document.getElementById("textBox");
     if (!textBox || !textBox.value.trim()) return;
 
-    const originalText = textBox.value;
-    
-    // سڕینەوەی ئەو دێڕانەی کە بەتاڵن یان تەنها سپەیسیان تێدایە
-    const cleanedText = originalText
-        .split('\n')
-        .filter(line => line.trim() !== '')
-        .join('\n');
+    const start = textBox.selectionStart;
+    const end = textBox.selectionEnd;
+    const selectedText = textBox.value.substring(start, end);
 
-    textBox.value = cleanedText;
-    
-    // نوێکردنەوەی ئامارەکان و سەیڤکردنی ئۆتۆماتیکی
+    // فەنکشنێکی ناوەکی بۆ سڕینەوەی دێڕە بەتاڵەکان لە هەر دەقێکدا
+    const cleanStr = (str) => str.split('\n').filter(line => line.trim() !== '').join('\n');
+
+    if (selectedText.length > 0) {
+        // ئەگەر تێکست دیاریکرابوو: تەنها ئەو بەشە پاک بکەرەوە
+        const cleanedPart = cleanStr(selectedText);
+        const before = textBox.value.substring(0, start);
+        const after = textBox.value.substring(end);
+        
+        textBox.value = before + cleanedPart + after;
+        
+        // دانانەوەی فۆکەس و دیاریکردنەکە لەسەر تێکستە نوێیەکە
+        textBox.setSelectionRange(start, start + cleanedPart.length);
+    } else {
+        // ئەگەر هیچ دیارینەکرابوو: هەموو تێکستەکە پاک بکەرەوە
+        textBox.value = cleanStr(textBox.value);
+    }
+
+    // نوێکردنەوەی ئامارەکان و سەیڤکردن
     if (typeof updateStats === 'function') updateStats();
     if (typeof showStatus === 'function') showStatus("✨ دێڕە بەتاڵەکان سڕانەوە");
     
-    // سەیڤکردن لە لۆکاڵ ستۆریج
-    localStorage.setItem('autosave_text', cleanedText);
+    localStorage.setItem('autosave_text', textBox.value);
+    textBox.focus();
 }
+
 
 
 function fixPunctuation() {

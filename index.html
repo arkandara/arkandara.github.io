@@ -296,8 +296,8 @@ button, .btn-file {
         }
     }
 
-    .news-ticker { display: flex; align-items: center; background: rgba(0, 0, 0, 0.08); border-radius: 8px; padding: 2px 5px; margin-top: 5px; max-width: 100%; }
-.dark-mode .news-ticker { background: rgba(255, 255, 255, 0.1); }
+    .news-ticker { display: flex; align-items: center; background: #dde4e1; border-radius: 8px; padding: 2px 5px; margin-top: 5px; max-width: 100%; }
+.dark-mode .news-ticker { background: #1e1e1e; }
 .news-badge { background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px; white-space: nowrap; }
 
 #news-text { 
@@ -363,6 +363,41 @@ button, .btn-file {
 
 .btn-nav:active {
     transform: translateY(0); /* کاتێک کلیکی دەکەیت دادەبەزێتەوە */
+}
+
+/* ئانیمەیشنی دوگمەی پرنت، مۆدی شەو، ئەباوت، و فۆنت */
+.header-icon-btn {
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 4px 6px;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+.header-icon-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.07);
+}
+.header-icon-btn:active {
+    transform: scale(0.95) translateY(0) !important;
+    box-shadow: none;
+}
+.dark-mode .header-icon-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.font-ctrl {
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+.font-ctrl:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
 }
 
 /* دیزاینی نوێی مۆداڵی گەڕان و گۆڕین */
@@ -911,8 +946,6 @@ button, .btn-file {
     </div>
 </div> 
 
-            <div style="cursor:pointer; font-size:18px;" onclick="toggleAbout()">ℹ️</div>
-
     </div>
     </div>
 
@@ -920,8 +953,9 @@ button, .btn-file {
         <span class="news-badge">مانشێتی گرینگترین هه‌واڵه‌كان</span>
         <a href="#" id="news-text" target="_blank">چاوەڕێی مانشێتی هەواڵەکان بن...</a>
         <div style="display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;direction:ltr;">
-            <div style="cursor:pointer;font-size:18px;line-height:1;margin-left:14px;" onclick="printText()" title="پرنت">🖨️</div>
-            <div style="cursor:pointer;font-size:18px;line-height:1;" onclick="toggleT()" title="مۆدی شەو">🌙</div>
+<div class="header-icon-btn" onclick="toggleAbout()" style="margin-left: 15px; cursor: pointer;" title="زانیاری">ℹ️</div>
+            <div class="header-icon-btn" onclick="printText()" title="پرنت">🖨️</div>
+            <div class="header-icon-btn" onclick="toggleT()" title="مۆدی شەو">🌙</div>
             <div class="font-ctrl" title="قەبارەی فۆنت">
                 <span class="font-icon" style="font-size:11px;">A</span>
                 <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
@@ -1347,6 +1381,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(saveState, 1000);
 });
 
+
+
 async function downloadAsWord() {
     const content = document.getElementById('textBox').value;
     
@@ -1361,18 +1397,23 @@ async function downloadAsWord() {
         const { Document, Packer, Paragraph, TextRun, AlignmentType } = docx;
 
         const lines = content.split('\n');
-        const paragraphs = lines.map(line => 
+        const paragraphs = lines.map(line =>
             new Paragraph({
-                alignment: AlignmentType.RIGHT,
+                alignment: AlignmentType.RIGHT, // ڕێکخستنی دەق بۆ لای ڕاست
+                bidirectional: true,           // بۆ ئەوەی وۆرد بزانێت ئاراستەکە پێچەوانەیە
                 children: [
                     new TextRun({
-                        text: line,
-                        font: "Noto Sans Arabic",
-                        size: 24,
-                        rtl: true,
+                        text: line || " ",
+                        size: 28,              // قەبارەی فۆنت (28 واتە 14pt لە وۆرددا)
+                        rightToLeft: true,     // چالاککردنی نووسینی ڕاست بۆ چەپ
+                        font: {
+                            name: "Times New Roman",          // بۆ پیتە لاتینییەکان
+                            complexScript: "Times New Roman", // زۆر گرنگە بۆ فۆنتی کوردی و عەرەبی
+                            hint: "cs",                       // ئاماژە بۆ وۆرد کە ئەمە Complex Script-ە
+                            ascii: "Times New Roman"
+                        },
                     })
                 ],
-                bidirectional: true,
             })
         );
 
@@ -1380,7 +1421,8 @@ async function downloadAsWord() {
             sections: [{
                 properties: {
                     page: {
-                        margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+                        margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+                        textDirection: "rtl", // ئاراستەی گشتی لاپەڕە
                     }
                 },
                 children: paragraphs
@@ -1389,6 +1431,7 @@ async function downloadAsWord() {
 
         const buffer = await Packer.toBlob(doc);
 
+        // بەشی پاشکەوتکردنی فایل
         if ('showSaveFilePicker' in window) {
             try {
                 const handle = await window.showSaveFilePicker({
@@ -1404,32 +1447,29 @@ async function downloadAsWord() {
                 showStatus("✅ فایلی Word بە سەرکەوتوویی پاشکەوت کرا");
             } catch (err) {
                 if (err.name !== 'AbortError') {
-                    const url = URL.createObjectURL(buffer);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = 'بەڵگەنامە.docx';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    showStatus("✅ داگرتنی فایلی Word دەستی پێکرد");
+                    fallbackDownload(buffer);
                 }
             }
         } else {
-            const url = URL.createObjectURL(buffer);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = 'بەڵگەنامە.docx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showStatus("✅ داگرتنی فایلی Word دەستی پێکرد");
+            fallbackDownload(buffer);
         }
     } catch (err) {
         console.error(err);
         showStatus("❌ هەڵەیەک ڕوویدا لە دروستکردنی فایلی Word");
     }
+}
+
+// فەنکشنی یاریدەدەر بۆ داگرتنی فایل لەو وێبگەڕانەی پاڵپشتی SavePicker ناکەن
+function fallbackDownload(buffer) {
+    const url = URL.createObjectURL(buffer);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = 'بەڵگەنامە.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showStatus("✅ داگرتنی فایلی Word دەستی پێکرد");
 }
 
 // فەنکشنی گەڕان و گۆڕین

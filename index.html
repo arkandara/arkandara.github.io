@@ -26,6 +26,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 
 <style>
 
@@ -119,11 +120,11 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Arabic', sans-serif; transition: var(--transition); }
 
-    body { background: #f4f7f6; min-height: 100vh; display: flex; flex-direction: column; }
+    body { background: #e0e5e3; min-height: 100vh; display: flex; flex-direction: column; }
     body.dark-mode { background: #121212; color: #ffffff; }
 
     .header { 
-        background: rgba(255, 255, 255, 0.95); 
+        background: rgba(220, 228, 225, 0.97); 
         padding: 10px 20px; 
         border-bottom: 3px solid var(--primary); 
         display: grid; 
@@ -190,7 +191,7 @@
         flex: 1; min-height: 378px; padding: 20px; border-radius: 10px; 
         border: 2px solid #e2e8f0; font-size: 20px; line-height: 1.8; 
         resize: none; text-align: right; direction: rtl; outline: none;
-        background: #ffffff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        background: #dde4e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.04);
     }
     textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1); }
     .dark-mode textarea { background: #1e1e1e; color: #eee; border-color: #333; }
@@ -898,13 +899,11 @@ button, .btn-file {
 <div class="dropdown">
     <div class="stat-item dropdown-btn" onclick="toggleDropdown()">ڕێكخستن ▼ </div>
     <div id="myDropdown" class="dropdown-content">
-<a href="#" onclick="undo()"> گەڕانەوە Undo</a>
-<a href="#" onclick="redo()"> چوونە پێش Redo</a>
 <a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز Focus</a>
 <a href="#" onclick="checkRepeatedWords()"> پشکنینی وشەکان </a>
 <a href="#" onclick="convertTextToImage()"> پاشکەوتکردن وەک JPG</a>
 <a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
-<a href="#" onclick="downloadAsWord()"> پاشکەوتکردن وەک Word </a>
+<a href="#" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</a>
 <label for="fileInput">هێنانی فایلی Word </label>
 <a href="#" onclick="triggerOcrInput()"> خوێندنەوەی دەقی ناو وێنە </a>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
@@ -940,7 +939,7 @@ button, .btn-file {
             <button class="btn-copy" onclick="copyText()">📄 كۆپیكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
-            <button class="btn-nav btn-nav-dl" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</button>
+            <button onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;">💾 Word</button>
             <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
 
 <div id="findReplaceModal">
@@ -1302,6 +1301,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Ctrl+Z بە شاراوەیی بۆ گەڕانەوە (Undo)
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.id === 'textBox') {
+                e.preventDefault();
+                undo();
+            }
+        }
+    });
+
     // fileInput
     const fileInput = document.getElementById('fileInput');
     if (fileInput) fileInput.addEventListener('change', handleFile);
@@ -1340,52 +1350,85 @@ document.addEventListener('DOMContentLoaded', () => {
 async function downloadAsWord() {
     const content = document.getElementById('textBox').value;
     
-    // لێرەدا گۆڕانکارییەکەمان کردووە بۆ ئەوەی showStatus بەکاربهێنێت
     if (!content.trim()) {
         showStatus("⚠️ سندوقی نووسینەکە بەتاڵە!");
         return;
     }
 
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
-                   "xmlns:w='urn:schemas-microsoft-com:office:word' " +
-                   "xmlns='http://www.w3.org/TR/REC-html40'>" +
-                   "<head><meta charset='utf-8'>" +
-                   "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->" +
-                   "</head><body style='direction:rtl; text-align:right;'>"; 
-    const footer = "</body></html>";
-    
-    const sourceHTML = header + content.replace(/\n/g, '<br>') + footer;
+    showStatus("⏳ فایلی Word دروست دەکرێت...");
 
-    const blob = new Blob(['\ufeff', sourceHTML], {
-        type: 'application/msword'
-    });
+    try {
+        const { Document, Packer, Paragraph, TextRun, AlignmentType } = docx;
 
-    if ('showSaveFilePicker' in window) {
-        try {
-            const handle = await window.showSaveFilePicker({
-                suggestedName: 'MyDocument.doc',
-                types: [{
-                    description: 'Word 97-2003 Document',
-                    accept: {'application/msword': ['.doc']},
-                }],
-            });
-            const writable = await handle.createWritable();
-            await writable.write(blob);
-            await writable.close();
-            showStatus("✅ فایلەکە بە سەرکەوتوویی پاشکەوت کرا");
-        } catch (err) {
-            console.log('کرداری خەزنکردن هەڵوەشایەوە');
+        const lines = content.split('\n');
+        const paragraphs = lines.map(line => 
+            new Paragraph({
+                alignment: AlignmentType.RIGHT,
+                children: [
+                    new TextRun({
+                        text: line,
+                        font: "Noto Sans Arabic",
+                        size: 24,
+                        rtl: true,
+                    })
+                ],
+                bidirectional: true,
+            })
+        );
+
+        const doc = new Document({
+            sections: [{
+                properties: {
+                    page: {
+                        margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+                    }
+                },
+                children: paragraphs
+            }]
+        });
+
+        const buffer = await Packer.toBlob(doc);
+
+        if ('showSaveFilePicker' in window) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: 'بەڵگەنامە.docx',
+                    types: [{
+                        description: 'Word Document',
+                        accept: { 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] },
+                    }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(buffer);
+                await writable.close();
+                showStatus("✅ فایلی Word بە سەرکەوتوویی پاشکەوت کرا");
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    const url = URL.createObjectURL(buffer);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = 'بەڵگەنامە.docx';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showStatus("✅ داگرتنی فایلی Word دەستی پێکرد");
+                }
+            }
+        } else {
+            const url = URL.createObjectURL(buffer);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = 'بەڵگەنامە.docx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus("✅ داگرتنی فایلی Word دەستی پێکرد");
         }
-    } else {
-        const url = URL.createObjectURL(blob);
-        const fileDownload = document.createElement("a");
-        fileDownload.href = url;
-        fileDownload.download = 'MyDocument.doc';
-        document.body.appendChild(fileDownload);
-        fileDownload.click();
-        document.body.removeChild(fileDownload);
-        URL.revokeObjectURL(url);
-        showStatus("✅ داگرتنی فایلەکە دەستی پێکرد");
+    } catch (err) {
+        console.error(err);
+        showStatus("❌ هەڵەیەک ڕوویدا لە دروستکردنی فایلی Word");
     }
 }
 

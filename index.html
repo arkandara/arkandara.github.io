@@ -158,6 +158,24 @@
         height: 28px; 
         border-radius: 6px; 
         cursor: pointer; white-space: nowrap; border: 1px solid rgba(0,0,0,0.05);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, background 0.3s ease !important;
+        user-select: none;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        background: #d4d4d4 !important;
+    }
+
+    .stat-item:active {
+        transform: scale(0.95) translateY(0) !important;
+        box-shadow: none !important;
+    }
+
+    .dark-mode .stat-item:hover {
+        background: #3a3a3a !important;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.35);
     }
 
     .dark-mode .stat-item { background: #2c2c2c !important; color: #ccc; border-color: rgba(255,255,255,0.05); }
@@ -389,6 +407,66 @@ button, .btn-file {
 }
 .dark-mode .header-icon-btn:hover {
     background: rgba(255,255,255,0.1);
+}
+
+/* ئایکۆنی مۆدی شەو/ڕۆژ */
+.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 7px !important;
+    border-radius: 20px !important;
+    background: linear-gradient(135deg, #f0f0f0, #f0f0f0);
+    border: 1.5px solid rgba(255,180,0,0.3);
+    transition: all 0.4s ease !important;
+    overflow: hidden;
+    position: relative;
+}
+
+.dark-mode .theme-toggle-btn {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-color: rgba(100,150,255,0.3);
+}
+
+.theme-icon {
+    font-size: 15px;
+    line-height: 1;
+    display: inline-block;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+}
+
+/* مۆدی ڕۆژ: خۆرەکە دیارە، مانگەکە نیمچە شەفاف */
+.sun-icon {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+}
+.moon-icon {
+    opacity: 0.35;
+    transform: translateY(0) rotate(-20deg) scale(0.85);
+}
+
+/* مۆدی شەو: مانگەکە دیارە، خۆرەکە نیمچە شەفاف */
+.dark-mode .sun-icon {
+    opacity: 0.35;
+    transform: translateY(0) rotate(20deg) scale(0.85);
+}
+.dark-mode .moon-icon {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+}
+
+/* ئەنیمەیشنی کاتی گۆڕین */
+.theme-toggle-btn.switching .sun-icon {
+    animation: iconSwitch 0.5s ease forwards;
+}
+.theme-toggle-btn.switching .moon-icon {
+    animation: iconSwitch 0.5s ease forwards;
+}
+
+@keyframes iconSwitch {
+    0%   { transform: translateY(0) scale(1); }
+    40%  { transform: translateY(-6px) scale(1.2); }
+    100% { transform: translateY(0) scale(1); }
 }
 
 .font-ctrl {
@@ -938,12 +1016,12 @@ button, .btn-file {
     <div id="myDropdown" class="dropdown-content">
 <a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز Focus</a>
 <a href="#" onclick="checkRepeatedWords()"> پشکنینی وشەکان </a>
-<a href="#" onclick="convertTextToImage()"> پاشکەوتکردن وەک JPG</a>
 <a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
 <a href="#" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</a>
 <label for="fileInput">هێنانی فایلی Word </label>
-<a href="#" onclick="triggerOcrInput()"> خوێندنەوەی دەقی ناو وێنە </a>
+<a href="#" onclick="triggerOcrInput()"> خوێندنەوەی دەقی ناو وێنه‌ EN, AR </a>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
+
 
     </div>
 </div> 
@@ -957,7 +1035,10 @@ button, .btn-file {
         <div style="display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;direction:ltr;">
 <div class="header-icon-btn" onclick="toggleAbout()" style="margin-left: 15px; cursor: pointer;" title="زانیاری">ℹ️</div>
             <div class="header-icon-btn" onclick="printText()" title="پرنت">🖨️</div>
-            <div class="header-icon-btn" onclick="toggleT()" title="مۆدی شەو">🌙</div>
+            <div class="header-icon-btn theme-toggle-btn" onclick="toggleT()" title="مۆدی شەو / مۆدی ڕۆژ" id="themeToggleBtn">
+                <span class="theme-icon sun-icon">☀️</span>
+                <span class="theme-icon moon-icon">🌙</span>
+            </div>
             <div class="font-ctrl" title="قەبارەی فۆنت">
                 <span class="font-icon" style="font-size:11px;">A</span>
                 <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
@@ -1083,7 +1164,10 @@ const rssSources = [
     { name: 'الحرة', url: 'https://www.alhurra.com/rss' },
     { name: 'ڕووداو', url: 'https://www.rudaw.net/rss' },
     { name: 'بغداد اليوم', url: 'https://baghdadtoday.news/rss' },
-        { name: 'ڕووداو', url: 'https://www.rudaw.net/sorani/rss' },
+        { name: 'ڕووداو', url: 'https://www.rudaw.net/feeds/sorani/kurdistan/rss' },
+        { name: 'ڕووداو', url: 'https://www.rudaw.net/feeds/sorani/middleeast/rss' },
+        { name: 'ڕووداو', url: 'https://www.rudaw.net/feeds/sorani/world/rss' },
+
     { name: 'عربي جديد', url: 'https://www.alaraby.co.uk/rss' }
 ];
 
@@ -1171,8 +1255,13 @@ function toggleDlModal() {
     if(m) m.style.display = (m.style.display === "block") ? "none" : "block";
 }
 
-function toggleT() { 
-    document.body.classList.toggle('dark-mode'); 
+function toggleT() {
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) {
+        btn.classList.add('switching');
+        setTimeout(() => btn.classList.remove('switching'), 500);
+    }
+    document.body.classList.toggle('dark-mode');
 }
 
 function processDownload() {
@@ -1698,7 +1787,7 @@ function removeEmptyLines() {
 }
 
 
-
+    // ڕێنووس و خاڵبه‌ندی
 function fixPunctuation() {
     if (typeof saveState === 'function') saveState(); 
     
@@ -1735,6 +1824,15 @@ text = text.replace(/"\s+([،.؟:!])/g, '"$1');
 
     // ٧. سپەیس لەدوای خاڵ
     text = text.replace(/(?<!\.)\.(?!\.)[ \t]*/g, ". ");
+
+    // ٧. فاریزه‌ی ئینگلیزی بۆ كوردی
+text = text.replace(/\s*,\s*/g, "، ");
+
+// 2. گۆڕینی خاڵ و فاریزە
+text = text.replace(/\s*;\s*/g, "؛ ");
+
+// 3. گۆڕینی نیشانەی پرسیار
+text = text.replace(/\s*\?\s*/g, "؟ ");
 
     textBox.value = text.trim();
     if (typeof updateStats === 'function') updateStats();
@@ -1856,66 +1954,6 @@ function toggleFocusMode() {
     }
 }
 
-  // كۆدی وێنه‌ی نێو خانه‌ی تێكست
-async function convertTextToImage() {
-    const textBox = document.getElementById("textBox");
-    const text = textBox.value.trim();
-
-    if (!text) {
-        showStatus("⚠️ تکایە سەرەتا دەقێک بنووسە");
-        return;
-    }
-
-    showStatus("⏳ خەریکە وێنەکە دروست دەکرێت...");
-
-    const tempDiv = document.createElement("div");
-    tempDiv.style.position = "absolute";
-    tempDiv.style.left = "-9999px"; // شاردنەوە لە چاو
-    tempDiv.style.width = "600px"; // پانایی وێنەکە
-    tempDiv.style.padding = "40px";
-    tempDiv.style.background = "#ffffff"; // ڕەنگی پاشبنەما
-    tempDiv.style.color = "#333333"; // ڕەنگی دەق
-    tempDiv.style.fontSize = "24px";
-    tempDiv.style.lineHeight = "1.8";
-    tempDiv.style.direction = "rtl";
-    tempDiv.style.textAlign = "right";
-    tempDiv.style.fontFamily = textBox.style.fontFamily || "'Noto Sans Arabic', sans-serif";
-    tempDiv.style.whiteSpace = "pre-wrap"; // بۆ ئەوەی دێڕەکان وەک خۆی بمێننەوە
-    tempDiv.style.borderRadius = "10px";
-
-    tempDiv.innerText = text;
-    
-    const footer = document.createElement("div");
-    footer.innerText = "https://arkandara.github.io";
-    footer.style.fontSize = "14px";
-    footer.style.marginTop = "30px";
-    footer.style.color = "#888";
-    footer.style.textAlign = "left";
-    tempDiv.appendChild(footer);
-
-    document.body.appendChild(tempDiv);
-
-    // ٣. بەکارهێنانی html2canvas بۆ دروستکردنی وێنەکە
-    try {
-        const canvas = await html2canvas(tempDiv, {
-            backgroundColor: "#ffffff",
-            scale: 2 // بۆ ئەوەی کوالێتی وێنەکە بەرز بێت
-        });
-
-        const imageData = canvas.toDataURL("image/jpeg", 0.9);
-        const link = document.createElement("a");
-        link.download = "kurdish-text-image.jpg";
-        link.href = imageData;
-        link.click();
-
-        showStatus("✅ وێنەکە بە سەرکەوتوویی داگیرا");
-    } catch (error) {
-        console.error("هەڵە لە دروستکردنی وێنە:", error);
-        showStatus("❌ هەڵەیەک ڕوویدا لە دروستکردنی وێنەکە");
-    } finally {
-        document.body.removeChild(tempDiv); // سڕینەوەی توخمە کاتییەکە
-    }
-}
 
 // دروستكردنی پی دی ئێف له‌ خانه‌ی تێكست
 
@@ -2109,14 +2147,22 @@ function checkRepeatedWords() {
     toggleWordCheck();
 }
 
+
+
+
+// كۆدی خوێندنه‌وه‌ی ده‌قی وێنه‌ بۆ ئینگلیزی و عه‌ره‌بی
 function triggerOcrInput() {
     const input = document.getElementById('ocrImageInput');
     if (input) input.click();
 }
 
-document.getElementById('ocrImageInput').addEventListener('change', handleOcrImage);
+function triggerOcrKurdish() {
+    const input = document.getElementById('ocrKurdishInput');
+    if (input) input.click();
+}
 
-// نوێکردنەوەی ئامارەکان کاتێک دەق دیاری دەکرێت
+document.getElementById('ocrImageInput').addEventListener('change', handleOcrImage);
+document.getElementById('ocrKurdishInput').addEventListener('change', handleOcrKurdish);
 const _tb = document.getElementById('textBox');
 if (_tb) {
     _tb.addEventListener('select', updateStats);
@@ -2143,11 +2189,13 @@ async function handleOcrImage(e) {
                     const pct = Math.round(m.progress * 100);
                     showStatus('⏳ خوێندنەوە... ' + pct + '٪');
                 }
-            }
+            },
+            preserve_interword_spaces: '1',
         });
 
-        const cleanedText = result.data.text.trim();
+        let cleanedText = result.data.text.trim();
 
+      
         if (!cleanedText) {
             showStatus("⚠️ هیچ دەقێک لە وێنەکەدا نەدۆزرایەوە");
             e.target.value = "";
@@ -2172,5 +2220,6 @@ async function handleOcrImage(e) {
 
 
 </script>
+
 </body>
 </html>

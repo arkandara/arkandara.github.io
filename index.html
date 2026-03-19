@@ -1006,22 +1006,29 @@ button, .btn-file {
     <div id="myDropdown" class="dropdown-content">
 
         <a href="#" onclick="removeEmptyLines()"> لابردنی بۆشایی نێوان دێڕه‌كان</a>
+<a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز Focus</a>
+<a href="#" onclick="checkRepeatedWords()"> پشکنینی وشەکان </a>
+<label for="fileInput">هێنانی فایلی Word </label>
+<a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
+<a href="#" onclick="toggleDlModal()"> داگرتنی ڤیدیۆ</a>
+
               <a href="#" onclick="sortLines()"> ڕیزکردن (A-Z)</a>
+
+
+
+
 
     </div>
 </div> 
 
-<div class="dropdown">
-    <div class="stat-item dropdown-btn" onclick="toggleDropdown()">ڕێكخستن ▼ </div>
-    <div id="myDropdown" class="dropdown-content">
-<a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز Focus</a>
-<a href="#" onclick="checkRepeatedWords()"> پشکنینی وشەکان </a>
-<a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
-<a href="#" onclick="toggleDlModal()">📥 داگرتنی ڤیدیۆ</a>
-<label for="fileInput">هێنانی فایلی Word </label>
-<a href="#" onclick="triggerOcrInput()"> خوێندنەوەی دەقی ناو وێنه‌ EN, AR </a>
-<input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
+            <div class="header-icon-btn theme-toggle-btn" onclick="toggleT()" title="مۆدی شەو / مۆدی ڕۆژ" id="themeToggleBtn">
+                <span class="theme-icon sun-icon">☀️</span>
+                <span class="theme-icon moon-icon">🌙</span>     
 
+</div>
+            <div class="header-icon-btn" onclick="printText()" title="پرنت">🖨️</div>
+
+<div class="header-icon-btn" onclick="toggleAbout()" style="margin-left: -5px; cursor: pointer;" title="زانیاری">ℹ️</div>
 
     </div>
 </div> 
@@ -1033,29 +1040,26 @@ button, .btn-file {
         <span class="news-badge">مانشێتی گرینگترین هه‌واڵه‌كان</span>
         <a href="#" id="news-text" target="_blank">چاوەڕێی مانشێتی هەواڵەکان بن...</a>
         <div style="display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;direction:ltr;">
-<div class="header-icon-btn" onclick="toggleAbout()" style="margin-left: 15px; cursor: pointer;" title="زانیاری">ℹ️</div>
-            <div class="header-icon-btn" onclick="printText()" title="پرنت">🖨️</div>
-            <div class="header-icon-btn theme-toggle-btn" onclick="toggleT()" title="مۆدی شەو / مۆدی ڕۆژ" id="themeToggleBtn">
-                <span class="theme-icon sun-icon">☀️</span>
-                <span class="theme-icon moon-icon">🌙</span>
             </div>
-            <div class="font-ctrl" title="قەبارەی فۆنت">
-                <span class="font-icon" style="font-size:11px;">A</span>
-                <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
-                <span class="font-icon" style="font-size:16px;">A</span>
-            </div>
-        </div>
+            <div class="font-ctrl" title="قەبارەی فۆنت" style="margin-left: 15px; display: flex; align-items: center;">
+    <span class="font-icon" style="font-size:11px;">A</span>
+    <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
+    <span class="font-icon" style="font-size:16px;">A</span>
+</div>
     </div>
 
     <div class="container">
         <textarea id="textBox" placeholder="لێره‌ بنووسه‌ یان ده‌قێك دابنێ..."></textarea>
         <div class="btn-group">
             <button class="btn-uni" onclick="convert('toUni')">↺ یونیكۆد - ڕێنووس</button>
-            <button class="btn-ali" onclick="convert('toAli')">↻  عەلی کەی</button>
-            <input type="file" id="fileInput" accept=".docx" style="display:none;">
+<button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻  عەلی کەی</button>        
             <button class="btn-copy" onclick="copyText()">📄 كۆپیكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
+<button onclick="triggerOcrInput()" class="btn-nav" style="background: #808080 !important;"> تێكستی ناو وێنه 🖼️ </button>
+
+<input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
+
             <button onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;">💾 Word</button>
             <button onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
 

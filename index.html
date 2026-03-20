@@ -614,7 +614,7 @@ button, .btn-file {
 
 .btn-fr-find    { background: linear-gradient(135deg, #2e7d32, #4caf50); }
 .btn-fr-replace { background: linear-gradient(135deg, #1565c0, #42a5f5); }
-.btn-fr-all     { background: linear-gradient(135deg, #bf360c, #ff7043); grid-column: 1 / -1; }
+.btn-fr-all     { background: linear-gradient(135deg, #bf360c, #ff7043); }
 
 .btn-fr-close {
     background: #f2f2f2;
@@ -906,12 +906,10 @@ button, .btn-file {
 }
 .close-btn:hover { opacity: 0.9; }
 
-
 </style>
 </head>
 
 <body>
-
 
 <!-- ئەنیمەیشنی بسم الله -->
 <div id="bismillah-screen">
@@ -946,11 +944,11 @@ button, .btn-file {
                 <!-- دوگمەی فەیسبووک -->
                 <a href="https://web.facebook.com/arkanndara" target="_blank" class="fb-hover-btn" style="text-decoration: none;">
                     <i class="fab fa-facebook-f"></i>
-                    <span class="fb-hover-text">بۆ په‌یوه‌ندیكردن</span>
+                    <span class="fb-hover-text"> په‌یوه‌ندیكردن</span>
                 </a>
 
                 <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
-                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 8/3/2026</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 19/3/2026</p>
             </div>
 
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
@@ -980,8 +978,17 @@ button, .btn-file {
         </div>
     </div>
 
+<!-- مۆداڵی کاتژمێری جیهان -->
+<div id="worldClockModal" class="modal" onclick="if(event.target===this)toggleWorldClock()">
+    <div class="modal-content" style="max-width:600px;width:95%;margin:5% auto;padding:20px;border-radius:16px;max-height:85vh;overflow-y:auto;">
+        <div class="modal-header" style="font-size:1.1rem;">🌍 کاتژمێری جیهان</div>
+        <div id="worldClockGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:15px 0;"></div>
+        <button class="close-btn" onclick="toggleWorldClock()">داخستن</button>
+    </div>
+</div>
+
     <div class="header">
-        <div class="h-right" id="clock">...</div>
+        <div class="h-right" id="clock" onclick="toggleWorldClock()" style="cursor:pointer;user-select:none;" title="کلیک بکە بۆ کاتژمێری جیهان">...</div>
         <div class="h-buttons-area"></div>
 
         <div class="h-center">
@@ -1014,17 +1021,12 @@ button, .btn-file {
 
               <a href="#" onclick="sortLines()"> ڕیزکردن (A-Z)</a>
 
-
-
-
-
     </div>
 </div> 
 
             <div class="header-icon-btn theme-toggle-btn" onclick="toggleT()" title="مۆدی شەو / مۆدی ڕۆژ" id="themeToggleBtn">
                 <span class="theme-icon sun-icon">☀️</span>
                 <span class="theme-icon moon-icon">🌙</span>     
-
 </div>
             <div class="header-icon-btn" onclick="printText()" title="پرنت">🖨️</div>
 
@@ -1078,8 +1080,7 @@ button, .btn-file {
         <div id="statusMessage">ئامادەیە بۆ گەڕان...</div>
         <div class="fr-actions">
             <button onclick="frFindOrSnippet()" class="btn-fr-exec btn-fr-find" id="frFindBtn">دۆزینەوە 🔍</button>
-            <button onclick="frReplace()" class="btn-fr-exec btn-fr-replace">گۆڕینی ئێستا ✏️</button>
-            <button onclick="frReplaceAll()" class="btn-fr-exec btn-fr-all">گۆڕینی هەموو 🔄</button>
+            <button onclick="frReplaceAll()" class="btn-fr-exec btn-fr-all">گۆڕین 🔄</button>
         </div>
     </div>
 </div>
@@ -1116,7 +1117,7 @@ const conversionMap =[
     { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
     { uni: '٦', ali: '6' }, { uni: '٧', ali: '7' }, 
     { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' },
-    { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ 4 په‌ره‌گرافدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها مانشێتیكی سه‌رنجڕاكێشیشی بۆ دابنێ، هه‌ر وشه‌یه‌كیش هه‌بوو به‌ناوی ئیسرائیل یان سوپای ئیسرائیل تۆ بیكه‌ به‌ قه‌واره‌ی زایۆنی یان سوپای زایۆنی له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا هه‌روه‌ها هه‌رچییه‌ك ژماره‌ هه‌بوو له‌ ناوه‌ڕۆكی هه‌واڵه‌كه‌دا بیهێڵه‌وه‌ چونكه‌ ئامار هه‌واڵه‌كه‌ به‌هادارتر ده‌كات ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانی پڕۆفیشناڵم ده‌وێت ' }
+    { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ 4 په‌ره‌گرافدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها  له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا هه‌روه‌ها هه‌رچییه‌ك ژماره‌ هه‌بوو له‌ ناوه‌ڕۆكی هه‌واڵه‌كه‌دا بیهێڵه‌وه‌ چونكه‌ ئامار هه‌واڵه‌كه‌ به‌هادارتر ده‌كات ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانی پڕۆفیشناڵم ده‌وێت ' }
 
 ];
 
@@ -1135,6 +1136,7 @@ const snippets = [
 
 // =========================================================================
 
+// نرخی کلیلەوشەکە دەگەڕێنێتەوە — ئەگەر فەنکشن بوو دەیخوێنێت، وەرنا ڕاستەوخۆ دەیگەڕێنێتەوە
 function getSnippetValue(snip) {
     return typeof snip.value === 'function' ? snip.value() : snip.value;
 }
@@ -1164,17 +1166,11 @@ const rssSources = [
     { name: 'الجزيرة', url: 'https://www.aljazeera.net/rss' },
     { name: 'سكاى نيوز', url: 'https://www.skynewsarabia.com/rss' },
     { name: 'روسیا الیوم', url: 'https://arabic.rt.com/rss/' },
-    { name: 'فرانس 24', url: 'https://www.france24.com/ar/rss' },
-    { name: 'الحرة', url: 'https://www.alhurra.com/rss' },
-    { name: 'ڕووداو', url: 'https://www.rudaw.net/rss' },
     { name: 'بغداد اليوم', url: 'https://baghdadtoday.news/rss' },
-        { name: 'ڕووداو', url: 'https://www.rudaw.net/feeds/sorani/kurdistan/rss' },
-        { name: 'ڕووداو', url: 'https://www.rudaw.net/feeds/sorani/middleeast/rss' },
-        { name: 'ڕووداو', url: 'https://www.rudaw.net/feeds/sorani/world/rss' },
-
     { name: 'عربي جديد', url: 'https://www.alaraby.co.uk/rss' }
 ];
 
+// پیشاندانی پەیامی ئاگادارکردنەوە لە خوارەوەی پەڕەکەدا بۆ ٥ چرکە
 function showStatus(m) { 
     const s = document.getElementById("status"); 
     if(s) {
@@ -1184,6 +1180,7 @@ function showStatus(m) {
     }
 }
 
+// گۆڕینی دەق: toUni = عەلی کەی بۆ یونیکۆد، toAli = یونیکۆد بۆ عەلی کەی
 function convert(type) {
     let box = document.getElementById("textBox");
     if(!box) return;
@@ -1206,6 +1203,7 @@ fixPunctuation();
     showStatus(type === 'toUni' ? "✅ كرا به‌ یونیكۆد و ڕێنووسیش چاككرا" : "🔃 کرا بە عەلی کەی");
 }
 
+// گۆڕینی قەبارەی فۆنت بە پلەی دیاریکراو (زیادکردن یان کەمکردن)
 function changeFontSize(delta) {
     const slider = document.getElementById('fontSlider');
     const newSize = Math.min(40, Math.max(12, currentSize + delta));
@@ -1215,18 +1213,21 @@ function changeFontSize(delta) {
     if (slider) slider.value = newSize;
 }
 
+// دانانی قەبارەی فۆنتی دیاریکراو بۆ خانەی نووسین
 function setFontSize(newSize) {
     currentSize = newSize;
     const box = document.getElementById('textBox');
     if(box) box.style.fontSize = currentSize + 'px';
 }
 
+// گۆڕینی جۆری فۆنت بەپێی ئەوەی لە لیستەکە هەڵبژێردراوە
 function changeFont() {
     const box = document.getElementById('textBox');
     const fontSel = document.getElementById('fontSelect');
     if(box && fontSel) box.style.fontFamily = fontSel.value;
 }
 
+// کۆپیکردنی دەق — ئەگەر بەشێک دیاریکرابوو ئەوە کۆپی دەکات، وەرنا هەموویەکی
 function copyText() {
     const textarea = document.getElementById("textBox");
     if(!textarea) return;
@@ -1240,6 +1241,7 @@ function copyText() {
     }
 }
 
+// سڕینەوەی هەموو دەقەکە لە خانەی نووسیندا
 function clearText() { 
     const textBox = document.getElementById("textBox");
     if (textBox && textBox.value !== "") {
@@ -1249,16 +1251,19 @@ function clearText() {
     }
 }
 
+// کردنەوە و داخستنی پەنجەرەی زانیاری پڕۆژەکە
 function toggleAbout() {
     const modal = document.getElementById("aboutModal");
     if(modal) modal.style.display = (modal.style.display === "block") ? "none" : "block";
 }
 
+// کردنەوە و داخستنی پەنجەرەی داگرتنی ڤیدیۆ
 function toggleDlModal() {
     const m = document.getElementById("dlModal");
     if(m) m.style.display = (m.style.display === "block") ? "none" : "block";
 }
 
+// گۆڕینی نێوان دۆخی ڕۆژ (ڕووناک) و دۆخی شەو (تاریک)
 function toggleT() {
     const btn = document.getElementById('themeToggleBtn');
     if (btn) {
@@ -1268,6 +1273,7 @@ function toggleT() {
     document.body.classList.toggle('dark-mode');
 }
 
+// پرۆسەی داگرتنی ڤیدیۆ — لینکەکە دەخوێنێت و بۆ مالپەڕی داگرتن دەگوازێتەوە
 function processDownload() {
     const urlInput = document.getElementById("videoUrl");
     const status = document.getElementById("dlStatus");
@@ -1300,28 +1306,7 @@ function processDownload() {
     }, 1000);
 }
 
-function updateStats() {
-    const textarea = document.getElementById('textBox');
-    const statsEl = document.getElementById('textStats');
-    if(!textarea || !statsEl) return;
-
-    const fullText = textarea.value; 
-    const start = textarea.selectionStart || 0;
-    const end = textarea.selectionEnd || 0;
-    
-    const selectedText = fullText.substring(start, end);
-    
-    if (selectedText.length > 0) {
-        const selectedWords = selectedText.trim() ? selectedText.trim().split(/\s+/).length : 0;
-        const selectedChars = selectedText.length;
-        statsEl.innerText = ` وشە: ${selectedWords}, پیت: ${selectedChars}`;
-    } else {
-        const totalWords = fullText.trim() ? fullText.trim().split(/\s+/).length : 0;
-        const totalChars = fullText.length;
-        statsEl.innerText = ` وشە: ${totalWords}, پیت: ${totalChars}`;
-    }
-}
-
+// خوێندنەوەی فایلی Word (.docx) و دانانی دەقەکەی ناو خانەی نووسین
 async function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1352,6 +1337,7 @@ async function handleFile(e) {
     }
 }
 
+// هێنانی مانشێتی هەواڵەکان لە سەرچاوەی RSS و پیشاندانیان لە تیکەرەکەدا
 async function getNews() {
     const textElement = document.getElementById('news-text');
     if (!textElement) return;
@@ -1396,6 +1382,60 @@ async function getNews() {
     }
 }
 
+// =================== کاتژمێری جیهان ===================
+const worldZones = [
+    { name: 'تاران', tz: 'Asia/Tehran', flag: '🇮🇷' },
+    { name: 'ریاض', tz: 'Asia/Riyadh', flag: '🇸🇦' },
+    { name: 'لەندەن', tz: 'Europe/London', flag: '🇬🇧' },
+    { name: 'مۆسکۆ', tz: 'Europe/Moscow', flag: '🇷🇺' },
+    { name: 'تۆکیۆ', tz: 'Asia/Tokyo', flag: '🇯🇵' },
+    { name: 'نیویۆرک', tz: 'America/New_York', flag: '🇺🇸' },
+    { name: 'لۆس ئەنجەلس', tz: 'America/Los_Angeles', flag: '🇺🇸' },
+    { name: 'تۆرەنتۆ', tz: 'America/Toronto', flag: '🇨🇦' },
+    { name: 'سیدنی', tz: 'Australia/Sydney', flag: '🇦🇺' },
+];
+
+let worldClockInterval = null;
+
+// کردنەوە و داخستنی مۆداڵی کاتژمێری جیهان
+function toggleWorldClock() {
+    const modal = document.getElementById('worldClockModal');
+    if (!modal) return;
+    if (modal.style.display === 'block') {
+        modal.style.display = 'none';
+        if (worldClockInterval) { clearInterval(worldClockInterval); worldClockInterval = null; }
+    } else {
+        modal.style.display = 'block';
+        renderWorldClock();
+        worldClockInterval = setInterval(renderWorldClock, 1000);
+    }
+}
+
+// نیشاندانی کاتژمێری ٢٠ وڵات — هەموو چرکەیەک نوێ دەبێتەوە
+function renderWorldClock() {
+    const grid = document.getElementById('worldClockGrid');
+    if (!grid) return;
+    const isDark = document.body.classList.contains('dark-mode');
+    const cardBg = isDark ? '#2a2a2a' : '#f0f4f2';
+    const cardBorder = isDark ? '#3a3a3a' : '#d0dbd6';
+    const textColor = isDark ? '#eee' : '#222';
+    const subColor = isDark ? '#aaa' : '#555';
+
+    grid.innerHTML = worldZones.map(z => {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-GB', { timeZone: z.tz, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateStr = now.toLocaleDateString('en-GB', { timeZone: z.tz, day: 'numeric', month: 'numeric', year: 'numeric' });
+        return `<div style="background:${cardBg};border:1px solid ${cardBorder};border-radius:12px;padding:12px 10px;text-align:center;">
+            <div style="font-size:22px;margin-bottom:4px;">${z.flag}</div>
+            <div style="font-weight:bold;color:${textColor};font-size:13px;margin-bottom:6px;">${z.name}</div>
+            <div style="font-size:20px;font-weight:bold;color:var(--primary);letter-spacing:1px;font-family:monospace;">${timeStr}</div>
+            <div style="font-size:11px;color:${subColor};margin-top:4px;">${dateStr}</div>
+        </div>`;
+    }).join('');
+}
+// ============================================================
+
+// دەستپێکردنی کاتژمێری زیندوی هێدەرەکە — هەموو چرکەیەک نوێ دەبێتەوە
 function initClock() {
     const clockEl = document.getElementById('clock');
     if(!clockEl) return;
@@ -1476,8 +1516,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(saveState, 1000);
 });
 
-
-
+// پاشکەوتکردنی دەقەکە وەک فایلی Word (.docx) بە پشتگیری کوردی
 async function downloadAsWord() {
     const content = document.getElementById('textBox').value;
     
@@ -1612,6 +1651,7 @@ function frBuildRegex(raw) {
     return new RegExp(pat, 'gi');
 }
 
+// سفرکردنەوەی ئەنجامەکانی گەڕان و گەڕانەوە بۆ دۆخی سەرەتا
 function frReset() {
     _frMatches = [];
     _frIndex   = 0;
@@ -1619,6 +1659,7 @@ function frReset() {
     if (btn) btn.textContent = 'دۆزینەوە 🔍';
 }
 
+// گەڕان بۆ وشەی داخڵکراو لە ناو دەقەکەدا و هەڵبژاردنی نیشاندان
 function frFind() {
     const textBox   = document.getElementById('textBox');
     const findVal   = document.getElementById('findInput').value;
@@ -1660,6 +1701,7 @@ function frFind() {
     }
 }
 
+// گۆڕینی ئەو بەشەی دەقەی کە ئێستا هەڵبژێردراوە بەتەنیا
 function frReplace() {
     const textBox    = document.getElementById('textBox');
     const findVal    = document.getElementById('findInput').value;
@@ -1690,6 +1732,7 @@ function frReplace() {
     }
 }
 
+// گۆڕینی هەموو دانەکانی وشەی دۆزراوەکە لە جارێکدا
 function frReplaceAll() {
     const textBox    = document.getElementById('textBox');
     const findVal    = document.getElementById('findInput').value;
@@ -1717,8 +1760,6 @@ function frReplaceAll() {
         statusMsg.innerHTML = '<span style="color:#f57c00">⚠️ هەڵە</span>';
     }
 }
-
-function findAndReplace() { frFind(); }
 
 // كۆدی تایبه‌تی Gemini
 async function sendToGemini() {
@@ -1755,7 +1796,6 @@ function toggleDropdown() {
 }
 
 // فەنکشن بۆ سڕینەوەی دێڕە بەتاڵەکان
-// فەنکشن بۆ سڕینەوەی دێڕە بەتاڵەکان بە شێوەیەکی خێرا
 function removeEmptyLines() {
     const textBox = document.getElementById("textBox");
     if (!textBox || !textBox.value.trim()) return;
@@ -1790,7 +1830,6 @@ function removeEmptyLines() {
     textBox.focus();
 }
 
-
     // ڕێنووس و خاڵبه‌ندی
 function fixPunctuation() {
     if (typeof saveState === 'function') saveState(); 
@@ -1812,7 +1851,6 @@ text = text.replace(/\s*"\s*([^"]+?)\s*"\s*/g, ' "$1" ');
 
 // ٢. ئەگەر کۆتێشنەکە لە کۆتایی ڕستە بوو و خاڵ یان نیشانەی تری بەدوادابوو، بۆشاییە زیادەکە لادەبات
 text = text.replace(/"\s+([،.؟:!])/g, '"$1');
-
 
     // ٣. نیشانەی ٪
     text = text.replace(/(\d|[٠-٩])\s+٪/g, "$1٪");
@@ -1840,11 +1878,9 @@ text = text.replace(/\s*\?\s*/g, "؟ ");
 
     textBox.value = text.trim();
     if (typeof updateStats === 'function') updateStats();
-    if (typeof showStatus === 'function') showStatus("✨ خاڵبەندی و دێڕەکان ڕێکخران");
+    if (typeof showStatus === 'function') showStatus("✨ خاڵبەندی  ڕێکخرا");
     localStorage.setItem('autosave_text', textBox.value);
 }
-
-
 
 let historyStack = [];
 let historyIndex = -1;
@@ -1900,6 +1936,7 @@ function redo() {
     }
 }
 
+// ڕیزکردنی دێڕەکان بەپێی ئەلفوبێی کوردی
 function sortLines() {
     saveState();
     const textBox = document.getElementById("textBox");
@@ -1909,8 +1946,7 @@ function sortLines() {
     showStatus("🔠 دێڕەکان بەپێی ئەلفوبێ ڕیزکران");
 }
 
-
-
+// دۆخی تەرکیز: شاردنەوەی هێدەر و دوگمەکان بۆ تەرکیزکردن لەسەر نووسین
 function toggleFocusMode() {
     const header = document.querySelector('.header');
     const ticker = document.querySelector('.news-ticker');
@@ -1958,9 +1994,9 @@ function toggleFocusMode() {
     }
 }
 
-
 // دروستكردنی پی دی ئێف له‌ خانه‌ی تێكست
 
+// گۆڕینی دەقی ناو خانەکە بۆ فایلی PDF و داگرتنی
 async function convertTextToPDF() {
     const textBox = document.getElementById("textBox");
     const text = textBox.value.trim();
@@ -2003,6 +2039,7 @@ async function convertTextToPDF() {
     }
 }
 
+// نوێکردنەوەی ژمارەی وشە، پیت، و کاتی خوێندنەوە لە سەرەوەی پەڕەکەدا
 function updateStats() {
     const textarea = document.getElementById('textBox');
     const statsEl = document.getElementById('textStats');
@@ -2069,10 +2106,11 @@ function toggleWordCheck() {
     modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
 }
 
+// دۆزینەوەی ٥ وشەی زیاتر دووبارەبووی دەقەکە و نیشاندانیان بە چارت
 function checkRepeatedWords() {
     const text = document.getElementById("textBox").value.trim();
     const wordListArea = document.getElementById("wordListArea");
-    if (!text) { showStatus("⚠️ تکایە سەرەتا دەقێک بنووسە"); return; }
+    if (!text) { showStatus("⚠️  سەرەتا دەقێک بنووسە"); return; }
 
     // وشە بنەڕەتی فلتەر دەکرێن
     const stopWords = new Set([
@@ -2151,15 +2189,13 @@ function checkRepeatedWords() {
     toggleWordCheck();
 }
 
-
-
-
 // كۆدی خوێندنه‌وه‌ی ده‌قی وێنه‌ بۆ ئینگلیزی و عه‌ره‌بی
 function triggerOcrInput() {
     const input = document.getElementById('ocrImageInput');
     if (input) input.click();
 }
 
+// کردنەوەی دیالۆگی هەڵبژاردنی وێنە بۆ خوێندنەوەی دەقی کوردی
 function triggerOcrKurdish() {
     const input = document.getElementById('ocrKurdishInput');
     if (input) input.click();
@@ -2174,6 +2210,7 @@ if (_tb) {
     _tb.addEventListener('keyup', updateStats);
 }
 
+// خوێندنەوەی دەقی ناو وێنە بە Tesseract OCR (عەرەبی + ئینگلیزی)
 async function handleOcrImage(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -2221,7 +2258,6 @@ async function handleOcrImage(e) {
         e.target.value = "";
     }
 }
-
 
 </script>
 

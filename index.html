@@ -948,7 +948,7 @@ button, .btn-file {
                 </a>
 
                 <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
-                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 19/3/2026</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 24/3/2026</p>
             </div>
 
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
@@ -978,17 +978,10 @@ button, .btn-file {
         </div>
     </div>
 
-<!-- مۆداڵی کاتژمێری جیهان -->
-<div id="worldClockModal" class="modal" onclick="if(event.target===this)toggleWorldClock()">
-    <div class="modal-content" style="max-width:600px;width:95%;margin:5% auto;padding:20px;border-radius:16px;max-height:85vh;overflow-y:auto;">
-        <div class="modal-header" style="font-size:1.1rem;">🌍 کاتژمێری جیهان</div>
-        <div id="worldClockGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:15px 0;"></div>
-        <button class="close-btn" onclick="toggleWorldClock()">داخستن</button>
-    </div>
-</div>
+
 
     <div class="header">
-        <div class="h-right" id="clock" onclick="toggleWorldClock()" style="cursor:pointer;user-select:none;" title="کلیک بکە بۆ کاتژمێری جیهان">...</div>
+        <div class="h-right" id="clock">...</div>
         <div class="h-buttons-area"></div>
 
         <div class="h-center">
@@ -1018,8 +1011,6 @@ button, .btn-file {
 <label for="fileInput">هێنانی فایلی Word </label>
 <a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
 <a href="#" onclick="toggleDlModal()"> داگرتنی ڤیدیۆ</a>
-
-              <a href="#" onclick="sortLines()"> ڕیزکردن (A-Z)</a>
 
     </div>
 </div> 
@@ -1382,58 +1373,7 @@ async function getNews() {
     }
 }
 
-// =================== کاتژمێری جیهان ===================
-const worldZones = [
-    { name: 'تاران', tz: 'Asia/Tehran', flag: '🇮🇷' },
-    { name: 'ریاض', tz: 'Asia/Riyadh', flag: '🇸🇦' },
-    { name: 'لەندەن', tz: 'Europe/London', flag: '🇬🇧' },
-    { name: 'مۆسکۆ', tz: 'Europe/Moscow', flag: '🇷🇺' },
-    { name: 'تۆکیۆ', tz: 'Asia/Tokyo', flag: '🇯🇵' },
-    { name: 'نیویۆرک', tz: 'America/New_York', flag: '🇺🇸' },
-    { name: 'لۆس ئەنجەلس', tz: 'America/Los_Angeles', flag: '🇺🇸' },
-    { name: 'تۆرەنتۆ', tz: 'America/Toronto', flag: '🇨🇦' },
-    { name: 'سیدنی', tz: 'Australia/Sydney', flag: '🇦🇺' },
-];
 
-let worldClockInterval = null;
-
-// کردنەوە و داخستنی مۆداڵی کاتژمێری جیهان
-function toggleWorldClock() {
-    const modal = document.getElementById('worldClockModal');
-    if (!modal) return;
-    if (modal.style.display === 'block') {
-        modal.style.display = 'none';
-        if (worldClockInterval) { clearInterval(worldClockInterval); worldClockInterval = null; }
-    } else {
-        modal.style.display = 'block';
-        renderWorldClock();
-        worldClockInterval = setInterval(renderWorldClock, 1000);
-    }
-}
-
-// نیشاندانی کاتژمێری ٢٠ وڵات — هەموو چرکەیەک نوێ دەبێتەوە
-function renderWorldClock() {
-    const grid = document.getElementById('worldClockGrid');
-    if (!grid) return;
-    const isDark = document.body.classList.contains('dark-mode');
-    const cardBg = isDark ? '#2a2a2a' : '#f0f4f2';
-    const cardBorder = isDark ? '#3a3a3a' : '#d0dbd6';
-    const textColor = isDark ? '#eee' : '#222';
-    const subColor = isDark ? '#aaa' : '#555';
-
-    grid.innerHTML = worldZones.map(z => {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-GB', { timeZone: z.tz, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const dateStr = now.toLocaleDateString('en-GB', { timeZone: z.tz, day: 'numeric', month: 'numeric', year: 'numeric' });
-        return `<div style="background:${cardBg};border:1px solid ${cardBorder};border-radius:12px;padding:12px 10px;text-align:center;">
-            <div style="font-size:22px;margin-bottom:4px;">${z.flag}</div>
-            <div style="font-weight:bold;color:${textColor};font-size:13px;margin-bottom:6px;">${z.name}</div>
-            <div style="font-size:20px;font-weight:bold;color:var(--primary);letter-spacing:1px;font-family:monospace;">${timeStr}</div>
-            <div style="font-size:11px;color:${subColor};margin-top:4px;">${dateStr}</div>
-        </div>`;
-    }).join('');
-}
-// ============================================================
 
 // دەستپێکردنی کاتژمێری زیندوی هێدەرەکە — هەموو چرکەیەک نوێ دەبێتەوە
 function initClock() {
@@ -1870,6 +1810,25 @@ text = text.replace(/"\s+([،.؟:!])/g, '"$1');
     // ٧. فاریزه‌ی ئینگلیزی بۆ كوردی
 text = text.replace(/\s*,\s*/g, "، ");
 
+// ئەگەر دەقەکە یونیکۆد بێت
+text = text.replace(/(^|\s)ر/g, "$1ڕ");
+
+// ر له‌ سه‌ره‌تاوه‌ ده‌كات به‌ ڕ
+text = text.replace(/(^|\s)ر/g, "$1ڕ").replace(/ڕِ/g, "رِ");
+
+// وو له‌ سه‌ره‌تاوه‌ ده‌كات به‌ و
+text = text.replace(/(^|\s)وو/g, "$1و");
+
+// تر‌ ده‌‌كات به‌ دیكه
+text = text.replace(/(^|\s)تر(?=\s|$)/g, "$1دیکە");
+
+
+// گۆڕینی (وو) بۆ (و) لە دوای ئەو پیتانە لە ناوەڕاستی وشەدا
+text = text.replace(/([حخعغقکگە])وو/g, "$1و");
+
+// ئەمە وشەی "گوت" دەگۆڕێت بۆ "وت" ئەگەر لە سەرەتای وشەدا بێت
+text = text.replace(/(^|\s)گوت/g, "$1وت");
+
 // 2. گۆڕینی خاڵ و فاریزە
 text = text.replace(/\s*;\s*/g, "؛ ");
 
@@ -1936,15 +1895,6 @@ function redo() {
     }
 }
 
-// ڕیزکردنی دێڕەکان بەپێی ئەلفوبێی کوردی
-function sortLines() {
-    saveState();
-    const textBox = document.getElementById("textBox");
-    let lines = textBox.value.split('\n').filter(line => line.trim() !== "");
-    lines.sort((a, b) => a.localeCompare(b, 'ku'));
-    textBox.value = lines.join('\n');
-    showStatus("🔠 دێڕەکان بەپێی ئەلفوبێ ڕیزکران");
-}
 
 // دۆخی تەرکیز: شاردنەوەی هێدەر و دوگمەکان بۆ تەرکیزکردن لەسەر نووسین
 function toggleFocusMode() {
@@ -2258,6 +2208,8 @@ async function handleOcrImage(e) {
         e.target.value = "";
     }
 }
+
+
 
 </script>
 

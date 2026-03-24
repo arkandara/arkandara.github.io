@@ -913,10 +913,12 @@ button, .btn-file {
 
 <!-- ئەنیمەیشنی بسم الله -->
 <div id="bismillah-screen">
-    <div class="bsm-text">بسم الله </div>
-    <div class="bsm-line"></div>
+    <div class="bsm-text">بِسْمِ اللَّهِ</div>
+    <div class="bsm-line">✏️</div>
     <div class="bsm-subtitle">سه‌كۆی ڕۆژنامه‌نووس</div>
     <div class="bsm-dots">
+        <div class="bsm-dot"></div>
+        <div class="bsm-dot"></div>
         <div class="bsm-dot"></div>
         <div class="bsm-dot"></div>
         <div class="bsm-dot"></div>
@@ -927,7 +929,7 @@ button, .btn-file {
     setTimeout(() => {
         const s = document.getElementById('bismillah-screen');
         if (s) s.addEventListener('animationend', () => s.classList.add('hidden'), { once: true });
-    }, 3300);
+    }, 6300);
 </script>
 
 <div id="aboutModal" class="modal">
@@ -1030,7 +1032,7 @@ button, .btn-file {
     </div>
 
     <div class="news-ticker">
-        <span class="news-badge">مانشێتی گرینگترین هه‌واڵه‌كان</span>
+        <span class="news-badge" onclick="toggleNewsModal()" style="cursor:pointer;" title="کلیک بکە بۆ بینینی هەموو هەواڵەکان">مانشێتی گرینگترین هه‌واڵه‌كان</span>
         <a href="#" id="news-text" target="_blank">چاوەڕێی مانشێتی هەواڵەکان بن...</a>
         <div style="display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;direction:ltr;">
             </div>
@@ -1063,13 +1065,13 @@ button, .btn-file {
         <div class="fr-header">🔍 گەڕان و گۆڕین</div>
         <div class="fr-input-group">
             <label>دۆزینەوە</label>
-            <input type="text" id="findInput" placeholder="وشەی پێویست بنووسە...">
+            <input type="text" id="findInput" placeholder="وشه‌یه‌ك بنووسه‌ یان دایبنێ...">
         </div>
         <div class="fr-input-group">
             <label>جێگرتنەوە</label>
             <input type="text" id="replaceInput" placeholder="وشەی نوێ...">
         </div>
-        <div id="statusMessage">ئامادەیە بۆ گەڕان...</div>
+        <div id="statusMessage"></div>
         <div class="fr-actions">
             <button onclick="frFindOrSnippet()" class="btn-fr-exec btn-fr-find" id="frFindBtn">دۆزینەوە 🔍</button>
             <button onclick="frReplaceAll()" class="btn-fr-exec btn-fr-all">گۆڕین 🔄</button>
@@ -1158,7 +1160,6 @@ const rssSources = [
     { name: 'الجزيرة', url: 'https://www.aljazeera.net/rss' },
     { name: 'سكاى نيوز', url: 'https://www.skynewsarabia.com/rss' },
     { name: 'روسیا الیوم', url: 'https://arabic.rt.com/rss/' },
-    { name: 'بغداد اليوم', url: 'https://baghdadtoday.news/rss' },
     { name: 'عربي جديد', url: 'https://www.alaraby.co.uk/rss' }
 ];
 
@@ -1510,7 +1511,7 @@ async function downloadAsWord() {
         if ('showSaveFilePicker' in window) {
             try {
                 const handle = await window.showSaveFilePicker({
-                    suggestedName: 'بەڵگەنامە.docx',
+                    suggestedName: 'Word.docx',
                     types: [{
                         description: 'Word Document',
                         accept: { 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] },
@@ -2138,6 +2139,138 @@ function checkRepeatedWords() {
     html += '</ul>';
     wordListArea.innerHTML = html;
     toggleWordCheck();
+}
+
+// =================== مۆداڵی هەواڵەکان ===================
+
+(function createNewsModal() {
+    const modal = document.createElement('div');
+    modal.id = 'newsModal';
+    modal.style.cssText = 'display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:4000;backdrop-filter:blur(4px);';
+    modal.innerHTML = `
+    <div id="newsModalContent" style="background:#fff;width:90%;max-width:700px;max-height:85vh;margin:5% auto;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.35);display:flex;flex-direction:column;animation:frFadeIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+        <div style="background:linear-gradient(135deg,#2e7d32,#1b5e20);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <span style="color:#fff;font-weight:bold;font-size:17px;">📰 مانشێتی گرینگترین هەواڵەکان</span>
+            <button onclick="toggleNewsModal()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">✕</button>
+        </div>
+        <div id="newsModalBody" style="overflow-y:auto;padding:16px 20px;flex:1;display:flex;flex-direction:column;gap:0;">
+            <div style="text-align:center;padding:30px;color:#888;">⏳ چاوەڕێ بکە...</div>
+        </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) toggleNewsModal(); });
+})();
+
+let _newsModalData = {};     // هەواڵەکان کەش دەکات
+
+async function toggleNewsModal() {
+    const modal = document.getElementById('newsModal');
+    if (!modal) return;
+
+    // داخستن
+    if (modal.style.display === 'block') {
+        modal.style.display = 'none';
+        return;
+    }
+
+    modal.style.display = 'block';
+    const body = document.getElementById('newsModalBody');
+    const isDark = document.body.classList.contains('dark-mode');
+    const mc = document.getElementById('newsModalContent');
+    if (mc) { mc.style.background = isDark ? '#1a1a1a' : '#fff'; }
+
+    // ئامادەکردنی قالبی هەر سایتێک — تەنها یەک خانەی مانشێت
+    let html = '';
+    for (const source of rssSources) {
+        const cid = 'nmi-' + source.name.replace(/\s/g,'');
+        html += `
+        <div style="border-bottom:2px solid ${isDark?'#2a2a2a':'#f0f0f0'};padding:14px 0;display:flex;align-items:center;gap:14px;">
+            <span style="background:linear-gradient(135deg,#2e7d32,#388e3c);color:#fff;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:bold;white-space:nowrap;flex-shrink:0;">${source.name}</span>
+            <div id="${cid}" style="flex:1;direction:rtl;text-align:right;">
+                <div style="color:#aaa;font-size:13px;">⏳</div>
+            </div>
+        </div>`;
+    }
+    body.innerHTML = html;
+
+    // بارکردنی هەواڵەکان (ئەگەر کەش نەبوون)
+    if (Object.keys(_newsModalData).length === 0) {
+        for (const source of rssSources) {
+            try {
+                const resp = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(source.url)}`);
+                const data = await resp.json();
+                if (data.status === 'ok' && data.items && data.items.length > 0) {
+                    _newsModalData[source.name] = data.items.slice(0, 10).map(i => ({ title: i.title, link: i.link }));
+                } else {
+                    _newsModalData[source.name] = [];
+                }
+            } catch(e) {
+                _newsModalData[source.name] = [];
+            }
+        }
+    }
+
+    // شمارەی ئێستای هەر سەرچاوەیەک
+    const _newsIdx = {};
+    for (const source of rssSources) _newsIdx[source.name] = 0;
+
+    // پیشاندانی مانشێتی ئێستا بۆ سایتێکی دیاریکراو
+    function renderHeadlineForSource(source) {
+        const dark = document.body.classList.contains('dark-mode');
+        const cid = 'nmi-' + source.name.replace(/\s/g,'');
+        const el = document.getElementById(cid);
+        if (!el) return;
+        const items = _newsModalData[source.name];
+        if (!items || items.length === 0) {
+            el.innerHTML = '<span style="color:#e53935;font-size:13px;">❌ هەواڵ نەدۆزرایەوە</span>';
+            return;
+        }
+        const idx = _newsIdx[source.name] % items.length;
+        const item = items[idx];
+        const total = items.length;
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.35s';
+        setTimeout(() => {
+            el.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;width:100%;">
+                    <a href="${item.link}" target="_blank" style="
+                        text-decoration:none;color:${dark?'#ddd':'#222'};
+                        font-size:14px;line-height:1.7;display:block;flex:1;
+                        padding:7px 10px;border-radius:10px;
+                        background:${dark?'#252525':'#f8f9fa'};
+                        border:1px solid ${dark?'#333':'#eee'};
+                        transition:background 0.2s,color 0.2s;
+                    " onmouseover="this.style.background='${dark?'#2e7d32':'#e8f5e9'}';this.style.color='${dark?'#fff':'#1b5e20'}';"
+                       onmouseout="this.style.background='${dark?'#252525':'#f8f9fa'}';this.style.color='${dark?'#ddd':'#222'}';">
+                        🔹 ${item.title}
+                    </a>
+                    <button onclick="newsNextItem('${source.name}')" title="مانشێتی دواتر" style="
+                        flex-shrink:0;background:linear-gradient(135deg,#2e7d32,#388e3c);
+                        border:none;color:#fff;width:32px;height:32px;border-radius:50%;
+                        cursor:pointer;font-size:16px;display:flex;align-items:center;
+                        justify-content:center;transition:0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.2);
+                    " onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">◀</button>
+                    <span style="flex-shrink:0;font-size:11px;color:${dark?'#777':'#aaa'};min-width:30px;text-align:center;">${idx+1}/${total}</span>
+                </div>`;
+            el.style.opacity = '1';
+        }, 180);
+    }
+
+    // پیشاندانی هەموو سایتەکان
+    function renderCurrentHeadlines() {
+        for (const source of rssSources) renderHeadlineForSource(source);
+    }
+
+    // فەنکشنی گلۆباڵ بۆ دوگمەی نێکست
+    window.newsNextItem = function(sourceName) {
+        const source = rssSources.find(s => s.name === sourceName);
+        if (!source) return;
+        const items = _newsModalData[sourceName];
+        if (items && items.length > 0) _newsIdx[sourceName] = (_newsIdx[sourceName] + 1) % items.length;
+        renderHeadlineForSource(source);
+    };
+
+    renderCurrentHeadlines();
 }
 
 // كۆدی خوێندنه‌وه‌ی ده‌قی وێنه‌ بۆ ئینگلیزی و عه‌ره‌بی

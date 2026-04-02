@@ -1013,7 +1013,7 @@ dhikr-main-btn:hover {
                 </a>
 
                 <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
-                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 27/3/2026</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 2/4/2026</p>
             </div>
 
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
@@ -1106,7 +1106,7 @@ dhikr-main-btn:hover {
     <span class="font-icon" style="font-size:16px;">A</span>
 </div>
 
-<button onclick="openModal()" title="زیکرەکان" class="dhikr-main-btn" 
+<button onclick="openModal()" title="زیکری به‌یانیان" class="dhikr-main-btn" 
   style="padding: 5px 10px; font-family: 'Noto Sans Arabic', sans-serif; cursor: pointer; 
   background: linear-gradient(135deg, #d6d6d6, #e0e0e0); 
   color: white; border: 2px solid transparent; border-radius: 8px; 
@@ -1128,7 +1128,7 @@ dhikr-main-btn:hover {
         <div class="btn-group">
             <button class="btn-uni" onclick="convert('toUni')">↺ یونیكۆد - ڕێنووس</button>
 <button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻  عەلی کەی</button>        
-            <button class="btn-copy" onclick="copyText()">📄 كۆپیكردن </button>
+            <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
 <button onclick="triggerOcrInput()" class="btn-nav" style="background: #808080 !important;"> تێكستی ناو وێنه 🖼️ </button>
@@ -1212,7 +1212,9 @@ dhikr-main-btn:hover {
         border-radius:50%; transition:0.2s; font-weight:bold;
       " onmouseover="this.style.background='#e8f5e9';this.style.transform='rotate(-45deg)'" onmouseout="this.style.background='#f5f5f5';this.style.transform='rotate(0)'">↺</button>
 
-      <h2 style="color:#1b5e20; margin:0 0 4px; font-size:22px; font-weight:bold; font-family:'Amiri',serif;">زیکرەکان</h2>
+      <h2 style="color:#1b5e20; margin:0 0 4px; font-size:22px; font-weight:bold; font-family:'Amiri',serif;">زیکری به‌یانیان</h2>
+<h6 style="color:#1b5e20; font-size:12px; font-family:'Amiri',serif;">وَسَبِّحْ بِحَمْدِ رَبِّكَ قَبْلَ طُلُوعِ الشَّمْسِ وَقَبْلَ غُرُوبِهَا </h6>
+
     </div>
 
     <div id="dhikrList" style="padding:0 10px 15px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:3px;"></div>
@@ -1354,17 +1356,41 @@ function changeFont() {
 
 // کۆپیکردنی دەق — ئەگەر بەشێک دیاریکرابوو ئەوە کۆپی دەکات، وەرنا هەموویەکی
 function copyText() {
-    const textarea = document.getElementById("textBox");
-    if(!textarea) return;
+   const textarea = document.getElementById("textBox");
+    if (!textarea) return;
+
+    textarea.focus(); // پێویستە فۆکسی لەسەر بێت بۆ ئەوەی Undo کار بکات
+
     const start = textarea.selectionStart;
     const finish = textarea.selectionEnd;
-    const textToCopy = (start !== finish) ? textarea.value.substring(start, finish) : textarea.value;
-    if (textToCopy) {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            showStatus(start !== finish ? "📋 دەقه‌ دیاریکراوەکە کۆپی کرا" : "📋 هەموو دەقەکە کۆپی کرا");
-        }).catch(() => showStatus("❌ هەڵە لە کۆپیکردن"));
+    const fullText = textarea.value;
+
+    // دیاریکردنی ئەو دەقەی بڕین (Cut) دەکرێت
+    const textToCut = (start !== finish) ? fullText.substring(start, finish) : fullText;
+
+    if (textToCut) {
+        // 1. سەرەتا دەقەکە کۆپی بکە بۆ ناو میمۆری
+        navigator.clipboard.writeText(textToCut).then(() => {
+            
+            // 2. ئەنجامدانی بڕین بە شێوازێک کە Undo کار بکات
+            if (start !== finish) {
+                // ئەگەر بەشێکی دیاریکراو بوو، تەنها ئەو بەشە دەسڕێتەوە
+                // ئەم فەرمانە مێژووی Undo دەپارێزێت
+                document.execCommand('delete');
+                showStatus("✂️ دەقە دیاریکراوەکە کەت کرا");
+            } else {
+                // ئەگەر هەمووی بوو، هەموو دەقەکە دیاری بکە و پاشان بیسڕەوە
+                textarea.select();
+                document.execCommand('delete');
+                showStatus("✂️ هەموو دەقەکە کەت کرا");
+            }
+
+        }).catch(() => showStatus("❌ هەڵە لە ئەنجامدانی کەت"));
     }
 }
+
+
+
 
 // سڕینەوەی هەموو دەقەکە لە خانەی نووسیندا
 function clearText() { 
@@ -1836,33 +1862,50 @@ function frReplaceAll() {
 }
 
 // كۆدی تایبه‌تی Gemini
+// ئەم گۆڕاوە لە دەرەوەی فانکشنەکە دابنێ
+let geminiWin = null;
+
 async function sendToGemini() {
     const textBox = document.getElementById('textBox');
     if (!textBox || !textBox.value.trim()) {
         showStatus("⚠️ خانەکە خاڵییە");
         return;
     }
+    
     const start = textBox.selectionStart;
     const finish = textBox.selectionEnd;
     const fullText = textBox.value;
     const textToCut = (start !== finish) ? fullText.substring(start, finish) : fullText;
+
     try {
         await navigator.clipboard.writeText(textToCut);
-        // كه‌تكردنی ده‌قه‌كه‌ (سڕینەوەی دەقی هەڵبژێردراو یان هەموو دەقەکە)
+
         if (start !== finish) {
             textBox.value = fullText.substring(0, start) + fullText.substring(finish);
             textBox.setSelectionRange(start, start);
         } else {
             textBox.value = "";
         }
+
         updateStats();
         localStorage.setItem('autosave_text', textBox.value);
-        window.open('https://gemini.google.com/app', '_blank');
-        showStatus("✂️ كه‌تكرا — Gemini کراوەتەوە، Ctrl+V بکە");
+
+        // پشکنین دەکەین: ئایا پێشتر تابەکە کراوەتەوە و هێشتا دانەخراوە؟
+        if (geminiWin && !geminiWin.closed) {
+            geminiWin.focus(); // تەنها فۆکسی دەخەینە سەر
+        } else {
+            // ئەگەر نەمابوو یان داخرابوو، دانەیەکی نوێ دەکەینەوە
+            geminiWin = window.open('https://gemini.google.com/app', 'GeminiTab');
+        }
+
+        showStatus("✂️ كه‌تكرا — Gemini ئامادەیە");
     } catch (err) {
         showStatus("❌ هەڵەیەک ڕوویدا");
     }
 }
+
+
+
 
 // فەنکشن بۆ پیشاندان و شاردنەوەی لیستەکە
 function toggleDropdown() {
@@ -1955,6 +1998,9 @@ text = text.replace(/(^|\s)وو/g, "$1و");
 
 // تر‌ ده‌‌كات به‌ دیكه
 text = text.replace(/(^|\s)تر(?=\s|$)/g, "$1دیکە");
+
+// كه‌وانه‌ له‌ ده‌وری ژماره‌ لاده‌بات
+text = text.replace(/\(([\d٠-٩]+)\)/g, "$1");
 
 
 // ئەمە وشەی "گوت" دەگۆڕێت بۆ "وت" ئەگەر لە سەرەتای وشەدا بێت
@@ -2485,12 +2531,13 @@ async function handleOcrImage(e) {
 
 
 
-// لیستەی زیکرەکان - دەتوانی لێرە زیاتر زیاد بکەیت
 // لیستەی زیکرەکان
 const dhikrs = [
 
 { text: "آيَةُ الكُرسِي", count: 1 },
 { text: "(قُلْ هُوَ ٱللَّهُ أَحَدٌ) ، (قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ) ، (قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ)", count: 3 },
+{ text: "اللهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَى، وَبِكَ نَمُوتُ، وَإِلَيْكَ ‌النُّشُورُ", count: 1 },
+
 { text: "اللّهـمَّ أَنْتَ رَبِّـي لا إلهَ إلاّ أَنْتَ، خَلَقْتَنـي وَأَنا عَبْـدُك، وَأَنا عَلـى عَهْـدِكَ وَوَعْـدِكَ ما اسْتَـطَعْـت، أَعـوذُبِكَ مِنْ شَـرِّ ما صَنَـعْت، أَبـوءُ لَـكَ بِنِعْـمَتِـكَ عَلَـيَّ وَأَبـوءُ بِذَنْـبي فَاغْفـِرْ لي فَإِنَّـهُ لا يَغْـفِرُ الذُّنـوبَ إِلاّ أَنْتَ .", count: 1 },
 { text: "أَصْـبَحْنا وَأَصْـبَحَ المُـلْكُ لله وَالحَمدُ لله، لا إلهَ إلاّ اللّهُ وَحدَهُ لا شَريكَ لهُ، لهُ المُـلكُ ولهُ الحَمْـد، وهُوَ على كلّ شَيءٍ قدير، رَبِّ أسْـأَلُـكَ خَـيرَ ما في هـذا اليوم وَخَـيرَ ما بَعْـدَه، وَأَعـوذُ بِكَ مِنْ شَـرِّ ما في هـذا اليوم وَشَرِّ ما بَعْـدَه، رَبِّ أَعـوذُبِكَ مِنَ الْكَسَـلِ وَسـوءِ الْكِـبَر، رَبِّ أَعـوذُ بِكَ مِنْ عَـذابٍ في النّـارِ وَعَـذابٍ في القَـبْر.", count: 1 },
   { text: "اللّهُـمَّ إِنِّـي أَصْبَـحْتُ أُشْـهِدُك، وَأُشْـهِدُ حَمَلَـةَ عَـرْشِـك، وَمَلَائِكَتَكَ، وَجَمـيعَ خَلْـقِك، أَنَّـكَ أَنْـتَ اللهُ لا إلهَ إلاّ أَنْـتَ وَحْـدَكَ لا شَريكَ لَـك، وَأَنَّ ُ مُحَمّـداً عَبْـدُكَ وَرَسـولُـك. ", count: 4 },

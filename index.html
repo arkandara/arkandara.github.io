@@ -211,7 +211,37 @@
         resize: none; text-align: right; direction: rtl; outline: none;
         background: #dde4e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.04);
     }
-    textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1); }
+
+
+    /* دروستکردنی چوارچێوەیەک کە ڕەنگی سپی تێدایە لەنێوان دوو سەوزدا */
+@keyframes border-glow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+textarea:focus {
+    outline: none;
+    border: 2px solid transparent;
+    background-image: linear-gradient(#dde4e1, #dde4e1), 
+                      linear-gradient(90deg, #4caf50, #ffffff, #4caf50);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 200% 100%;
+    
+    /* دەستپێکردنی جووڵەی ڕووناکییە سپییەکە */
+    animation: border-glow 7s linear infinite;
+}
+
+/* بۆ دۆخی تاریک، تەنها ڕەنگی پشتێنەکە دەگۆڕین بۆ ئەوەی خەتەکە دیار بێت */
+.dark-mode textarea:focus {
+    background-image: linear-gradient(#1e1e1e, #1e1e1e), 
+                      linear-gradient(90deg, #4caf50, #ffffff, #4caf50);
+}
+
+
+
+
+
     .dark-mode textarea { background: #1e1e1e; color: #eee; border-color: #333; }
     
     .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 7px; margin-top: 5px; }
@@ -969,6 +999,22 @@ dhikr-main-btn:hover {
 
 
 
+/* دروستکردنی جووڵەی بەرز و نزم یان پرتەپرت */
+@keyframes cursor-blink {
+    0%, 100% { opacity: 1; transform: translateY(0); }
+    50% { opacity: 0.3; transform: translateY(-2px); }
+}
+
+textarea {
+    /* گۆڕینی ڕەنگی نیشاندەرە بنەڕەتییەکە بۆ سەوز بۆ ئەوەی لەگەڵ ستایلەکەت بگونجێت */
+    caret-color: #4caf50; 
+}
+
+/* تێبینی: ناتوانین بە تەنیا CSS دوو خاڵ بخەینە کۆتایی دەقەکە بەبێ تێکدانی نووسین، 
+بەڵام دەتوانین نیشاندەرەکە بکەینە شێوازێکی "بلۆک" کە بەرز و نزم بێتەوە */
+
+
+
 </style>
 </head>
 
@@ -1013,7 +1059,7 @@ dhikr-main-btn:hover {
                 </a>
 
                 <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
-                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 2/4/2026</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 5/4/2026</p>
             </div>
 
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
@@ -1417,10 +1463,14 @@ function toggleDlModal() {
 // گۆڕینی نێوان دۆخی ڕۆژ (ڕووناک) و دۆخی شەو (تاریک)
 function toggleT() {
     const btn = document.getElementById('themeToggleBtn');
+    
+    // زیادکردنی جوڵە بۆ دوگمەکە
     if (btn) {
         btn.classList.add('switching');
         setTimeout(() => btn.classList.remove('switching'), 500);
     }
+
+    // گۆڕینی ڕووکاری لاپەڕەکە
     document.body.classList.toggle('dark-mode');
 }
 
@@ -2670,6 +2720,40 @@ function resetDhikrs() {
   dhikrs.forEach(d => { delete d._current; });
   renderDhikrs();
 }
+
+
+
+// كۆدی تایبه‌ت به‌ جووڵه‌ی نوسینی نێو ناوچه‌ی نووسین
+const textBox = document.getElementById('textBox');
+const text = "لێره‌ بنووسه‌ یان ده‌قێك دابنێ...";
+let index = 0;
+let isDeleting = false;
+let speed = 150; // خێرایی نووسینەکە
+
+function typeEffect() {
+    const currentText = text.substring(0, index);
+    textBox.setAttribute('placeholder', currentText);
+
+    if (!isDeleting && index < text.length) {
+        index++;
+        speed = 150; // خێرایی کاتی نووسین
+    } else if (isDeleting && index > 0) {
+        index--;
+        speed = 20; // خێرایی کاتی سڕینەوە (خێراتر بێت جوانترە)
+    } else {
+        isDeleting = !isDeleting;
+        speed = isDeleting ? 1000 : 500; // کاتێک تەواو دەبێت کەمێک دەوەستێت
+    }
+
+    setTimeout(typeEffect, speed);
+}
+
+// دەستپێکردنی جووڵەکە
+typeEffect();
+
+
+
+
 
 
 </script>

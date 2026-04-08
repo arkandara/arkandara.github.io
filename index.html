@@ -254,9 +254,29 @@ button, .btn-file {
               transition: all 0.3s ease;
     }
 
-.btn-group button:hover, .btn-group .btn-file:hover {
+.btn-group button:hover, .btn-group .btn-file:hover,
+.news-ticker button:hover {
     transform: translateY(-3px); /* کەمێک بەرزبوونەوە */
     box-shadow: 0 6px 12px rgba(0,0,0,0.2); /* تۆخکردنی سێبەرەکە */
+}
+
+/* دوگمەکانی news ticker هاوتا بە دوگمەکانی خوارەوە */
+.news-ticker-btn {
+    padding: 6px 14px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
+    white-space: nowrap;
+    flex-shrink: 0;
+    color: white !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 3px !important;
 }
 
     button:active { transform: scale(0.98); }
@@ -1015,6 +1035,109 @@ textarea {
 
 
 
+/* ڕێکخستنی گشتی شریتی هەواڵ و دوگمەکان */
+.news-ticker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: #dde4e1;
+    border-radius: 10px;
+    margin-top: 2px;
+}
+
+.dark-mode .news-ticker {
+    background: #1e1e1e;
+}
+
+/* بەشی دەقی هەواڵەکە بۆ ئەوەی لەگەڵ دوگمەکان تێکەڵ نەبێت */
+.news-badge {
+    flex: 0 0 auto;
+    margin: 0 !important;
+}
+
+#news-text {
+    flex: 1 1 200px; /* ئەمە وا دەکات تێکستەکە شوێنی پێویست بگرێت */
+    min-width: 150px;
+}
+
+/* ستایلی دوگمەکان بۆ ئەوەی هاوشێوەی دوگمەکانی خوارەوە هەموو بۆشاییەکە بگرن */
+.news-ticker-btn {
+    flex: 1 1 110px; /* گەشە دەکات بۆ پڕکردنەوەی بۆشایی و کەمترین پانی 110px بێت */
+    height: 38px;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* ستایل بۆ شاشەی بچووک (مۆبایل) */
+@media (max-width: 600px) {
+    .news-ticker {
+        gap: 6px;
+    }
+    
+    /* لە مۆبایلدا دوگمەکان دەکەونە دوو ڕیز و پانتاییەکە دابەش دەکەن */
+    .news-ticker-btn {
+        flex: 1 1 45%; 
+        font-size: 12px !important;
+    }
+
+    /* مانشێت و هەواڵەکە لەسەرەوە بە تەنها دەمێننەوە */
+    .news-badge, #news-text {
+        flex: 1 1 100%;
+        text-align: center;
+    }
+}
+
+/* ڕێکخستنی فۆنت کۆنتڕۆڵ بۆ ئەوەی تێک نەچێت */
+.font-ctrl {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 150px;
+}
+
+
+.news-badge {
+    flex: 1 1 110px; /* هەمان قەبارە و گەشەی دوگمەکانی تەنیشتی دەبێت */
+    height: 38px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 15px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    white-space: nowrap;
+    cursor: pointer;
+    margin: 0 !important;
+    background: #4caf50;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* بۆ ئەوەی لە مۆبایلیشدا وەک دوگمەکانی تر بێت */
+@media (max-width: 600px) {
+    .news-badge {
+        flex: 1 1 45%;
+        font-size: 12px !important;
+    }
+}
+
+
+
+
+
+
 </style>
 </head>
 
@@ -1059,7 +1182,7 @@ textarea {
                 </a>
 
                 <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
-                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 5/4/2026</p>
+                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 8/4/2026</p>
             </div>
 
             <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
@@ -1109,48 +1232,31 @@ textarea {
                 <option value="'Reem Kufi', sans-serif">فۆنتی ڕیم کوفی</option>
             </select>
 
+
+
+
+
+            <div class="font-ctrl" title="قەبارەی فۆنت" style="margin-left: 15px; display: flex; align-items: center;">
+    <span class="font-icon" style="font-size:11px;">A</span>
+    <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
+    <span class="font-icon" style="font-size:16px;">A</span>
+</div>
+
+
+
+
             <div class="stat-item" id="textStats">وشە: ٠</div>
 <div class="stat-item" id="readingTimeDisplay">٠ خولەک و ٠ چرکە</div>
 
-<div class="dropdown">
-    <div class="stat-item dropdown-btn" onclick="toggleDropdown()">ڕێنووس ▼</div>
-    <div id="myDropdown" class="dropdown-content">
 
-        <a href="#" onclick="removeEmptyLines()"> لابردنی بۆشایی نێوان دێڕه‌كان</a>
-<a href="#" onclick="toggleFocusMode()"> دۆخی تەرکیز Focus</a>
-<a href="#" onclick="checkRepeatedWords()"> پشکنینی وشەکان </a>
-<label for="fileInput">هێنانی فایلی Word </label>
-<a href="#" onclick="convertTextToPDF()"> پاشکەوتکردن وەک PDF</a>
-<a href="#" onclick="toggleDlModal()"> داگرتنی ڤیدیۆ</a>
-
-    </div>
-</div> 
 
 
             <div class="header-icon-btn theme-toggle-btn" onclick="toggleT()" title="مۆدی شەو / مۆدی ڕۆژ" id="themeToggleBtn">
                 <span class="theme-icon sun-icon">☀️</span>
                 <span class="theme-icon moon-icon">🌙</span>     
 </div>
-            <div class="header-icon-btn" onclick="printText()" title="پرنت">🖨️</div>
 
-<div class="header-icon-btn" onclick="toggleAbout()" style="margin-left: -5px; cursor: pointer;" title="زانیاری">ℹ️</div>
 
-    </div>
-</div> 
-
-    </div>
-    </div>
-
-    <div class="news-ticker">
-        <span class="news-badge" onclick="toggleNewsModal()" style="cursor:pointer;" title="کلیک بکە بۆ بینینی هەموو هەواڵەکان">مانشێتی گرینگترین هه‌واڵه‌كان</span>
-        <a href="#" id="news-text" target="_blank">چاوەڕێی مانشێتی هەواڵەکان بن...</a>
-        <div style="display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;direction:ltr;">
-            </div>
-            <div class="font-ctrl" title="قەبارەی فۆنت" style="margin-left: 15px; display: flex; align-items: center;">
-    <span class="font-icon" style="font-size:11px;">A</span>
-    <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
-    <span class="font-icon" style="font-size:16px;">A</span>
-</div>
 
 <button onclick="openModal()" title="زیکری به‌یانیان" class="dhikr-main-btn" 
   style="padding: 5px 10px; font-family: 'Noto Sans Arabic', sans-serif; cursor: pointer; 
@@ -1166,6 +1272,33 @@ textarea {
 >
   📿
 </button>
+
+
+
+<div class="header-icon-btn" onclick="toggleAbout()" style="margin-left: -5px; cursor: pointer;" title="زانیاری">ℹ️</div>
+
+    </div>
+</div> 
+
+    </div>
+    </div>
+
+    <div class="news-ticker">
+        <span class="news-badge" onclick="toggleNewsModal()" style="cursor:pointer;" title="کلیک بکە بۆ بینینی هەموو هەواڵەکان">مانشێتی گرینگترین هه‌واڵه‌كان</span>
+        
+
+   
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#ff9800,#f57c00);" onclick="removeEmptyLines()">بۆشایی دێڕ ❌</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#9c27b0,#7b1fa2);" onclick="toggleFocusMode()">تەرکیز Focus</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#f44336,#e53935);" onclick="checkRepeatedWords()">پشکنینی وشەکان</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#607d8b,#546e7a);" onclick="document.getElementById('fileInput').click()">هێنانی Word</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#e91e63,#c2185b);" onclick="convertTextToPDF()">💾 PDF</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#1a73e8,#1557b0);" onclick="toggleDlModal()">داگرتنی ڤیدیۆ</button>
+
+
+
+
+
 
 </div>
 
@@ -2750,6 +2883,8 @@ function typeEffect() {
 
 // دەستپێکردنی جووڵەکە
 typeEffect();
+
+
 
 
 

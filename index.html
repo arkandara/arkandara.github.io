@@ -1767,6 +1767,16 @@ document.addEventListener('DOMContentLoaded', () => {
         textBox.addEventListener('input', () => localStorage.setItem('autosave_text', textBox.value));
         textBox.addEventListener('keydown', e => {
             if (e.key === ' ' || e.key === 'Enter') saveState();
+textBox.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const val = textBox.value;
+        if (val.endsWith('==')) {
+            e.preventDefault();
+            textBox.value = val.slice(0, -2) + 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ چه‌ند په‌ره‌گرافێكدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها  له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ (35) وشه‌دا، ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانیی پڕۆفیشناڵم ده‌وێت، پێویست ناكات ناونیشان بۆ په‌ره‌گرافه‌كان و بۆ لید دانێیت.';
+            updateStats();
+        }
+    }
+});
         });
     }
 

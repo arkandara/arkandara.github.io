@@ -1423,7 +1423,7 @@ const conversionMap =[
     { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
     { uni: '٦', ali: '6' }, { uni: '٧', ali: '7' }, 
     { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' },
-    { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ چه‌ند په‌ره‌گرافێكدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها  له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا، ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانیی پڕۆفیشناڵم ده‌وێت. ' }
+    { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ چه‌ند په‌ره‌گرافێكدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها  له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا، ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانیی پڕۆفیشناڵم ده‌وێت، پێویست ناكات ناونیشان بۆ په‌ره‌گرافه‌كان و بۆ لید دانێیت.' }
 
 ];
 
@@ -2180,6 +2180,8 @@ text = text.replace(/(^|\s)ر/g, "$1رِ").replace(/ڕِ/g, "رِ");
 // وو له‌ سه‌ره‌تاوه‌ ده‌كات به‌ و
 text = text.replace(/(^|\s)وو/g, "$1و");
 
+text = text.replace(/بەرامبەر/g, "بەرانبەر");
+
 // تر‌ ده‌‌كات به‌ دیكه
 text = text.replace(/(^|\s)تر(?=\s|$)/g, "$1دیکە");
 
@@ -2265,6 +2267,8 @@ function redo() {
 }
 
 
+
+
 // دۆخی تەرکیز: شاردنەوەی هێدەر و دوگمەکان بۆ تەرکیزکردن لەسەر نووسین
 function toggleFocusMode() {
     const header = document.querySelector('.header');
@@ -2272,17 +2276,14 @@ function toggleFocusMode() {
     const btnGroup = document.querySelector('.btn-group');
     const textBox = document.getElementById('textBox');
     const container = document.querySelector('.container');
-
     if (header.style.display !== 'none') {
         header.style.display = 'none';
         ticker.style.display = 'none';
         btnGroup.style.display = 'none';
-        
         textBox.style.height = '92vh';
         container.style.maxWidth = '1220px';
         container.style.margin = '0 auto';
         container.style.paddingTop = '20px';
-
         const exitBtn = document.createElement('div');
         exitBtn.id = 'tempExitBtn';
         exitBtn.innerHTML = '🏠 گه‌ڕانه‌وه‌';
@@ -2295,23 +2296,23 @@ function toggleFocusMode() {
         `;
         exitBtn.onclick = toggleFocusMode; 
         document.body.appendChild(exitBtn);
-
         showStatus("👁️ دۆخی تەرکیز چالاک کرا");
     } else {
         header.style.display = 'grid'; // یان 'flex' بەپێی ستایلە ئەسڵییەکەت
         ticker.style.display = 'flex';
         btnGroup.style.display = 'grid';
-        
         textBox.style.height = '378px'; // هەمان ئەو بەرزییەی لە ستایلەکەت هەیە
         container.style.maxWidth = '100%';
         container.style.paddingTop = '10px';
-
         const tempBtn = document.getElementById('tempExitBtn');
         if (tempBtn) tempBtn.remove();
-
         showStatus("🏠 گەڕایەوە دۆخی ئاسایی");
     }
 }
+
+
+
+
 
 // دروستكردنی پی دی ئێف له‌ خانه‌ی تێكست
 

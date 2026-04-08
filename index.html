@@ -165,8 +165,6 @@
 .h-right { font-family: 'Noto Sans Arabic', sans-serif; font-weight: bold; color: var(--primary); font-size: 20px; white-space: nowrap; }
     .dark-mode .h-right { color: #4caf50; }
 
-    .btn-nav { font-size: 12px; font-weight: bold; cursor: pointer; padding: 6px 12px; border-radius: 6px; color: white; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .btn-nav:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
     .h-center { text-align: center; display: flex; flex-direction: column; justify-content: center; padding: 0 10px; }
     .h-center h1 { font-family: 'Noto Sans Arabic', sans-serif; font-size: 1.2rem; color: var(--primary); margin: 0; line-height: 1; }
@@ -263,10 +261,6 @@ textarea:focus {
                       linear-gradient(90deg, #4caf50, #ffffff, #4caf50);
 }
 
-
-
-
-
     .dark-mode textarea { background: #1e1e1e; color: #eee; border-color: #333; }
     
     .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 7px; margin-top: 5px; }
@@ -285,24 +279,6 @@ button, .btn-file {
     box-shadow: 0 6px 12px rgba(0,0,0,0.2); /* تۆخکردنی سێبەرەکە */
 }
 
-/* دوگمەکانی news ticker هاوتا بە دوگمەکانی خوارەوە */
-.news-ticker-btn {
-    padding: 6px 14px !important;
-    font-size: 14px !important;
-    border-radius: 8px !important;
-    font-weight: bold !important;
-    white-space: nowrap;
-    flex-shrink: 0;
-    color: white !important;
-    border: none !important;
-    cursor: pointer !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
-    transition: all 0.3s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 3px !important;
-}
 
     button:active { transform: scale(0.98); }
 
@@ -389,26 +365,6 @@ button, .btn-file {
         }
     }
 
-    .news-ticker { display: flex; align-items: center; background: #dde4e1; border-radius: 8px; padding: 2px 5px; margin-top: 5px; max-width: 100%; }
-.dark-mode .news-ticker { background: #1e1e1e; }
-.news-badge { background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px; white-space: nowrap; }
-
-#news-text { 
-    font-size: 14px; 
-    font-weight: none; 
-    color: black; 
-    text-decoration: none; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis;
-    flex: 1;
-    transition: opacity 0.5s; 
-}
-
-.dark-mode #news-text {
-    color: white;
-}
-
 .btn-download {
     background: #2b5797; /* ڕەنگی فەرمی Office Word */
     color: white;
@@ -426,14 +382,6 @@ button, .btn-file {
     transform: translateY(-2px);
 }
 
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; }
-.modal-content { 
-    background: white; width: 300px; padding: 20px; margin: 15% auto; 
-    border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-.dark-mode .modal-content { background: #2c2c2c; color: white; }
-.modal-content input { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
-.modal-actions { display: flex; gap: 10px; margin-top: 10px; }
 
 .btn-nav {
     background: linear-gradient(135deg, #6e8efb, #a777e3);
@@ -863,29 +811,6 @@ button, .btn-file {
     display: block;
 }
 
-.dropdown-content a {
-    color: #333;
-    padding: 1px 11px;
-    text-decoration: none;
-    display: block;
-    font-size: 14px;
-    text-align: right;
-    transition: 0.2s;
-}
-
-.dark-mode .dropdown-content a {
-    color: #eee;
-}
-
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
-    color: var(--primary);
-}
-
-.dark-mode .dropdown-content a:hover {
-    background-color: #2c2c2c;
-    color: #4caf50;
-}
 
 @keyframes fadeInDropdown {
     from { opacity: 0; transform: translateY(-5px); }
@@ -981,10 +906,6 @@ button, .btn-file {
 }
 .close-btn:hover { opacity: 0.9; }
 
-
-
-
-
 .dhikr-row {
     display: flex;
     justify-content: space-between;
@@ -1031,19 +952,6 @@ button, .btn-file {
     transform: translateY(-1px) scale(0.95); /* کەمێک بچووک دەبێتەوە وەک کاردانەوەی کلیک */
   }
 
-dhikr-main-btn:hover {
-    /* گۆڕینی ڕەنگی خەتەکە بۆ سەوزێکی تۆخ */
-    border-color: #1b5e20 !important;
-    
-    /* کەمێک بەرزبوونەوە بۆ ئەوەی جوانییەکەی زیاتر بێت */
-    transform: translateY(-1px);
-    
-    /* سێبەرەکەشی کەمێک سەوز بکە (ئارەزوومەندانەیە) */
-    box-shadow: 0 4px 10px rgba(27, 94, 32, 0.2) !important;
-  }
-
-
-
 /* دروستکردنی جووڵەی بەرز و نزم یان پرتەپرت */
 @keyframes cursor-blink {
     0%, 100% { opacity: 1; transform: translateY(0); }
@@ -1057,8 +965,6 @@ textarea {
 
 /* تێبینی: ناتوانین بە تەنیا CSS دوو خاڵ بخەینە کۆتایی دەقەکە بەبێ تێکدانی نووسین، 
 بەڵام دەتوانین نیشاندەرەکە بکەینە شێوازێکی "بلۆک" کە بەرز و نزم بێتەوە */
-
-
 
 /* ڕێکخستنی گشتی شریتی هەواڵ و دوگمەکان */
 .news-ticker {
@@ -1205,6 +1111,16 @@ textarea {
 
 
 
+/* نیشانده‌ری وشه‌ و چركه‌ له‌ قه‌راغ دوور ده‌خاته‌وه‌ */
+.textarea-stats {
+    display: flex;
+    flex-direction: row; /* دڵنیابوونەوە لەوەی بە ڕیز دەبن */
+    direction: rtl;      /* گرنگترین بەش: ئاڕاستەکە دەکاتە کوردی */
+    gap: 10px;           /* مەودایەک لە نێوان وشە و چرکەکە دروست دەکات */
+    padding: 10px;       /* بۆ ئەوەی لە قەراغ دوور بکەوێتەوە وەک پێشتر داوات کردبوو */
+    justify-content: flex-start; /* ڕیزکردنیان لە لای ڕاستەوە */
+}
+
 
 
 </style>
@@ -1281,8 +1197,6 @@ textarea {
         </div>
     </div>
 
-
-
     <div class="header">
         <div class="h-right" id="clock">...</div>
         <div class="h-buttons-area"></div>
@@ -1301,32 +1215,16 @@ textarea {
                 <option value="'Reem Kufi', sans-serif">فۆنتی ڕیم کوفی</option>
             </select>
 
-
-
-
-
             <div class="font-ctrl" title="قەبارەی فۆنت" style="margin-left: 15px; display: flex; align-items: center;">
     <span class="font-icon" style="font-size:11px;">A</span>
     <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
     <span class="font-icon" style="font-size:16px;">A</span>
 </div>
 
-
-
-
-
-
-
-
-
             <div class="header-icon-btn theme-toggle-btn" onclick="toggleT()" title="مۆدی شەو / مۆدی ڕۆژ" id="themeToggleBtn">
                 <span class="theme-icon sun-icon">☀️</span>
                 <span class="theme-icon moon-icon">🌙</span>     
 </div>
-
-
-
-
 
 <div class="header-icon-btn" onclick="toggleAbout()" style="margin-left: -5px; cursor: pointer;" title="زانیاری">ℹ️</div>
 
@@ -1347,11 +1245,6 @@ textarea {
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#607d8b,#546e7a);" onclick="document.getElementById('fileInput').click()">هێنانی Word</button>
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#e91e63,#c2185b);" onclick="convertTextToPDF()">💾 PDF</button>
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#1a73e8,#1557b0);" onclick="toggleDlModal()">داگرتنی ڤیدیۆ</button>
-
-
-
-
-
 
 </div>
 
@@ -1516,15 +1409,6 @@ fixPunctuation();
     showStatus(type === 'toUni' ? "✅ كرا به‌ یونیكۆد و ڕێنووسیش چاككرا" : "🔃 کرا بە عەلی کەی");
 }
 
-// گۆڕینی قەبارەی فۆنت بە پلەی دیاریکراو (زیادکردن یان کەمکردن)
-function changeFontSize(delta) {
-    const slider = document.getElementById('fontSlider');
-    const newSize = Math.min(40, Math.max(12, currentSize + delta));
-    currentSize = newSize;
-    const box = document.getElementById('textBox');
-    if (box) box.style.fontSize = newSize + 'px';
-    if (slider) slider.value = newSize;
-}
 
 // دانانی قەبارەی فۆنتی دیاریکراو بۆ خانەی نووسین
 function setFontSize(newSize) {
@@ -1574,9 +1458,6 @@ function copyText() {
         }).catch(() => showStatus("❌ هەڵە لە ئەنجامدانی کەت"));
     }
 }
-
-
-
 
 // سڕینەوەی هەموو دەقەکە لە خانەی نووسیندا
 function clearText() { 
@@ -1723,8 +1604,6 @@ async function getNews() {
     }
 }
 
-
-
 // دەستپێکردنی کاتژمێری زیندوی هێدەرەکە — هەموو چرکەیەک نوێ دەبێتەوە
 function initClock() {
     const clockEl = document.getElementById('clock');
@@ -1806,8 +1685,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(saveState, 1000);
 });
 
-
-
 // پاشکەوتکردنی دەقەکە وەک فایلی Word (.docx) بە پشتگیری کوردی
 async function downloadAsWord() {
      const content = document.getElementById('textBox').value;
@@ -1839,28 +1716,25 @@ async function downloadAsWord() {
             }
 
             return new Paragraph({
-
-                alignment: AlignmentType.RIGHT, // ٢. دانانی دەق لای ڕاستەوە
-
-                bidirectional: true,
-
-                children: [
-
-                    new TextRun({
-
-                        text: line,
-
-                        size: 28,
-
-                        rightToLeft: true,
-
-                        font: {
-
-                            name: "Ali_K_Alwand",
-
-                            complexScript: "Ali_K_Alwand",
-
-                            ascii: "Ali_K_Alwand"
+    // ١. گۆڕینی ئاڕاستە بۆ JUSTIFIED بۆ ئەوەی دەقەکە پڕ بە پڕی دێڕەکان بێت
+    alignment: AlignmentType.JUSTIFIED, 
+    
+    // ٢. دڵنیابوونەوە لەوەی ئاڕاستەی گشتی ڕاست بۆ چەپە
+    bidirectional: true,
+    
+    indent: { right: 0 }, 
+    spacing: { before: 200, after: 200 }, 
+    
+    children: [
+        new TextRun({
+            text: line,
+            size: 28,
+            rightToLeft: true, 
+            font: {
+                name: "Ali_K_Alwand",
+                complexScript: "Ali_K_Alwand",
+                ascii: "Ali_K_Alwand",
+                hint: "default"
 
                         },
 
@@ -1895,12 +1769,6 @@ async function downloadAsWord() {
         });
 
         const buffer = await Packer.toBlob(doc);
-
-
-
-
-
-
 
         // بەشی پاشکەوتکردنی فایل
         if ('showSaveFilePicker' in window) {
@@ -2038,36 +1906,6 @@ function frFind() {
     }
 }
 
-// گۆڕینی ئەو بەشەی دەقەی کە ئێستا هەڵبژێردراوە بەتەنیا
-function frReplace() {
-    const textBox    = document.getElementById('textBox');
-    const findVal    = document.getElementById('findInput').value;
-    const replaceVal = document.getElementById('replaceInput').value;
-    const statusMsg  = document.getElementById('statusMessage');
-
-    if (!findVal.trim()) {
-        statusMsg.innerHTML = '<span style="color:#f57c00">⚠️ وشەیەک بنووسە</span>';
-        return;
-    }
-
-    const sel = textBox.value.substring(textBox.selectionStart, textBox.selectionEnd);
-    try {
-        if (sel && frBuildRegex(findVal).test(sel)) {
-            const s = textBox.selectionStart;
-            textBox.value = textBox.value.substring(0, s) + replaceVal + textBox.value.substring(textBox.selectionEnd);
-            textBox.setSelectionRange(s, s + replaceVal.length);
-            statusMsg.innerHTML = '<span style="color:#2e7d32">✅ گۆڕدرا</span>';
-            if (typeof updateStats === 'function') updateStats();
-            localStorage.setItem('autosave_text', textBox.value);
-            frReset();
-            setTimeout(frFind, 120);
-        } else {
-            frFind();
-        }
-    } catch(e) {
-        statusMsg.innerHTML = '<span style="color:#f57c00">⚠️ هەڵە</span>';
-    }
-}
 
 // گۆڕینی هەموو دانەکانی وشەی دۆزراوەکە لە جارێکدا
 function frReplaceAll() {
@@ -2139,14 +1977,6 @@ async function sendToGemini() {
     } catch (err) {
         showStatus("❌ هەڵەیەک ڕوویدا");
     }
-}
-
-
-
-
-// فەنکشن بۆ پیشاندان و شاردنەوەی لیستەکە
-function toggleDropdown() {
-    document.getElementById("myDropdown").classList.toggle("show");
 }
 
 // فەنکشن بۆ سڕینەوەی دێڕە بەتاڵەکان
@@ -2229,7 +2059,6 @@ text = text.replace(/\s*,\s*/g, "، ");
 text = text.replace(/(^|\s)ر/g, "$1ڕ");
 
 // ر له‌ سه‌ره‌تاوه‌ ده‌كات به‌ ڕ
-text = text.replace(/(^|\s)ر/g, "$1رِ").replace(/ڕِ/g, "رِ");
 
 // وو له‌ سه‌ره‌تاوه‌ ده‌كات به‌ و
 text = text.replace(/(^|\s)وو/g, "$1و");
@@ -2306,23 +2135,6 @@ function undo() {
     }
 }
 
-// فەنکشنی چوونە پێشەوە
-function redo() {
-    if (historyIndex < historyStack.length - 1) {
-        historyIndex++;
-        const textBox = document.getElementById("textBox");
-        textBox.value = historyStack[historyIndex];
-        
-        if (typeof updateStats === "function") updateStats();
-        showStatus("↪️ چوو بۆ پێشەوە");
-    } else {
-        showStatus("⚠️ هەنگاوی داهاتوو نییە");
-    }
-}
-
-
-
-
 // دۆخی تەرکیز: شاردنەوەی هێدەر و دوگمەکان بۆ تەرکیزکردن لەسەر نووسین
 function toggleFocusMode() {
     const header = document.querySelector('.header');
@@ -2363,10 +2175,6 @@ function toggleFocusMode() {
         showStatus("🏠 گەڕایەوە دۆخی ئاسایی");
     }
 }
-
-
-
-
 
 // دروستكردنی پی دی ئێف له‌ خانه‌ی تێكست
 
@@ -2460,19 +2268,6 @@ function updateStats() {
     localStorage.setItem('autosave_text', fullText);
 }
 
-    function printText() {
-    const text = document.getElementById("textBox").value;
-    const font = document.getElementById("fontSelect").value;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html>
-            <head><style>body { font-family: ${font}; direction: rtl; padding: 50px; line-height: 1.8; }</style></head>
-            <body>${text.replace(/\n/g, '<br>')}</body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-}
 
 // فەنکشن بۆ کردنەوە و داخستنی مۆداڵی پشکنین
 function toggleWordCheck() {
@@ -2701,15 +2496,8 @@ function triggerOcrInput() {
     if (input) input.click();
 }
 
-// کردنەوەی دیالۆگی هەڵبژاردنی وێنە بۆ خوێندنەوەی دەقی کوردی
-function triggerOcrKurdish() {
-    const input = document.getElementById('ocrKurdishInput');
-    if (input) input.click();
-}
 
 document.getElementById('ocrImageInput').addEventListener('change', handleOcrImage);
-const _ocrKurdish = document.getElementById('ocrKurdishInput');
-if (_ocrKurdish) _ocrKurdish.addEventListener('change', handleOcrKurdish);
 const _tb = document.getElementById('textBox');
 if (_tb) {
     _tb.addEventListener('select', updateStats);
@@ -2744,7 +2532,7 @@ async function handleOcrImage(e) {
         let cleanedText = result.data.text.trim();
 
       
-        if (!cleanedText) {
+        if (!cleanedText) {صخقی
             showStatus("⚠️ هیچ دەقێک لە وێنەکەدا نەدۆزرایەوە");
             e.target.value = "";
             return;
@@ -2765,12 +2553,6 @@ async function handleOcrImage(e) {
         e.target.value = "";
     }
 }
-
-
-
-
-// لیستەی زیکرەکان
-
 
 
 // كۆدی تایبه‌ت به‌ جووڵه‌ی نوسینی نێو ناوچه‌ی نووسین
@@ -2802,10 +2584,37 @@ function typeEffect() {
 typeEffect();
 
 
+    // چاره‌سه‌ركردنی پیتی ر له‌ یونیكۆد و عه‌لی كه‌ی
+function convert(type) {
+    // وەرگرتنی توخمەکە بەپێی ئەو ئایدییەی کە داتناوە
+    const textarea = document.getElementById("textBox");
+    let text = textarea.value;
 
+    if (!text) return; // ئەگەر تێکستەکە بەتاڵ بوو، مەکەوەرە ئیش
 
+    if (type === 'toUni') {
+        // ١. گۆڕینی (رِ) یان (ڕ) کە پێشتر هەبوون بۆ (ڕ)ی ستاندارد
+        text = text.replace(/رِ/g, "ڕ");
 
+        // ٢. گۆڕینی (ر)ی سەرەتای وشە بۆ (ڕ) 
+        // مەرج: پێویستە لە سەرەتای دێڕ بێت یان پێشیدا بۆشایی هەبێت
+        text = text.replace(/(^|\s)ر(?![ڕ])/g, "$1ڕ");
+    } 
+    else if (type === 'toAli') {
+        // ١. گۆڕینی (ڕ)ی یونیکۆد بۆ (رِ)ی عەلی کەی
+        text = text.replace(/ڕ/g, "رِ");
 
+        // ٢. گۆڕینی (ر)ی سەرەتای وشە بۆ (رِ)
+        // مەرج: ئەگەر پێشتر نیشانەی ژێری (ِ) لەسەر نەبوو، بۆی زیاد بکات
+        text = text.replace(/(^|\s)ر(?!ِ)/g, "$1رِ");
+    }
+
+    // نوێکردنەوەی تێکست بۆ ناو باکسەکە
+    textarea.value = text;
+    
+    // گەڕاندنەوەی فۆکەس بۆ ناو باکیسەکە (تێبینییەکی باشە بۆ بەکارهێنەر)
+    textarea.focus();
+}
 
 
 </script>

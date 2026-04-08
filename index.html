@@ -1205,6 +1205,16 @@ textarea {
 
 
 
+/* نیشانده‌ری وشه‌ و چركه‌ له‌ قه‌راغ دوور ده‌خاته‌وه‌ */
+.textarea-stats {
+    display: flex;
+    flex-direction: row; /* دڵنیابوونەوە لەوەی بە ڕیز دەبن */
+    direction: rtl;      /* گرنگترین بەش: ئاڕاستەکە دەکاتە کوردی */
+    gap: 10px;           /* مەودایەک لە نێوان وشە و چرکەکە دروست دەکات */
+    padding: 10px;       /* بۆ ئەوەی لە قەراغ دوور بکەوێتەوە وەک پێشتر داوات کردبوو */
+    justify-content: flex-start; /* ڕیزکردنیان لە لای ڕاستەوە */
+}
+
 
 
 </style>
@@ -1337,7 +1347,7 @@ textarea {
     </div>
 
     <div class="news-ticker">
-        <span class="news-badge" onclick="toggleNewsModal()" style="cursor:pointer;" title="کلیک بکە بۆ بینینی هەموو هەواڵەکان">مانشێتی گرینگترین هه‌واڵه‌كان </span>
+        <span class="news-badge" onclick="toggleNewsModal()" style="cursor:pointer;" title="کلیک بکە بۆ بینینی هەموو هەواڵەکان">مانشێتی هه‌واڵه‌كان </span>
         
 
    

@@ -1790,13 +1790,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     textBox.value = val.slice(0, -2) + 'ئه‌م مانشێتی هه‌واڵانه‌ وه‌ربگره‌ و دووباره‌ وه‌ك مانشێت به‌ زمانی كوردی سۆرانی داڕشتنه‌وه‌ی ڕۆژنامه‌وانیانه‌ی بۆ بكه‌ و وه‌ك مانشێت به‌ جیا داینێ بۆم، جیاكردنه‌وه‌ی بۆ مه‌كه‌ و یه‌كسه‌ر مانشێته‌كانم به‌و شێوه‌یه‌ كه‌ ئه‌مه‌وێت بۆم دانێ.';
                     saveState();
                     updateStats();
-                } else if (val.endsWith('@@')) {
+                } else if (val.endsWith('font')) {
                     e.preventDefault();
-                    textBox.value = val.slice(0, -2) + 'به‌ شێوازێكی كورت و ڕۆژنامه‌وانی ئه‌م جوملە یان مانشێته‌م بۆكه‌ به‌ هه‌واڵێكی كوردی داڕشتنه‌وه‌یه‌كی پڕۆفیشناڵی هه‌بێت.';
+                    textBox.value = val.slice(0, -2) + 'https://github.com/arkandara/arkandara.github.io/releases/download/V.1/829.Font.zip';
                     saveState();
                     updateStats();
-                }
+                } else if (val.endsWith('c4kurd')) {
+                    e.preventDefault();
+                    textBox.value = val.slice(0, -2) + 'https://github.com/arkandara/arkandara.github.io/releases/tag/v2.c4kurd';
+                    saveState();
+                    updateStats();
             }
+           }
         });
     }
 
@@ -2127,14 +2132,24 @@ async function sendToGemini() {
         showStatus("⚠️ خانەکە خاڵییە");
         return;
     }
-    
+
+    const prompt = `وەک ڕۆژنامەنووسێکی پیشەگەر و ژیر لە میدیای کوردیدا مامەڵە بکە. ئەرکی تۆ داڕشتنەوەی ئەو دەقەیە کە بۆت دەنێرم بەپێی ئەم دوو بارودۆخەی خوارەوە:
+١. ئەگەر دەقەکە هەواڵێکی درێژ بوو: بە زمانێکی ڕۆژنامەوانیی مۆدێرن و کوردییەکی پاراو دایبڕێژەرەوە (نەک وەرگێڕانی ئامێری). سەرەتا لیدێکی (Lead) بۆ بنووسە کە هەموو ناوەڕۆکی هەواڵەکە لە کەمتر لە (٣٥) وشەدا کۆبکاتەوە. پاشان ناوەڕۆکەکە لە چەند پەرەگرافێکی ڕێکخراودا دابڕێژەرەوە. پێویست ناکات ناونیشان بۆ لید و پەرەگرافەکان دابنێیت.
+٢. ئەگەر دەقەکە تەنها مانشێت بوو: ڕاستەوخۆ بە زمانی کوردی سۆرانی و بە شێوازێکی پیشەگەرانە دووبارە دایان بڕێژەرەوە و وەک مانشێتی جیاواز بۆم دابنێ. پێویست ناکات جیاکردنەوە یان ڕوونکردنەوەیان بۆ بنووسیت، یەکسەر مانشێتەکانم بۆ دابنێ.
+تێبینی: لە هەردوو بارەتەکەدا زمانێکی پوخت بەکاربهێنە کە شایستەی بڵاوکردنەوە بێت لە دەزگایەکی میدیایی فەرمی.
+
+دەقەکە:
+`;
+
     const start = textBox.selectionStart;
     const finish = textBox.selectionEnd;
     const fullText = textBox.value;
-    const textToCut = (start !== finish) ? fullText.substring(start, finish) : fullText;
+    const selectedText = (start !== finish) ? fullText.substring(start, finish) : fullText;
+
+    const finalCopy = prompt + selectedText;
 
     try {
-        await navigator.clipboard.writeText(textToCut);
+        await navigator.clipboard.writeText(finalCopy);
 
         if (start !== finish) {
             textBox.value = fullText.substring(0, start) + fullText.substring(finish);
@@ -2146,15 +2161,13 @@ async function sendToGemini() {
         updateStats();
         localStorage.setItem('autosave_text', textBox.value);
 
-        // پشکنین دەکەین: ئایا پێشتر تابەکە کراوەتەوە و هێشتا دانەخراوە؟
         if (geminiWin && !geminiWin.closed) {
-            geminiWin.focus(); // تەنها فۆکسی دەخەینە سەر
+            geminiWin.focus();
         } else {
-            // ئەگەر نەمابوو یان داخرابوو، دانەیەکی نوێ دەکەینەوە
             geminiWin = window.open('https://gemini.google.com/app', 'GeminiTab');
         }
 
-        showStatus("✂️ كه‌تكرا — Gemini ئامادەیە");
+        showStatus("✂️ پرۆمپت + دەق کۆپیکرا — Gemini ئامادەیە");
     } catch (err) {
         showStatus("❌ هەڵەیەک ڕوویدا");
     }
@@ -2892,36 +2905,57 @@ async function handleOcrImage(e) {
 
 
 
-// كۆدی تایبه‌ت به‌ جووڵه‌ی نوسینی نێو ناوچه‌ی نووسین
+// دەستنیشانکردنی توخمەکان
 const textBox = document.getElementById('textBox');
-const text = "لێره‌ بنووسه‌ یان ده‌قێك دابنێ...";
+
+// لێرەدا دەقەکان بە یەکجار وەک لیست ڕێکدەخەین
+const introName = "نوێترین ئه‌بده‌یت  10ـی نیسانی 2026";
+const mainText = "لێره‌ بنووسه‌ یان ده‌قێك دابنێ...";
+
 let index = 0;
 let isDeleting = false;
-let speed = 150; // خێرایی نووسینەکە
+let introPhase = true;
 
-function typeEffect() {
-    const currentText = text.substring(0, index);
-    textBox.setAttribute('placeholder', currentText);
-
-    if (!isDeleting && index < text.length) {
-        index++;
-        speed = 150; // خێرایی کاتی نووسین
-    } else if (isDeleting && index > 0) {
-        index--;
-        speed = 20; // خێرایی کاتی سڕینەوە (خێراتر بێت جوانترە)
-    } else {
-        isDeleting = !isDeleting;
-        speed = isDeleting ? 1000 : 500; // کاتێک تەواو دەبێت کەمێک دەوەستێت
-    }
-
-    setTimeout(typeEffect, speed);
+function typeIntro() {
+    // پیشاندانی هەموو دەقەکە بە یەکجار
+    textBox.setAttribute('placeholder', introName);
+    
+    // دوای 4 چرکە دەیسڕێتەوە بۆ ئەوەی بچێتە سەر نووسینە جوڵاوەکە
+    setTimeout(() => {
+        eraseIntro(introName.length);
+    }, 4000);
 }
 
-// دەستپێکردنی جووڵەکە
-typeEffect();
+function eraseIntro(len) {
+    if (len >= 0) {
+        textBox.setAttribute('placeholder', introName.substring(0, len));
+        setTimeout(() => eraseIntro(len - 1), 30);
+    } else {
+        introPhase = false;
+        index = 0;
+        typeEffect();
+    }
+}
 
+function typeEffect() {
+    const currentText = mainText.substring(0, index);
+    textBox.setAttribute('placeholder', currentText);
 
+    if (!isDeleting && index < mainText.length) {
+        index++;
+        setTimeout(typeEffect, 150);
+    } else if (isDeleting && index > 0) {
+        index--;
+        setTimeout(typeEffect, 50);
+    } else {
+        // لووپی نوسینە کوردییەکە
+        isDeleting = !isDeleting;
+        setTimeout(typeEffect, isDeleting ? 3000 : 800);
+    }
+}
 
+// دەستپێکردن
+setTimeout(typeIntro, 3400);
 
 
 

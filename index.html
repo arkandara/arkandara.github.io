@@ -223,10 +223,25 @@
     border: 1px solid #ffffff;
 }
 
-.dark-mode .font-slider::-moz-range-thumb {
-    background: #4caf50;
-    border: 1px solid #ffffff;
+/* خانەی ژمارەی فۆنت */
+#fontSizeInput:focus {
+    border-color: #4caf50 !important;
+    box-shadow: 0 0 0 2px rgba(76,175,80,0.18);
+    background: #fff !important;
 }
+#fontSizeInput::-webkit-inner-spin-button,
+#fontSizeInput::-webkit-outer-spin-button { opacity: 0.5; }
+.dark-mode #fontSizeInput {
+    background: #2c2c2c !important;
+    color: #eee !important;
+    border-color: #555 !important;
+}
+.dark-mode #fontSizeInput:focus {
+    border-color: #4caf50 !important;
+    background: #1e1e1e !important;
+}
+
+
 
     .container { flex: 1; display: flex; flex-direction: column; padding: 4px 9px 9px 9px; gap: 1px; max-width: 100%; margin: 0 auto; width: 100%; }
 
@@ -497,59 +512,88 @@ button, .btn-file {
 .theme-toggle-btn {
     display: flex;
     align-items: center;
-    gap: 3px;
-    padding: 4px 7px !important;
+    justify-content: center;
+    width: 60px;
+    height: 26px;
     border-radius: 20px !important;
-    background: linear-gradient(135deg, #f0f0f0, #f0f0f0);
-    border: 1.5px solid rgba(255,180,0,0.3);
-    transition: all 0.4s ease !important;
-    overflow: hidden;
+    border: none !important;
+    cursor: pointer;
     position: relative;
+    overflow: hidden;
+    padding: 0 !important;
+    /* ئاسمانی ڕۆژ */
+    background: linear-gradient(180deg, #87ceeb 0%, #ffe082 60%, #ffb74d 100%);
+    box-shadow: 0 2px 8px rgba(255,180,0,0.3);
+    transition: background 1.2s ease, box-shadow 1.2s ease !important;
 }
 
 .dark-mode .theme-toggle-btn {
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    border-color: rgba(100,150,255,0.3);
+    /* ئاسمانی شەو */
+    background: linear-gradient(180deg, #0d1b4b 0%, #1a237e 60%, #283593 100%);
+    box-shadow: 0 2px 10px rgba(30,50,150,0.5);
 }
 
-.theme-icon {
-    font-size: 15px;
-    line-height: 1;
-    display: inline-block;
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+/* ئەفلاکەکەی خۆر/مانگ */
+.theme-orb {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    top: 5px;
+    transition: left 0.9s cubic-bezier(0.68, -0.55, 0.27, 1.55), background 1.2s ease, box-shadow 1.2s ease;
+    z-index: 2;
 }
 
-/* مۆدی ڕۆژ: خۆرەکە دیارە، مانگەکە نیمچە شەفاف */
-.sun-icon {
+/* مۆدی ڕۆژ: خۆر لە لای چەپ و زەرد */
+.theme-orb.day-orb {
+    left: 5px;
+    background: radial-gradient(circle at 35% 35%, #fff176, #ffd600);
+    box-shadow: 0 0 8px 3px rgba(255,220,0,0.7), 0 0 18px 6px rgba(255,200,0,0.3);
+}
+
+/* مۆدی شەو: مانگ لە لای ڕاست و سپی مەیل بە زەرد */
+.theme-orb.night-orb {
+    left: 37px;
+    background: radial-gradient(circle at 65% 35%, #fffde7, #e0e0e0);
+    box-shadow: 0 0 6px 2px rgba(200,220,255,0.6), 0 0 14px 4px rgba(150,180,255,0.25);
+}
+
+/* ئەستێرەکان بۆ مۆدی شەو */
+.theme-stars {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+.dark-mode .theme-toggle-btn .theme-stars {
     opacity: 1;
-    transform: translateY(0) rotate(0deg) scale(1);
 }
-.moon-icon {
-    opacity: 0.35;
-    transform: translateY(0) rotate(-20deg) scale(0.85);
-}
-
-/* مۆدی شەو: مانگەکە دیارە، خۆرەکە نیمچە شەفاف */
-.dark-mode .sun-icon {
-    opacity: 0.35;
-    transform: translateY(0) rotate(20deg) scale(0.85);
-}
-.dark-mode .moon-icon {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg) scale(1);
+.theme-star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
 }
 
-/* ئەنیمەیشنی کاتی گۆڕین */
-.theme-toggle-btn.switching .sun-icon {
-    animation: iconSwitch 0.5s ease forwards;
+/* هێڵی ئافتاوی (horizon) */
+.theme-horizon {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(180deg, rgba(255,183,77,0.5), rgba(255,140,0,0.7));
+    border-radius: 0 0 20px 20px;
+    transition: background 1.2s ease;
+    z-index: 1;
 }
-.theme-toggle-btn.switching .moon-icon {
-    animation: iconSwitch 0.5s ease forwards;
+.dark-mode .theme-toggle-btn .theme-horizon {
+    background: linear-gradient(180deg, rgba(20,40,100,0.5), rgba(10,20,60,0.8));
 }
 
 @keyframes iconSwitch {
     0%   { transform: translateY(0) scale(1); }
-    40%  { transform: translateY(-6px) scale(1.2); }
+    40%  { transform: translateY(-4px) scale(1.15); }
     100% { transform: translateY(0) scale(1); }
 }
 
@@ -777,15 +821,51 @@ button, .btn-file {
 }
 
 #aboutModal .modal-content {
-    min-height: 70% !important; 
-    max-height: 50% !important; 
-       max-width: 10% !important; 
-    min-width: 60% !important; 
+    padding: 0 !important;
+}
 
-    padding: 10px !important; /* بڕێکی کەم بۆ ئەوەی تەسکی نەکاتەوە */
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0 !important;
+.dark-mode #aboutModal .modal-content {
+    background: #1e1e1e !important;
+    box-shadow: 0 24px 50px rgba(0,0,0,0.45) !important;
+}
+
+.dark-mode #aboutModal .modal-content > div:nth-child(2) {
+    background: #1e1e1e !important;
+}
+
+.dark-mode #aboutModal .info-card {
+    background: #2a2a2a !important;
+    border-color: rgba(255,255,255,0.06) !important;
+}
+
+.dark-mode #aboutModal .info-card span,
+.dark-mode #aboutModal .info-card strong {
+    color: #ccc !important;
+}
+
+.dark-mode #aboutModal .info-card strong {
+    color: #eee !important;
+}
+
+.dark-mode #aboutModal .modal-title {
+    color: #eee !important;
+}
+
+.dark-mode #aboutModal .modal-subtitle {
+    color: #666 !important;
+}
+
+.dark-mode #aboutModal .modal-divider {
+    background: linear-gradient(90deg, transparent, #333, transparent) !important;
+}
+
+.dark-mode #aboutModal .icon-box {
+    background: linear-gradient(135deg, #1a3a1a, #1e4a1e) !important;
+}
+
+.dark-mode #aboutModal .close-x-btn {
+    background: #2c2c2c !important;
+    color: #888 !important;
 }
 
 #aboutModal p, 
@@ -794,13 +874,13 @@ button, .btn-file {
 #aboutModal h3, 
 #aboutModal span {
     margin: 0 !important;
-    padding: 2px 0 !important; /* کەمێک بۆشایی نێوان دێڕەکان */
+    padding: 0 !important;
 }
 
 #aboutModal button, 
 #aboutModal .btn,
 #aboutModal .close-btn {
-    display: inline-block !important; /* دڵنیابوون لەوەی دوگمەکە پان نابێتەوە */
+    display: inline-flex !important;
 }
 
 .btn-gemini {
@@ -1252,44 +1332,103 @@ textarea {
     }, 6300);
 </script>
 
+
 <div id="aboutModal" class="modal">
-    <!-- من بەرزی (height) مۆداڵەکەم کەمێک زیاد کرد بۆ 310px بۆ ئەوەی هەموو دەقەکان بە جوانی جێیان ببێتەوە -->
-    <div class="modal-content" style="width: 450px !important; max-width: 95% !important; height: auto !important; min-height: 310px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; padding: 20px !important;">
-        
-        <div class="modal-header" style="font-weight: bold; margin-bottom: 15px;">زانیاری پڕۆژه‌ و په‌یوه‌ندیكردن</div>
-        
-        <div class="modal-body">
-            <!-- هەموو زانیارییە سەرەکییەکان لە یەک ڕیزدا -->
-            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
-                <p style="margin: 0;"><strong>گەشەپێدەر:</strong> ئه‌ركان دارا</p>
-                
-                <!-- دوگمەی فەیسبووک -->
-                <a href="https://web.facebook.com/arkanndara" target="_blank" class="fb-hover-btn" style="text-decoration: none;">
-                    <i class="fab fa-facebook-f"></i>
-                    <span class="fb-hover-text"> په‌یوه‌ندیكردن</span>
-                </a>
+    <div class="modal-content" style="
+        width: 340px !important;
+        max-width: 92% !important;
+        height: auto !important;
+        padding: 0 !important;
+        border-radius: 22px !important;
+        overflow: hidden !important;
+        box-shadow: 0 24px 50px rgba(0,0,0,0.18) !important;
+        background: #fff !important;
+        border: none !important;
+        margin: 12% auto !important;
+    ">
+        <!-- هێڵی سەرەوە -->
+        <div style="height: 4px; background: linear-gradient(90deg, #1b5e20, #81c784, #4caf50, #81c784, #1b5e20); background-size: 200% 100%; animation: shimmer 3s linear infinite;"></div>
 
-                <!-- لێرەدا دواین نوێكردنەوەمان هێنایە ناو هەمان ڕیز -->
-                <p style="margin: 0; font-size: 0.9em; color: #555;"><strong>دواین نوێكردنه‌وه‌:</strong> 8/4/2026</p>
+        <!-- هێدەری مۆداڵ -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:36px; height:36px; border-radius:10px; background: linear-gradient(135deg,#e8f5e9,#c8e6c9); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(46,125,50,0.15);">
+                    <i class="fas fa-info-circle" style="color:#2e7d32; font-size:16px;"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 700; color: #1a1a1a; font-size: 1em; line-height:1.2;">ده‌رباره‌</div>
+                    <div style="font-size: 0.72em; color: #888; margin-top:1px;">سەکۆی ڕۆژنامەنووس</div>
+                </div>
             </div>
-
-            <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(128,128,128,0.2);">
-            
-            <p style="margin: 5px 0;"><strong>زانیاری:</strong></p>
-            <p style="margin: 3px 0; font-size: 0.95em;">دوگمه‌ی گه‌ڕان و گۆڕین دابگره‌، له‌ خانه‌ی  وشه‌ بنووسه‌ help دواتر دوگمه‌ی دۆزینه‌وه‌ دابگره‌، زانیاری گرینگ بخوێنه‌ره‌وه‌</p>
-            <p style="margin: 3px 0; font-size: 0.95em;">كه‌ كلیك له‌سه‌ر دوگمه‌ی جیمینای ده‌كه‌یت تێكسته‌كه‌ت بۆ cut ده‌كات و جیمینای ده‌كاته‌وه‌‌.</p>
+            <button onclick="toggleAbout()" style="
+                background: #f5f5f5; border: none; width: 32px; height: 32px;
+                border-radius: 50%; cursor: pointer; display: flex;
+                align-items: center; justify-content: center;
+                color: #888; font-size: 13px; transition: all 0.25s ease; flex-shrink:0;
+            "
+            onmouseover="this.style.background='#ffebee'; this.style.color='#ef5350'; this.style.transform='rotate(90deg)';"
+            onmouseout="this.style.background='#f5f5f5'; this.style.color='#888'; this.style.transform='rotate(0deg)';">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
-        <div class="modal-footer" style="text-align: left; margin-top: 25px;">
-            <button class="close-btn" onclick="toggleAbout()">داخستن</button>
+        <!-- هێڵی جوداکەر -->
+        <div style="height:1px; background: linear-gradient(90deg, transparent, #e0e0e0, transparent); margin: 0 20px;"></div>
+
+        <!-- ناوەرۆکی مۆداڵ -->
+        <div style="padding: 16px 20px 20px; display:flex; flex-direction:column; gap:10px;">
+
+            <!-- کارتی گەشەپێدەر -->
+            <div style="background: #f8faf8; border-radius: 13px; padding: 13px 15px; border: 1px solid #e8f0e8; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:28px; height:28px; border-radius:8px; background:#e8f5e9; display:flex; align-items:center; justify-content:center;">
+                        <i class="fas fa-user-edit" style="color:#43a047; font-size:11px;"></i>
+                    </div>
+                    <span style="color: #777; font-size: 0.83em; font-weight: 500;">گەشەپێدەر</span>
+                </div>
+                <strong style="color: #1a1a1a; font-size: 0.95em; letter-spacing:0.3px;">ئەركان دارا</strong>
+            </div>
+
+            <!-- کارتی ڤێرژن -->
+            <div style="background: #f8faf8; border-radius: 13px; padding: 13px 15px; border: 1px solid #e8f0e8; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:28px; height:28px; border-radius:8px; background:#e8f5e9; display:flex; align-items:center; justify-content:center;">
+                        <i class="fas fa-code-branch" style="color:#43a047; font-size:11px;"></i>
+                    </div>
+                    <span style="color: #777; font-size: 0.83em; font-weight: 500;">ڤێرژن</span>
+                </div>
+                <strong style="color: #1a1a1a; font-size: 0.95em;">نیسانی 2026</strong>
+            </div>
+
+            <!-- دوگمەی پەیوەندی -->
+            <a href="https://web.facebook.com/arkanndara" target="_blank" style="
+                display: flex; align-items: center; justify-content: center; gap: 9px;
+                background: linear-gradient(135deg, #1877F2, #1565c0);
+                color: #fff; text-decoration: none;
+                padding: 12px 16px; border-radius: 13px;
+                font-weight: 700; font-size: 0.92em;
+                transition: all 0.25s ease;
+                box-shadow: 0 4px 14px rgba(24,119,242,0.25);
+                margin-top: 2px;
+            "
+            onmouseover="this.style.background='linear-gradient(135deg,#166fe5,#0d47a1)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(24,119,242,0.3)';"
+            onmouseout="this.style.background='linear-gradient(135deg,#1877F2,#1565c0)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px rgba(24,119,242,0.25)';">
+                <i class="fab fa-facebook-f" style="font-size:14px;"></i>
+                پەیوەندیکردن لە فەیسبووک
+            </a>
         </div>
     </div>
 </div>
+
+
+
+
+
     <div id="dlModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">📥 داگرتنی ڤیدیۆ و دەنگ</div>
             <div class="modal-body" style="text-align: center;">
-                <p style="font-size: 14px;">لینکی یوتیوب، فەیسبووک، یان تیکتۆک دابنێ و دوای داگرتن؛ كوالێتی ڤیدیۆكه‌ هه‌ڵبژێره‌ و داونڵوود بكه‌:</p>
+                <p style="font-size: 14px;">لینکی یوتیوب، فەیسبووک، دابنێ و دوای داگرتن؛ كوالێتی ڤیدیۆكه‌ هه‌ڵبژێره‌ و داونڵوود بكه‌:</p>
                 <input type="text" id="videoUrl" class="dl-input" placeholder="https://...">
                 <button id="startDlBtn" onclick="processDownload()" class="dl-btn">كلیك بكه‌ بۆ داگرتنی ڤیدیۆكه‌</button>
                 <p id="dlStatus" style="margin-top: 15px; font-size: 13px; color: #ff0000; font-weight: bold;"></p>
@@ -1324,12 +1463,23 @@ textarea {
 
 
 
-            <div class="font-ctrl" title="قەبارەی فۆنت" style="margin-left: 15px; display: flex; align-items: center;">
+           <div class="font-ctrl" title="قەبارەی فۆنت" style="margin-left: 15px; display: flex; align-items: center; gap: 5px;">
     <span class="font-icon" style="font-size:11px;">A</span>
-    <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" oninput="setFontSize(this.value)">
+    
+    <input type="range" class="font-slider" id="fontSlider" min="12" max="40" value="20" 
+           oninput="setFontSize(this.value); document.getElementById('fontSizeDisplay').value = this.value">
+    
     <span class="font-icon" style="font-size:16px;">A</span>
+    
+    <input type="text" id="fontSizeDisplay" value="20" 
+        readonly
+        title="قەبارەی فۆنت"
+        style="width:38px; height:24px; border-radius:6px; border:1px solid rgba(255,255,255,0.2);
+               text-align:center; font-size:13px; font-weight:bold; 
+               color: #007BFF; 
+               background: transparent; outline:none; padding:0;
+               cursor: default;">
 </div>
-
 
 
 
@@ -1339,15 +1489,37 @@ textarea {
 
 
             <div class="header-icon-btn theme-toggle-btn" onclick="toggleT()" title="مۆدی شەو / مۆدی ڕۆژ" id="themeToggleBtn">
-                <span class="theme-icon sun-icon">☀️</span>
-                <span class="theme-icon moon-icon">🌙</span>     
+                <div class="theme-stars">
+                    <div class="theme-star" style="width:2px;height:2px;top:5px;left:8px;opacity:0.9;"></div>
+                    <div class="theme-star" style="width:2px;height:2px;top:10px;left:20px;opacity:0.7;"></div>
+                    <div class="theme-star" style="width:2px;height:2px;top:6px;left:30px;opacity:0.8;"></div>
+                    <div class="theme-star" style="width:2px;height:2px;top:12px;left:14px;opacity:0.6;"></div>
+                </div>
+                <div class="theme-horizon"></div>
+                <div class="theme-orb day-orb" id="themeOrb"></div>
+            </div>
+
+
+
+
+
+<div class="header-icon-btn" onclick="toggleAbout()" title="زانیاری پڕۆژە" style="
+    background: linear-gradient(135deg,#e8f5e9,#c8e6c9);
+    border: 1.5px solid rgba(46,125,50,0.25);
+    border-radius: 10px;
+    padding: 5px; /* کەمکردنەوەی پادینگ بۆ هاوسەنگکردنی بازنەکە */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; /* بۆ هێنانە ناوەڕاستی ئایکۆنەکە */
+    width: 60px; /* دیاریکردنی پانی جێگیر بۆ ئەوەی خڕ دەربچێت */
+    height: 27px; /* دیاریکردنی بەرزی جێگیر */
+    cursor: pointer; 
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(46,125,50,0.12);
+" onmouseover="this.style.background='linear-gradient(135deg,#c8e6c9,#a5d6a7)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(46,125,50,0.22)';"
+   onmouseout="this.style.background='linear-gradient(135deg,#e8f5e9,#c8e6c9)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(46,125,50,0.12)';">
+    <i class="fas fa-info-circle" style="font-size: 18px; color: #2e7d32;"></i>
 </div>
-
-
-
-
-
-<div class="header-icon-btn" onclick="toggleAbout()" style="margin-left: -5px; cursor: pointer;" title="زانیاری">ℹ️</div>
 
     </div>
 </div> 
@@ -1360,11 +1532,11 @@ textarea {
         
 
    
-     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#ff9800,#f57c00);" onclick="removeEmptyLines()">بۆشایی نێوان دێڕ ❌</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#ff9800,#f57c00);" onclick="removeEmptyLines()">سڕینه‌وه‌ی‌ بۆشایی دێڕه‌كان </button>
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#9c27b0,#7b1fa2);" onclick="toggleFocusMode()">دۆخی ته‌ركیز</button>
-     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#f44336,#e53935);" onclick="checkRepeatedWords()">ڕێژه‌ی وشەکان</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#f44336,#e53935);" onclick="checkRepeatedWords()">زانینی ڕێژه‌ی وشەکان </button>
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#607d8b,#546e7a);" onclick="document.getElementById('fileInput').click()">هێنانی Word</button>
-     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#e91e63,#c2185b);" onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕین 🔍</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#e91e63,#c2185b);" onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕینی وشه‌ 🔍</button>
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#1a73e8,#1557b0);" onclick="toggleDlModal()">داگرتنی ڤیدیۆ</button>
 
 
@@ -1377,15 +1549,15 @@ textarea {
     <div class="container">
         <div class="textarea-wrapper">
             <div class="textarea-stats">
-                <span id="textStats">وشە: ٠</span>
+                <span id="textStats">وشە:</span>
                 <span style="color:#ccc;margin:0 4px;">|</span>
-                <span id="readingTimeDisplay">٠ چرکە</span>
+                <span id="readingTimeDisplay">0 چرکە</span>
             </div>
             <textarea id="textBox" placeholder="لێره‌ بنووسه‌ یان ده‌قێك دابنێ..."></textarea>
         </div>
         <div class="btn-group">
             <button class="btn-uni" onclick="convert('toUni')">↺ یونیكۆد - ڕێنووس</button>
-<button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻  عەلی کەی</button>        
+<button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻ عەلی کەی</button>        
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
@@ -1394,19 +1566,19 @@ textarea {
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
 
-            <button onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;">💾 Word</button>
+            <button onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن به‌ Word</button>
            
 
 <div id="findReplaceModal">
     <div class="fr-card">
         <button class="fr-close-x" onclick="toggleFindReplace()" title="داخستن">✕</button>
-        <div class="fr-header">🔍 گەڕان و گۆڕین</div>
+        <div class="fr-header">🔍 گەڕان و گۆڕینی وشه‌</div>
         <div class="fr-input-group">
-            <label>دۆزینەوە</label>
-            <input type="text" id="findInput" placeholder="وشه‌یه‌ك بنووسه‌ یان دایبنێ...">
+            <label>وشه‌كه‌ی ئێستات بنووسه‌</label>
+            <input type="text" id="findInput" placeholder="وشه‌یه‌ك بنووسه‌  ...">
         </div>
         <div class="fr-input-group">
-            <label>جێگرتنەوە</label>
+            <label>وشه‌ی جێگره‌وه‌ بنووسه‌</label>
             <input type="text" id="replaceInput" placeholder="وشەی نوێ...">
         </div>
         <div id="statusMessage"></div>
@@ -1545,13 +1717,34 @@ function changeFontSize(delta) {
     const box = document.getElementById('textBox');
     if (box) box.style.fontSize = newSize + 'px';
     if (slider) slider.value = newSize;
+    const numInput = document.getElementById('fontSizeInput');
+    if (numInput) numInput.value = newSize;
 }
 
 // دانانی قەبارەی فۆنتی دیاریکراو بۆ خانەی نووسین
 function setFontSize(newSize) {
-    currentSize = newSize;
+    currentSize = parseInt(newSize);
     const box = document.getElementById('textBox');
-    if(box) box.style.fontSize = currentSize + 'px';
+    if (box) box.style.fontSize = currentSize + 'px';
+    // هاوکاتکردنی خانەی ژمارە
+    const numInput = document.getElementById('fontSizeInput');
+    if (numInput) numInput.value = currentSize;
+}
+
+// گۆڕینی فۆنت بە نووسینی ژمارە لە خانەکەدا
+function setFontSizeFromInput(val) {
+    let size = parseInt(val);
+    if (isNaN(size)) return;
+    size = Math.min(40, Math.max(12, size));
+    currentSize = size;
+    const box = document.getElementById('textBox');
+    if (box) box.style.fontSize = size + 'px';
+    // هاوکاتکردنی هێڵەکە
+    const slider = document.getElementById('fontSlider');
+    if (slider) slider.value = size;
+    // نوێکردنەوەی خانەی ژمارە ئەگەر لە سنووردا نەبوو
+    const numInput = document.getElementById('fontSizeInput');
+    if (numInput && parseInt(numInput.value) !== size) numInput.value = size;
 }
 
 // گۆڕینی جۆری فۆنت بەپێی ئەوەی لە لیستەکە هەڵبژێردراوە
@@ -1621,18 +1814,41 @@ function toggleDlModal() {
     if(m) m.style.display = (m.style.display === "block") ? "none" : "block";
 }
 
-// گۆڕینی نێوان دۆخی ڕۆژ (ڕووناک) و دۆخی شەو (تاریک)
+// گۆڕینی نێوان دۆخی ڕۆژ (ڕووناک) و دۆخی شەو (تاریک) — بە ئەنیمەیشنی خۆرهەڵاتن/خۆڕاوابوون
 function toggleT() {
-    const btn = document.getElementById('themeToggleBtn');
-    
-    // زیادکردنی جوڵە بۆ دوگمەکە
-    if (btn) {
-        btn.classList.add('switching');
-        setTimeout(() => btn.classList.remove('switching'), 500);
-    }
+    const orb = document.getElementById('themeOrb');
+    const isDark = document.body.classList.contains('dark-mode');
 
-    // گۆڕینی ڕووکاری لاپەڕەکە
-    document.body.classList.toggle('dark-mode');
+    if (isDark) {
+        // گۆڕین بۆ مۆدی ڕۆژ: خۆر هەڵدێت
+        // پێش هەموو شتێک ئەفلاکەکە دابەزێنە خوارەوە (لە مانگ دادەبەزێت)
+        if (orb) {
+            orb.style.transition = 'left 0.05s, top 0.3s ease-in, background 0.8s, box-shadow 0.8s';
+            orb.style.top = '40px'; // دادەبەزێت خوارەوە
+            setTimeout(() => {
+                // گۆڕینی تایبەتمەندییەکانی خۆر
+                orb.classList.remove('night-orb');
+                orb.classList.add('day-orb');
+                orb.style.transition = 'left 0.9s cubic-bezier(0.68,-0.55,0.27,1.55), top 0.9s cubic-bezier(0.22,1,0.36,1), background 1.2s ease, box-shadow 1.2s ease';
+                orb.style.top = '5px'; // هەڵدێت
+            }, 280);
+        }
+        document.body.classList.remove('dark-mode');
+    } else {
+        // گۆڕین بۆ مۆدی شەو: خۆر ئاوا دەبێت، مانگ دەهاتێت
+        if (orb) {
+            orb.style.transition = 'left 0.05s, top 0.6s cubic-bezier(0.55,0,1,0.45), background 0.8s, box-shadow 0.8s';
+            orb.style.top = '40px'; // خۆر دادەبەزێت خوارەوە (ئاوا دەبێت)
+            setTimeout(() => {
+                // گۆڕینی بۆ مانگ
+                orb.classList.remove('day-orb');
+                orb.classList.add('night-orb');
+                orb.style.transition = 'left 0.9s cubic-bezier(0.68,-0.55,0.27,1.55), top 0.9s cubic-bezier(0.22,1,0.36,1), background 1.2s ease, box-shadow 1.2s ease';
+                orb.style.top = '5px'; // مانگ هەڵدێت
+            }, 500);
+        }
+        document.body.classList.add('dark-mode');
+    }
 }
 
 // پرۆسەی داگرتنی ڤیدیۆ — لینکەکە دەخوێنێت و بۆ مالپەڕی داگرتن دەگوازێتەوە
@@ -2446,53 +2662,6 @@ function toggleFocusMode() {
 
 
 
-
-
-// دروستكردنی پی دی ئێف له‌ خانه‌ی تێكست
-
-// گۆڕینی دەقی ناو خانەکە بۆ فایلی PDF و داگرتنی
-async function convertTextToPDF() {
-    const textBox = document.getElementById("textBox");
-    const text = textBox.value.trim();
-
-    if (!text) {
-        showStatus("⚠️ تکایە سەرەتا دەقێک بنووسە");
-        return;
-    }
-
-    showStatus("⏳ خەریکە فایلی PDF دروست دەکرێت...");
-
-    const element = document.createElement("div");
-    element.style.padding = "50px";
-    element.style.background = "#ffffff";
-    element.style.color = "#000000";
-    element.style.fontSize = "18px";
-    element.style.lineHeight = "2";
-    element.style.direction = "rtl";
-    element.style.textAlign = "justify"; // بۆ ئەوەی دێڕەکان ڕێک بن
-    element.style.fontFamily = textBox.style.fontFamily || "'Noto Sans Arabic', sans-serif";
-    element.style.whiteSpace = "pre-wrap"; 
-
-    // دانانی دەقەکە
-    element.innerText = text;
-
-    const opt = {
-        margin:       10,
-        filename:     'kurdish-document.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    try {
-        await html2pdf().set(opt).from(element).save();
-        showStatus("✅ فایلی PDF بە سەرکەوتوویی داگیرا");
-    } catch (error) {
-        console.error("هەڵە لە دروستکردنی PDF:", error);
-        showStatus("❌ هەڵەیەک ڕوویدا لە دروستکردنی فایلی PDF");
-    }
-}
-
 // نوێکردنەوەی ژمارەی وشە، پیت، و کاتی خوێندنەوە لە سەرەوەی پەڕەکەدا
 function updateStats() {
     const textarea = document.getElementById('textBox');
@@ -2518,7 +2687,7 @@ function updateStats() {
 
     let timeStr = "";
     if (totalWords === 0) {
-        timeStr = "٠ خولەک و ٠ چرکە";
+        timeStr = " خولەک و  چرکە";
     } else {
         if (minutes > 0) {
             timeStr = minutes + " خولەک و " + seconds + " چرکە";
@@ -2657,8 +2826,9 @@ function checkRepeatedWords() {
                 <div id="newsInsertCounter" title="ژمارەی مانشێتی خراوە ناوچەی نووسین" style="display:none;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:4px 12px;cursor:default;">
                     <span style="color:#a5d6a7;font-size:13px;">✔</span>
                     <span style="color:#fff;font-size:13px;font-weight:bold;" id="newsInsertCountNum">0</span>
-                    <span style="color:rgba(255,255,255,0.75);font-size:12px;">مانشێت</span>
+                    <span style="color:rgba(255,255,255,0.75);font-size:12px;">مانشێت دانرا له‌ناوچه‌ی نووسین</span>
                 </div>
+                <button id="newsSlideshowBtn" onclick="toggleNewsSlideshow()" title="پلەی / پاوس" style="background:rgba(255,255,255,0.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">▶</button>
                 <button onclick="toggleNewsModal()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">✕</button>
             </div>
         </div>
@@ -2672,14 +2842,53 @@ function checkRepeatedWords() {
 
 let _newsModalData = {};     // هەواڵەکان کەش دەکات
 let _newsInsertCount = 0;   // ژمارەی مانشێتی خراوە ناوچەی نووسین
+let _newsSlideshowTimer = null;   // تایمەری پلەی
+let _newsSlideshowActive = false; // بارودۆخی پلەی
+
+window.toggleNewsSlideshow = function() {
+    _newsSlideshowActive = !_newsSlideshowActive;
+    const btn = document.getElementById('newsSlideshowBtn');
+    if (_newsSlideshowActive) {
+        if (btn) { btn.textContent = '⏸'; btn.title = 'پاوس'; btn.style.background = 'rgba(76,175,80,0.5)'; }
+        _newsSlideshowRun();
+    } else {
+        if (btn) { btn.textContent = '▶'; btn.title = 'پلەی'; btn.style.background = 'rgba(255,255,255,0.2)'; }
+        if (_newsSlideshowTimer) { clearTimeout(_newsSlideshowTimer); _newsSlideshowTimer = null; }
+    }
+};
+
+function _newsSlideshowRun() {
+    if (!_newsSlideshowActive) return;
+    // پێش بەرەو هەموو سەرچاوەیەک
+    if (typeof rssSources !== 'undefined') {
+        for (const source of rssSources) {
+            if (typeof window.newsNextItem === 'function') window.newsNextItem(source.name);
+        }
+    }
+    _newsSlideshowTimer = setTimeout(_newsSlideshowRun, 4000);
+}
+
+let _newsIdx = {};   // گلۆباڵ بۆ پلەی
 
 async function toggleNewsModal() {
     const modal = document.getElementById('newsModal');
     if (!modal) return;
 
-    // داخستن
+    // داخستن — ژمارەکان سفر دەبنەوە و پلەی دادەوەستێت
     if (modal.style.display === 'block') {
         modal.style.display = 'none';
+        // ڕیسێتی پلەی
+        _newsSlideshowActive = false;
+        if (_newsSlideshowTimer) { clearTimeout(_newsSlideshowTimer); _newsSlideshowTimer = null; }
+        // ڕیسێتی ژمارەی مانشێت
+        _newsInsertCount = 0;
+        const counter = document.getElementById('newsInsertCounter');
+        const countNum = document.getElementById('newsInsertCountNum');
+        if (counter) counter.style.display = 'none';
+        if (countNum) countNum.textContent = '0';
+        // ڕیسێتی دوگمەی پلەی
+        const slideshowBtn = document.getElementById('newsSlideshowBtn');
+        if (slideshowBtn) { slideshowBtn.textContent = '▶'; slideshowBtn.style.background = 'rgba(255,255,255,0.2)'; }
         return;
     }
 
@@ -2720,8 +2929,16 @@ async function toggleNewsModal() {
         }
     }
 
-    // شمارەی ئێستای هەر سەرچاوەیەک
-    const _newsIdx = {};
+    // شمارەی ئێستای هەر سەرچاوەیەک — ئێستا گلۆباڵە
+
+    // ڕیسێتی ژمارەی مانشێت کاتی کردنەوەی مۆداڵ
+    _newsInsertCount = 0;
+    const _counterEl = document.getElementById('newsInsertCounter');
+    const _countNumEl = document.getElementById('newsInsertCountNum');
+    if (_counterEl) _counterEl.style.display = 'none';
+    if (_countNumEl) _countNumEl.textContent = '0';
+
+    // ڕیسێتی ئیندێکسەکان
     for (const source of rssSources) _newsIdx[source.name] = 0;
 
     // پیشاندانی مانشێتی ئێستا بۆ سایتێکی دیاریکراو
@@ -2772,16 +2989,30 @@ async function toggleNewsModal() {
                         justify-content:center;transition:0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.2);
                     " onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'"> ▼ </button>
 
+                      <button class="news-insert-all-btn" title="ناردنی هەموو هەواڵەکان بۆ ناوچەی نووسین" style="
+                        flex-shrink:0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);
+                        border:none;color:#fff;width:32px;height:32px;border-radius:50%;
+                        cursor:pointer;font-size:14px;display:flex;align-items:center;
+                        justify-content:center;transition:0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.2);
+                    " onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'"> ⬇ </button>
 
                     <span style="flex-shrink:0;font-size:11px;color:${dark?'#777':'#aaa'};min-width:30px;text-align:center;">${idx+1}/${total}</span>
                 </div>`;
             el.style.opacity = '1';
-            // زیادکردنی event listener بۆ دوگمەی داخستن
+            // زیادکردنی event listener بۆ دوگمەی داخستنی تاک
             const insertBtn = el.querySelector('.news-insert-btn');
             if (insertBtn) {
                 insertBtn._newsTitle = item.title;
                 insertBtn.addEventListener('click', function() {
                     window.newsInsertToTextBox(this._newsTitle);
+                });
+            }
+            // زیادکردنی event listener بۆ دوگمەی داونلۆدی هەموو هەواڵەکان
+            const insertAllBtn = el.querySelector('.news-insert-all-btn');
+            if (insertAllBtn) {
+                insertAllBtn._sourceName = source.name;
+                insertAllBtn.addEventListener('click', function() {
+                    window.newsInsertAllToTextBox(this._sourceName);
                 });
             }
         }, 180);
@@ -2824,10 +3055,36 @@ async function toggleNewsModal() {
         }
     };
 
+    // فەنکشنی گلۆباڵ بۆ داونلۆدی هەموو هەواڵەکانی کەناڵێک
+    window.newsInsertAllToTextBox = function(sourceName) {
+        const items = _newsModalData[sourceName];
+        if (!items || items.length === 0) {
+            if (typeof showStatus === 'function') showStatus('⚠️ هیچ هەواڵێک بەردەست نییە');
+            return;
+        }
+        const textBox = document.getElementById('textBox');
+        if (!textBox) return;
+const allTitles = items.map((item) => item.title).join('\n');      
+  const cur = textBox.value;
+        textBox.value = cur ? cur + '\n' + allTitles : allTitles;
+        if (typeof updateStats === 'function') updateStats();
+        localStorage.setItem('autosave_text', textBox.value);
+        if (typeof showStatus === 'function') showStatus('✅ ' + items.length + ' مانشێت زیادکرا');
+        // نوێکردنەوەی ژمارەکان
+        _newsInsertCount += items.length;
+        const counter = document.getElementById('newsInsertCounter');
+        const countNum = document.getElementById('newsInsertCountNum');
+        if (counter && countNum) {
+            countNum.textContent = _newsInsertCount;
+            counter.style.display = 'flex';
+            countNum.style.transition = 'transform 0.2s';
+            countNum.style.transform = 'scale(1.5)';
+            setTimeout(() => { countNum.style.transform = 'scale(1)'; }, 200);
+        }
+    };
+
     renderCurrentHeadlines();
 }
-
-// كۆدی خوێندنه‌وه‌ی ده‌قی وێنه‌ بۆ ئینگلیزی و عه‌ره‌بی
 function triggerOcrInput() {
     const input = document.getElementById('ocrImageInput');
     if (input) input.click();
@@ -2951,7 +3208,7 @@ function typeEffect() {
         // لووپی نوسینە کوردییەکە
         isDeleting = !isDeleting;
         setTimeout(typeEffect, isDeleting ? 3000 : 800);
-    }
+    }ڤ
 }
 
 // دەستپێکردن

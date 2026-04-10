@@ -237,37 +237,46 @@
         background: #dde4e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.04);
     }
 
-
-    /* دروستکردنی چوارچێوەیەک کە ڕەنگی سپی تێدایە لەنێوان دوو سەوزدا */
+    /* ڕووناکییەکی نەرمی هەمیشەیی بۆ مۆدی ڕۆژ */
 @keyframes border-glow {
-    0% { background-position: 0% 50%; }
+    0%   { background-position: 0%   50%; }
     100% { background-position: 200% 50%; }
 }
 
-textarea:focus {
-    outline: none;
+@keyframes ambient-glow-pulse {
+    0%   { box-shadow: 0 0 10px 2px rgba(76,175,80,0.25), 0 0 22px 5px rgba(76,175,80,0.10); }
+    50%  { box-shadow: 0 0 18px 5px rgba(76,175,80,0.38), 0 0 38px 10px rgba(76,175,80,0.15); }
+    100% { box-shadow: 0 0 10px 2px rgba(76,175,80,0.25), 0 0 22px 5px rgba(76,175,80,0.10); }
+}
+
+/* مۆدی ڕۆژ — گلۆی نەرمی هەمیشەیی */
+body:not(.dark-mode) textarea {
     border: 2px solid transparent;
-    background-image: linear-gradient(#dde4e1, #dde4e1), 
-                      linear-gradient(90deg, #4caf50, #ffffff, #4caf50);
+    background-image: linear-gradient(#dde4e1, #dde4e1),
+                      linear-gradient(90deg, #4caf50, #a5d6a7, #ffffff, #a5d6a7, #4caf50);
     background-origin: border-box;
     background-clip: padding-box, border-box;
     background-size: 100% 100%, 200% 100%;
-    
-    /* دەستپێکردنی جووڵەی ڕووناکییە سپییەکە */
-    animation: border-glow 7s linear infinite;
+    animation: border-glow 7s linear infinite, ambient-glow-pulse 4s ease-in-out infinite;
 }
 
-/* بۆ دۆخی تاریک، تەنها ڕەنگی پشتێنەکە دەگۆڕین بۆ ئەوەی خەتەکە دیار بێت */
-.dark-mode textarea:focus {
-    background-image: linear-gradient(#1e1e1e, #1e1e1e), 
-                      linear-gradient(90deg, #4caf50, #ffffff, #4caf50);
+/* مۆدی شەو — گلۆ تەواو دەچێتەوە */
+.dark-mode textarea {
+    border: 2px solid #333 !important;
+    background: #1e1e1e !important;
+    color: #eee !important;
+    background-image: none !important;
+    animation: none !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.15) !important;
 }
 
+textarea:focus { outline: none; }
 
 
 
 
-    .dark-mode textarea { background: #1e1e1e; color: #eee; border-color: #333; }
+
+
     
     .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 7px; margin-top: 5px; }
     
@@ -1440,7 +1449,9 @@ const conversionMap =[
     { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
     { uni: '٦', ali: '6' }, { uni: '٧', ali: '7' }, 
     { uni: '٨', ali: '8' }, { uni: '٩', ali: '9' },
-    { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ چه‌ند په‌ره‌گرافێكدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها  له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا، ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانیی پڕۆفیشناڵم ده‌وێت، پێویست ناكات ناونیشان بۆ په‌ره‌گرافه‌كان و بۆ لید دانێیت.' }
+    { uni: '==', ali: 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ چه‌ند په‌ره‌گرافێكدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها  له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ 35 وشه‌دا، ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانیی پڕۆفیشناڵم ده‌وێت، پێویست ناكات ناونیشان بۆ په‌ره‌گرافه‌كان و بۆ لید دانێیت.' },
+
+  { uni: '=', ali: 'ئه‌م مانشێتی هه‌واڵانه‌ وه‌ربگره‌ و دووباره‌ وه‌ك مانشێت به‌ زمانی كوردی سۆرانی داڕشتنه‌وه‌ی ڕۆژنامه‌وانیانه‌ی بۆ بكه‌ و وه‌ك مانشێت به‌ جیا داینێ بۆم، جیاكردنه‌وه‌ی بۆ مه‌كه‌ و یه‌كسه‌ر مانشێته‌كانم به‌و شێوه‌یه‌ كه‌ ئه‌مه‌وێت بۆم دانێ.' }
 
 ];
 
@@ -1767,16 +1778,25 @@ document.addEventListener('DOMContentLoaded', () => {
         textBox.addEventListener('input', () => localStorage.setItem('autosave_text', textBox.value));
         textBox.addEventListener('keydown', e => {
             if (e.key === ' ' || e.key === 'Enter') saveState();
-textBox.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        const val = textBox.value;
-        if (val.endsWith('==')) {
-            e.preventDefault();
-            textBox.value = val.slice(0, -2) + 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ چه‌ند په‌ره‌گرافێكدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها  له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ (35) وشه‌دا، ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانیی پڕۆفیشناڵم ده‌وێت، پێویست ناكات ناونیشان بۆ په‌ره‌گرافه‌كان و بۆ لید دانێیت.';
-            updateStats();
-        }
-    }
-});
+            if (e.key === 'Enter') {
+                const val = textBox.value;
+                if (val.endsWith('==')) {
+                    e.preventDefault();
+                    textBox.value = val.slice(0, -2) + 'وه‌ك رۆژنامه‌نووسێكی زیره‌ك مامه‌ڵه‌ بكه‌ و ئه‌م تێكسته‌م بۆ بكه‌ به‌ هه‌واڵێكی كوردی و دووباره‌ داڕشتنه‌وه‌ی بۆ بكه‌ له‌ چه‌ند په‌ره‌گرافێكدا، با داڕشتنه‌وه‌كه‌ت رۆژنامه‌وانی بێت و هه‌روه‌ها  له‌گه‌ڵ ئه‌وه‌شدا هه‌واڵه‌كه‌ت پێویسته‌ لیدێكی رۆژنامه‌وانی جوانی هه‌بێت كه‌ كۆكراوه‌ی هه‌موو ناوه‌ڕۆكی هه‌واڵه‌كه‌ی تیابێت له‌ كه‌متر له‌ (35) وشه‌دا، ئه‌وه‌شت بیر نه‌چێت من وه‌رگێڕانێكی ساده‌ و ئامێر ئاسام ناوێت، من داڕشتنه‌وه‌یه‌كی ڕۆژنامه‌وانیی پڕۆفیشناڵم ده‌وێت، پێویست ناكات ناونیشان بۆ په‌ره‌گرافه‌كان و بۆ لید دانێیت.';
+                    saveState();
+                    updateStats();
+                } else if (val.endsWith('=')) {
+                    e.preventDefault();
+                    textBox.value = val.slice(0, -2) + 'ئه‌م مانشێتی هه‌واڵانه‌ وه‌ربگره‌ و دووباره‌ وه‌ك مانشێت به‌ زمانی كوردی سۆرانی داڕشتنه‌وه‌ی ڕۆژنامه‌وانیانه‌ی بۆ بكه‌ و وه‌ك مانشێت به‌ جیا داینێ بۆم، جیاكردنه‌وه‌ی بۆ مه‌كه‌ و یه‌كسه‌ر مانشێته‌كانم به‌و شێوه‌یه‌ كه‌ ئه‌مه‌وێت بۆم دانێ.';
+                    saveState();
+                    updateStats();
+                } else if (val.endsWith('@@')) {
+                    e.preventDefault();
+                    textBox.value = val.slice(0, -2) + 'به‌ شێوازێكی كورت و ڕۆژنامه‌وانی ئه‌م جوملە یان مانشێته‌م بۆكه‌ به‌ هه‌واڵێكی كوردی داڕشتنه‌وه‌یه‌كی پڕۆفیشناڵی هه‌بێت.';
+                    saveState();
+                    updateStats();
+                }
+            }
         });
     }
 
@@ -2620,7 +2640,14 @@ function checkRepeatedWords() {
     <div id="newsModalContent" style="background:#fff;width:90%;max-width:900px;max-height:85vh;margin:5% auto;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.35);display:flex;flex-direction:column;animation:frFadeIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
         <div style="background:linear-gradient(135deg,#2e7d32,#1b5e20);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <span style="color:#fff;font-weight:bold;font-size:17px;">📰 مانشێتی گرینگترین هەواڵەکان</span>
-            <button onclick="toggleNewsModal()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">✕</button>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div id="newsInsertCounter" title="ژمارەی مانشێتی خراوە ناوچەی نووسین" style="display:none;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:4px 12px;cursor:default;">
+                    <span style="color:#a5d6a7;font-size:13px;">✔</span>
+                    <span style="color:#fff;font-size:13px;font-weight:bold;" id="newsInsertCountNum">0</span>
+                    <span style="color:rgba(255,255,255,0.75);font-size:12px;">مانشێت</span>
+                </div>
+                <button onclick="toggleNewsModal()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">✕</button>
+            </div>
         </div>
         <div id="newsModalBody" style="overflow-y:auto;padding:16px 20px;flex:1;display:flex;flex-direction:column;gap:0;">
             <div style="text-align:center;padding:30px;color:#888;">⏳ چاوەڕێ بکە...</div>
@@ -2631,6 +2658,7 @@ function checkRepeatedWords() {
 })();
 
 let _newsModalData = {};     // هەواڵەکان کەش دەکات
+let _newsInsertCount = 0;   // ژمارەی مانشێتی خراوە ناوچەی نووسین
 
 async function toggleNewsModal() {
     const modal = document.getElementById('newsModal');
@@ -2713,15 +2741,36 @@ async function toggleNewsModal() {
                        onmouseout="this.style.background='${dark?'#252525':'#f8f9fa'}';this.style.color='${dark?'#ddd':'#222'}';">
                         🔹 ${item.title}
                     </a>
+                    
+
+
                     <button onclick="newsNextItem('${source.name}')" title="مانشێتی دواتر" style="
                         flex-shrink:0;background:linear-gradient(135deg,#2e7d32,#388e3c);
                         border:none;color:#fff;width:32px;height:32px;border-radius:50%;
                         cursor:pointer;font-size:16px;display:flex;align-items:center;
                         justify-content:center;transition:0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.2);
-                    " onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">◀</button>
+                    " onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'"> ◀ </button>
+
+
+                      <button class="news-insert-btn" title="ناردن بۆ ناوچەی نووسین " style="
+                        flex-shrink:0;background:linear-gradient(135deg,#1565c0,#1976d2);
+                        border:none;color:#fff;width:32px;height:32px;border-radius:50%;
+                        cursor:pointer;font-size:15px;display:flex;align-items:center;
+                        justify-content:center;transition:0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.2);
+                    " onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'"> ▼ </button>
+
+
                     <span style="flex-shrink:0;font-size:11px;color:${dark?'#777':'#aaa'};min-width:30px;text-align:center;">${idx+1}/${total}</span>
                 </div>`;
             el.style.opacity = '1';
+            // زیادکردنی event listener بۆ دوگمەی داخستن
+            const insertBtn = el.querySelector('.news-insert-btn');
+            if (insertBtn) {
+                insertBtn._newsTitle = item.title;
+                insertBtn.addEventListener('click', function() {
+                    window.newsInsertToTextBox(this._newsTitle);
+                });
+            }
         }, 180);
     }
 
@@ -2737,6 +2786,29 @@ async function toggleNewsModal() {
         const items = _newsModalData[sourceName];
         if (items && items.length > 0) _newsIdx[sourceName] = (_newsIdx[sourceName] + 1) % items.length;
         renderHeadlineForSource(source);
+    };
+
+    // فەنکشنی گلۆباڵ بۆ داخستنی مانشێت بۆ ناوچەی نووسین
+    window.newsInsertToTextBox = function(title) {
+        const textBox = document.getElementById('textBox');
+        if (!textBox) return;
+        const cur = textBox.value;
+        textBox.value = cur ? cur + '\n' + title : title;
+        if (typeof updateStats === 'function') updateStats();
+        localStorage.setItem('autosave_text', textBox.value);
+        if (typeof showStatus === 'function') showStatus('✅ مانشێتەکە زیادکرا');
+        // نوێکردنەوەی ژمارەی مانشێتەکان
+        _newsInsertCount++;
+        const counter = document.getElementById('newsInsertCounter');
+        const countNum = document.getElementById('newsInsertCountNum');
+        if (counter && countNum) {
+            countNum.textContent = _newsInsertCount;
+            counter.style.display = 'flex';
+            // ئانیمەیشنی کورتی بۆ پشکنینی زیادبوون
+            countNum.style.transition = 'transform 0.2s';
+            countNum.style.transform = 'scale(1.5)';
+            setTimeout(() => { countNum.style.transform = 'scale(1)'; }, 200);
+        }
     };
 
     renderCurrentHeadlines();

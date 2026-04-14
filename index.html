@@ -2367,44 +2367,66 @@ function frReset() {
 // گەڕان بۆ وشەی داخڵکراو لە ناو دەقەکەدا و هەڵبژاردنی نیشاندان
 function frFind() {
     const textBox   = document.getElementById('textBox');
-    const findVal   = document.getElementById('findInput').value;
+    const findVal   = document.getElementById('findInput').value.trim();
     const statusMsg = document.getElementById('statusMessage');
     const btn       = document.getElementById('frFindBtn');
 
-    if (!findVal.trim()) {
+    if (!findVal) {
         statusMsg.innerHTML = '<span style="color:#f57c00">⚠️ وشەیەک بنووسە</span>';
         return;
     }
 
-    try {
-        const regex    = frBuildRegex(findVal);
-        _frMatches     = [...textBox.value.matchAll(regex)];
-        const count    = _frMatches.length;
+    const text = textBox.value;
+    const matches = [];
+    
+    // لێرەدا بە دوای هەموو شوێنەکاندا دەگەڕێین کە وشەکەی تێدایە
+    let index = text.indexOf(findVal);
+    
+    while (index !== -1) {
+        // پشکنینی کارەکتەری پێش وشەکە
+        const prevChar = index > 0 ? text[index - 1] : ' '; 
+        // پشکنینی کارەکتەری پاش وشەکە
+        const nextChar = (index + findVal.length) < text.length ? text[index + findVal.length] : ' ';
 
-        if (count === 0) {
-            statusMsg.innerHTML = '<span style="color:#e53935">❌ نەدۆزرایەوە</span>';
-            frReset();
-            return;
+        // مەرج: دەبێت پێش و پاشی بۆشایی، ئینتەر، یان هێمای خاڵبەندی بێت
+        const isPrevSeparator = /[\s\n\r\t.,!؟،;:]/.test(prevChar);
+        const isNextSeparator = /[\s\n\r\t.,!؟،;:]/.test(nextChar);
+
+        if (isPrevSeparator && isNextSeparator) {
+            matches.push({
+                index: index,
+                length: findVal.length
+            });
         }
-
-        const m = _frMatches[_frIndex % count];
-        textBox.focus();
-        textBox.setSelectionRange(m.index, m.index + m[0].length);
-
-        // scroll بۆ شوێنی وشەکە
-        const lh    = parseInt(getComputedStyle(textBox).lineHeight) || 24;
-        const lines = textBox.value.substring(0, m.index).split('\n').length - 1;
-        textBox.scrollTop = Math.max(0, (lines - 2) * lh);
-
-        _frIndex++;
-        statusMsg.innerHTML = `<span style="color:#1976d2">🔍 ${_frIndex} / ${count}</span>`;
-        btn.textContent = (_frIndex >= count) ? 'دووبارە 🔁' : 'دواتر ◀';
-        if (_frIndex >= count) _frIndex = 0;
-
-    } catch(e) {
-        statusMsg.innerHTML = '<span style="color:#f57c00">⚠️ هەڵە لە وشەکە</span>';
+        
+        index = text.indexOf(findVal, index + 1);
     }
+
+    if (matches.length === 0) {
+        statusMsg.innerHTML = '<span style="color:#e53935">❌ وەک وشەی سەربەخۆ نەدۆزرایەوە</span>';
+        return;
+    }
+
+    // دیاریکردنی وشەکە لەناو TextBox
+    const m = matches[_frIndex % matches.length];
+    textBox.focus();
+    textBox.setSelectionRange(m.index, m.index + m.length);
+
+    // Scroll بۆ شوێنی وشەکە
+    const lh = parseInt(getComputedStyle(textBox).lineHeight) || 24;
+    const linesBefore = text.substring(0, m.index).split('\n').length - 1;
+    textBox.scrollTop = Math.max(0, (linesBefore - 2) * lh);
+
+    _frIndex++;
+    statusMsg.innerHTML = `<span style="color:#1976d2">🔍 ${_frIndex} / ${matches.length}</span>`;
+    btn.textContent = (_frIndex >= matches.length) ? 'دووبارە 🔁' : 'دواتر ◀';
+    
+    if (_frIndex >= matches.length) _frIndex = 0;
 }
+
+
+
+
 
 // گۆڕینی ئەو بەشەی دەقەی کە ئێستا هەڵبژێردراوە بەتەنیا
 function frReplace() {
@@ -2629,8 +2651,6 @@ text = text.replace(/([دووپاتىيی]{4,8})\s?(دە)?([کك]رد)(ات)?ە�
 
 text = text.replace(/[حح][یيی]?ز[بب][وۆ]ڵ+ا[هھ]?/g, "حزبوڵڵا");
 
-// وشه‌ی ئینگلیزی ده‌خاته‌ نێو كه‌وانه‌وه‌
-text = text.replace(/(?<!\()([a-zA-Z0-9]+)(?!\))/g, "($1)");
 
 text = text.replace(/(کۆچی|كۆچیی|كۆچی|کۆچیی)\s?(دوایی|دوای)\s?(کرد|كرد|کردەوە|كردەوە)/g, "کۆچی دوایی کرد");
 
@@ -2639,6 +2659,8 @@ text = text.replace(/ئاماژەی?\s+(بە|پێ)(وە| بۆ ئەوە)?\s*[کك
 text = text.replace(/دەست[ییی]\s?پێ\s?([کك]رد)(ەوە)?/g, "دەستی پێ کرد");
 
 text = text.replace(/ئەنجامیدا/g, "ئەنجامی دا");
+
+text = text.replace(/دوچار/g, "دووچار");
 
 text = text.replace(/ج.{1,2}ب.{1,2}ج.{1,2}(?=\s|ک|ك|$)/g, (match) => {
     // ئەگەر وشەکە (جێبەجێی) بوو، دەستکاری مەکە

@@ -306,7 +306,7 @@ button, .btn-file {
 .btn-group button:hover, .btn-group .btn-file:hover,
 .news-ticker button:hover {
     transform: translateY(-3px); /* کەمێک بەرزبوونەوە */
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2); /* تۆخکردنی سێبەرەکە */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4); /* تۆخکردنی سێبەرەکە */
 }
 
 /* دوگمەکانی news ticker هاوتا بە دوگمەکانی خوارەوە */
@@ -1535,10 +1535,10 @@ textarea {
 
    
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#ff9800,#f57c00);" onclick="removeEmptyLines()">سڕینه‌وه‌ی‌ بۆشایی دێڕه‌كان </button>
-     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#9c27b0,#7b1fa2);" onclick="toggleFocusMode()">دۆخی ته‌ركیز</button>
-     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#f44336,#e53935);" onclick="checkRepeatedWords()">زانینی ڕێژه‌ی وشەکان </button>
-     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#607d8b,#546e7a);" onclick="document.getElementById('fileInput').click()">هێنانی Word</button>
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#e91e63,#c2185b);" onclick="toggleFindReplace()" class="btn-nav">گەڕان و گۆڕینی وشه‌ 🔍</button>
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#607d8b,#546e7a);" onclick="document.getElementById('fileInput').click()">هێنانی Word</button>
+
+     <button class="news-ticker-btn" style="background:linear-gradient(135deg,#808080,#555);" onclick="triggerOcrInput()">تێكستی ناو وێنه 🖼️</button>
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#1a73e8,#1557b0);" onclick="toggleDlModal()">داگرتنی ڤیدیۆ</button>
 
 
@@ -1599,8 +1599,6 @@ textarea {
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
-<button onclick="triggerOcrInput()" class="btn-nav" style="background: #808080 !important;"> تێكستی ناو وێنه 🖼️ </button>
-
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
 
@@ -1646,14 +1644,14 @@ let currentSize = 20;
 const conversionMap =[
     { uni: 'ڵا', ali: 'لآ' }, { uni: 'ڵا', ali: 'لأ' },
     { uni: 'ێ', ali: 'يَ' }, { uni: 'ۆ', ali: 'وَ' }, 
-    { uni: 'ۆ', ali: 'ؤ' },  { uni: 'ێ', ali: 'ىَ' },
+    { uni: 'ۆ', ali: 'ؤ' },  
     { uni: 'ڵ', ali: 'لَ' }, { uni: 'ڵ', ali: 'ڵ' },
     { uni: 'ڕ', ali: 'رِ' }, { uni: 'ڕ', ali: 'رَ' },
     { uni: 'پ', ali: 'ث' }, { uni: 'چ', ali: 'ض' }, 
     { uni: 'ژ', ali: 'ذ' }, { uni: 'ڤ', ali: 'ظ' }, 
     { uni: 'گ', ali: 'ط' }, { uni: 'ه‌', ali: 'ة' },  
     { uni: 'ە', ali: 'ه‌' }, { ali: 'ة', uni: 'ه‌' },
-    { uni: 'ی', ali: 'ي' }, { uni: 'ک', ali: 'ك' }, 
+    { uni: 'ی', ali: 'ي' }, { uni: 'ک', ali: 'ك' },
     { uni: '٠', ali: '0' }, { uni: '١', ali: '1' }, 
     { uni: '٢', ali: '2' }, { uni: '٣', ali: '3' }, 
     { uni: '٤', ali: '4' }, { uni: '٥', ali: '5' }, 
@@ -2099,12 +2097,14 @@ function initClock() {
     const textBox = document.getElementById('textBox');
     const inlineClock = document.getElementById('inlineClock');
 
-    function syncClockVisibility() {
-        const hasText = textBox && textBox.value.trim().length > 0;
-        if (inlineClock) {
-            inlineClock.style.opacity = hasText ? '0.11' : '1';
-        }
+   function syncClockVisibility() {
+    const hasText = textBox && textBox.value.trim().length > 0;
+    if (inlineClock) {
+        // بەکارهێنانی Transition لە CSS بۆ ئەوەی جوڵەی گۆڕانی ڕەنگەکە نەرم بێت
+        inlineClock.style.transition = 'opacity 0.5s ease'; 
+        inlineClock.style.opacity = hasText ? '0.11' : '1';
     }
+}
 
     if (textBox) {
         textBox.addEventListener('input', syncClockVisibility);
@@ -2367,66 +2367,44 @@ function frReset() {
 // گەڕان بۆ وشەی داخڵکراو لە ناو دەقەکەدا و هەڵبژاردنی نیشاندان
 function frFind() {
     const textBox   = document.getElementById('textBox');
-    const findVal   = document.getElementById('findInput').value.trim();
+    const findVal   = document.getElementById('findInput').value;
     const statusMsg = document.getElementById('statusMessage');
     const btn       = document.getElementById('frFindBtn');
 
-    if (!findVal) {
+    if (!findVal.trim()) {
         statusMsg.innerHTML = '<span style="color:#f57c00">⚠️ وشەیەک بنووسە</span>';
         return;
     }
 
-    const text = textBox.value;
-    const matches = [];
-    
-    // لێرەدا بە دوای هەموو شوێنەکاندا دەگەڕێین کە وشەکەی تێدایە
-    let index = text.indexOf(findVal);
-    
-    while (index !== -1) {
-        // پشکنینی کارەکتەری پێش وشەکە
-        const prevChar = index > 0 ? text[index - 1] : ' '; 
-        // پشکنینی کارەکتەری پاش وشەکە
-        const nextChar = (index + findVal.length) < text.length ? text[index + findVal.length] : ' ';
+    try {
+        const regex    = frBuildRegex(findVal);
+        _frMatches     = [...textBox.value.matchAll(regex)];
+        const count    = _frMatches.length;
 
-        // مەرج: دەبێت پێش و پاشی بۆشایی، ئینتەر، یان هێمای خاڵبەندی بێت
-        const isPrevSeparator = /[\s\n\r\t.,!؟،;:]/.test(prevChar);
-        const isNextSeparator = /[\s\n\r\t.,!؟،;:]/.test(nextChar);
-
-        if (isPrevSeparator && isNextSeparator) {
-            matches.push({
-                index: index,
-                length: findVal.length
-            });
+        if (count === 0) {
+            statusMsg.innerHTML = '<span style="color:#e53935">❌ نەدۆزرایەوە</span>';
+            frReset();
+            return;
         }
-        
-        index = text.indexOf(findVal, index + 1);
+
+        const m = _frMatches[_frIndex % count];
+        textBox.focus();
+        textBox.setSelectionRange(m.index, m.index + m[0].length);
+
+        // scroll بۆ شوێنی وشەکە
+        const lh    = parseInt(getComputedStyle(textBox).lineHeight) || 24;
+        const lines = textBox.value.substring(0, m.index).split('\n').length - 1;
+        textBox.scrollTop = Math.max(0, (lines - 2) * lh);
+
+        _frIndex++;
+        statusMsg.innerHTML = `<span style="color:#1976d2">🔍 ${_frIndex} / ${count}</span>`;
+        btn.textContent = (_frIndex >= count) ? 'دووبارە 🔁' : 'دواتر ◀';
+        if (_frIndex >= count) _frIndex = 0;
+
+    } catch(e) {
+        statusMsg.innerHTML = '<span style="color:#f57c00">⚠️ هەڵە لە وشەکە</span>';
     }
-
-    if (matches.length === 0) {
-        statusMsg.innerHTML = '<span style="color:#e53935">❌ وەک وشەی سەربەخۆ نەدۆزرایەوە</span>';
-        return;
-    }
-
-    // دیاریکردنی وشەکە لەناو TextBox
-    const m = matches[_frIndex % matches.length];
-    textBox.focus();
-    textBox.setSelectionRange(m.index, m.index + m.length);
-
-    // Scroll بۆ شوێنی وشەکە
-    const lh = parseInt(getComputedStyle(textBox).lineHeight) || 24;
-    const linesBefore = text.substring(0, m.index).split('\n').length - 1;
-    textBox.scrollTop = Math.max(0, (linesBefore - 2) * lh);
-
-    _frIndex++;
-    statusMsg.innerHTML = `<span style="color:#1976d2">🔍 ${_frIndex} / ${matches.length}</span>`;
-    btn.textContent = (_frIndex >= matches.length) ? 'دووبارە 🔁' : 'دواتر ◀';
-    
-    if (_frIndex >= matches.length) _frIndex = 0;
 }
-
-
-
-
 
 // گۆڕینی ئەو بەشەی دەقەی کە ئێستا هەڵبژێردراوە بەتەنیا
 function frReplace() {
@@ -2502,7 +2480,7 @@ async function sendToGemini() {
     const prompt = `وەک ڕۆژنامەنووسێکی پیشەگەر و ژیر لە میدیای کوردیدا مامەڵە بکە. ئەرکی تۆ داڕشتنەوەی ئەو دەقەیە کە بۆت دەنێرم بەپێی ئەم دوو بارودۆخەی خوارەوە:
 ١. ئەگەر دەقەکە هەواڵێک بوو: بە زمانێکی ڕۆژنامەوانیی مۆدێرن و کوردییەکی پاراو دایبڕێژەرەوە (نەک وەرگێڕانی ئامێری). سەرەتا لیدێکی بۆ بنووسە کە هەموو ناوەڕۆکی هەواڵەکە لە کەمتر لە (32) وشەدا کۆبکاتەوە. پاشان ناوەڕۆکەکە لە چەند پەرەگرافێکی ڕێکخراودا دابڕێژەرەوە. پێویست ناکات ناونیشان بۆ لید و پەرەگرافەکان دابنێیت.
 ٢. ئەگەر دەقەکە مانشێتی جیاواز بوو: ڕاستەوخۆ بە زمانی کوردی سۆرانی و بە شێوازێکی پیشەگەرانە دووبارە دایان بڕێژەرەوە و وەک مانشێتی جیاواز بۆم دابنێ. پێویست ناکات جیاکردنەوە یان ڕوونکردنەوەیان بۆ بنووسیت، یەکسەر مانشێتەکانم بۆ دابنێ.
-تێبینی: لە هەردوو بارەکەدا زمانێکی پوخت بەکاربهێنە کە شایستەی بڵاوکردنەوە بێت لە دەزگایەکی میدیایی فەرمی.
+تێبینی: لە هەردوو بارەکەدا زمانێکی پوخت بەکاربهێنە کە شایستەی بڵاوکردنەوە بێت لە دەزگایەکی میدیایی فەرمی و له‌گه‌ڵ ئه‌وه‌شدا گرینگه‌ ڕه‌چاوی ڕێنووس بكه‌یت.
 
 دەقەکە:
 `;
@@ -2625,6 +2603,10 @@ text = text.replace(/\s*,\s*/g, "، ");
 
 text = text.replace(/پێشنیار/g, "پێشنیاز");
 
+text = text.replace(/سەرۆك وه‌زیران/g, "سەرۆكوه‌زیران");
+text = text.replace(/سەرۆك\s+كۆمار|سەرۆک\s+کۆمار/g, "سەرۆككۆمار");
+text = text.replace(/سەرۆكۆمار|سەرۆکۆمار/g, "سەرۆككۆمار");
+
 // وو له‌ سه‌ره‌تاوه‌ ده‌كات به‌ و
 text = text.replace(/(^|\s)وو/g, "$1و");
 
@@ -2651,6 +2633,8 @@ text = text.replace(/([دووپاتىيی]{4,8})\s?(دە)?([کك]رد)(ات)?ە�
 
 text = text.replace(/[حح][یيی]?ز[بب][وۆ]ڵ+ا[هھ]?/g, "حزبوڵڵا");
 
+// وشه‌ی ئینگلیزی ده‌خاته‌ نێو كه‌وانه‌وه‌
+text = text.replace(/(?<!\()([a-zA-Z0-9]+)(?!\))/g, "($1)");
 
 text = text.replace(/(کۆچی|كۆچیی|كۆچی|کۆچیی)\s?(دوایی|دوای)\s?(کرد|كرد|کردەوە|كردەوە)/g, "کۆچی دوایی کرد");
 
@@ -2660,9 +2644,22 @@ text = text.replace(/دەست[ییی]\s?پێ\s?([کك]رد)(ەوە)?/g, "دەس�
 
 text = text.replace(/ئەنجامیدا/g, "ئەنجامی دا");
 
-text = text.replace(/دوچار/g, "دووچار");
+text = text.replace(/ج.{1,2}ب.{1,2}ج.{1,2}(?=\s|ک|ك|$)/g, (match) => {
+    // ئەگەر وشەکە (جێبەجێی) بوو، دەستکاری مەکە
+    if (match.endsWith('ی') || match.endsWith('ى')) {
+        return match; 
+    }
+    // بۆ هەموو جۆرەکانی تری جێبەجێ
+    return "جێبەجێ";
+});
 
-text = text.replace(/(ر|ڕ)وو?ی?\s?دا/g, "ڕووی دا");
+// ئێستا چاککردنی پاشگرەکان بە شێوەیەکی سەربەخۆ
+text = text.replace(/جێبەجێ\s?کردن/g, "جێبەجێکردن");
+text = text.replace(/جێبەجێ\s?دەکرێت/g, "جێبەجێ دەکرێت");
+text = text.replace(/جێبەجێ\s?کرا/g, "جێبەجێ کرا");
+text = text.replace(/جێبەجێ\s?دەکەن/g, "جێبەجێ دەکەن");
+
+text = text.replace(/(?<![\u0600-\u06FF])(ر|ڕ)وو?ی?\s?دا(?![\u0600-\u06FF])/g, "ڕووی دا");
 
 text = text.replace(/داوا[یى]کرد|داوا[یى] ئەوە[یى] کرد|داوا[یى] ئەوە[یى]کرد/g, "داوای کرد");
 text = text.replace(/ڕەتکردەوە/g, "ڕەت کردەوە");
@@ -2753,47 +2750,6 @@ function redo() {
 
 
 
-
-// دۆخی تەرکیز: شاردنەوەی هێدەر و دوگمەکان بۆ تەرکیزکردن لەسەر نووسین
-function toggleFocusMode() {
-    const header = document.querySelector('.header');
-    const ticker = document.querySelector('.news-ticker');
-    const btnGroup = document.querySelector('.btn-group');
-    const textBox = document.getElementById('textBox');
-    const container = document.querySelector('.container');
-    if (header.style.display !== 'none') {
-        header.style.display = 'none';
-        ticker.style.display = 'none';
-        btnGroup.style.display = 'none';
-        textBox.style.height = '92vh';
-        container.style.maxWidth = '1220px';
-        container.style.margin = '0 auto';
-        container.style.paddingTop = '20px';
-        const exitBtn = document.createElement('div');
-        exitBtn.id = 'tempExitBtn';
-        exitBtn.innerHTML = '🏠 گه‌ڕانه‌وه‌';
-        exitBtn.style.cssText = `
-            position: fixed; top: 10px; left: 10px; 
-            background: #f44336; color: white; 
-            padding: 8px 15px; border-radius: 5px; 
-            cursor: pointer; font-weight: bold; z-index: 10000;
-            font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        `;
-        exitBtn.onclick = toggleFocusMode; 
-        document.body.appendChild(exitBtn);
-        showStatus("👁️ دۆخی تەرکیز چالاک کرا");
-    } else {
-        header.style.display = 'grid'; // یان 'flex' بەپێی ستایلە ئەسڵییەکەت
-        ticker.style.display = 'flex';
-        btnGroup.style.display = 'grid';
-        textBox.style.height = '378px'; // هەمان ئەو بەرزییەی لە ستایلەکەت هەیە
-        container.style.maxWidth = '100%';
-        container.style.paddingTop = '10px';
-        const tempBtn = document.getElementById('tempExitBtn');
-        if (tempBtn) tempBtn.remove();
-        showStatus("🏠 گەڕایەوە دۆخی ئاسایی");
-    }
-}
 
 
 
@@ -3241,6 +3197,71 @@ if (_tb) {
     _tb.addEventListener('keyup', updateStats);
 }
 
+
+
+
+// ===== حاسبەی ئۆتۆماتیکی ناو خانەی نووسین =====
+(function() {
+    const tb = document.getElementById('textBox');
+    if (!tb) return;
+
+    tb.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+
+        const val = tb.value;
+        const pos = tb.selectionStart;
+
+        // دۆزینەوەی سەرەتا و کۆتایی دێڕی ئێستا
+        const lineStart = val.lastIndexOf('\n', pos - 1) + 1;
+        const lineEnd   = val.indexOf('\n', pos);
+        const endOfLine = lineEnd === -1 ? val.length : lineEnd;
+        const lineText  = val.substring(lineStart, endOfLine);
+        const line      = lineText.trim();
+
+        // ڕێگەی دان بە ژمارەی کوردی و ئینگلیزی و نیشانەکان
+        const mathRegex = /^[0-9\u0660-\u0669\u06F0-\u06F9\s\+\-\*\/\(\)\.\%\^]+$/;
+        const hasMathOp = /[\+\-\*\/\%\^]/.test(line);
+
+        if (!line || !mathRegex.test(line) || !hasMathOp) return;
+
+        let result;
+        try {
+            // گۆڕینی ژمارەی کوردی/فارسی بۆ ئینگلیزی بۆ ئەوەی JavaScript لێی تێبگات
+            let expr = line.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+                           .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+                           .replace(/\^/g, '**');
+
+            result = Function('"use strict"; return (' + expr + ')')();
+            if (!isFinite(result)) return;
+            
+            // کورتکردنەوەی ژمارە کسرییەکان
+            result = parseFloat(result.toFixed(10)).toString();
+        } catch(err) {
+            return;
+        }
+
+        // ڕێگری لە دروستبوونی دێڕی نوێ (Enter)
+        e.preventDefault();
+
+        // ئامادەکردنی دەقی نوێ: هاوکێشەکە + ئەنجامەکە
+        const resultText = " = " + result;
+        
+        // دانانی ئەنجامەکە ڕێک لە کۆتایی دێڕەکەدا
+        const before = val.substring(0, endOfLine);
+        const after  = val.substring(endOfLine);
+        
+        tb.value = before + resultText + after;
+
+        // گواستنەوەی نیشاندەر بۆ دوای ئەنجامەکە
+        const newPos = endOfLine + resultText.length;
+        tb.setSelectionRange(newPos, newPos);
+
+        if (typeof updateStats === 'function') updateStats();
+        if (typeof showStatus === 'function') showStatus('🧮 ئه‌نجامی هاوكێشه‌ بیركارییه‌كه‌: ' + result);
+    });
+})();
+
+
 // خوێندنەوەی دەقی ناو وێنە بە Tesseract OCR (عەرەبی + ئینگلیزی)
 async function handleOcrImage(e) {
     const file = e.target.files[0];
@@ -3301,7 +3322,7 @@ async function handleOcrImage(e) {
 const textBox = document.getElementById('textBox');
 
 // لێرەدا دەقەکان بە یەکجار وەک لیست ڕێکدەخەین
-const introName = "نوێترین ئه‌بده‌یت  14ـی نیسانی 2026";
+const introName = "نوێترین ئه‌بده‌یت  22ـی نیسانی 2026";
 const mainText = "لێره‌ بنووسه‌ یان ده‌قێك دابنێ...";
 
 let index = 0;
@@ -3315,7 +3336,7 @@ function typeIntro() {
     // دوای 4 چرکە دەیسڕێتەوە بۆ ئەوەی بچێتە سەر نووسینە جوڵاوەکە
     setTimeout(() => {
         eraseIntro(introName.length);
-    }, 4000);
+    }, 5000);
 }
 
 function eraseIntro(len) {
@@ -3343,7 +3364,7 @@ function typeEffect() {
         // لووپی نوسینە کوردییەکە
         isDeleting = !isDeleting;
         setTimeout(typeEffect, isDeleting ? 3000 : 800);
-    }ڤ
+    }
 }
 
 // دەستپێکردن

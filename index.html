@@ -18,8 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lateef&family=Reem+Kufi&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' 
-  data-cf-beacon='{"token": "c9a659bd96f3466ba007c130d2b193f7"}'></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -1308,6 +1307,10 @@ textarea {
 
 
 </style>
+
+<!-- Cloudflare Web Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "YOUR_CF_ANALYTICS_TOKEN"}'></script>
+<!-- End Cloudflare Web Analytics -->
 </head>
 
 <body>
@@ -3369,6 +3372,113 @@ function typeEffect() {
 // دەستپێکردن
 setTimeout(typeIntro, 3400);
 
+
+// ==============================
+//  سیستەمی شوێنکەوتنی بەکارهێنان
+// ==============================
+const AK_KEY = "ak_stats";
+
+function akNow() { return new Date().toISOString(); }
+
+function akLoad() {
+    try { return JSON.parse(localStorage.getItem(AK_KEY) || "null") || { clicks: {}, sessions: [], textEvents: [] }; }
+    catch { return { clicks: {}, sessions: [], textEvents: [] }; }
+}
+
+function akSave(data) {
+    try { localStorage.setItem(AK_KEY, JSON.stringify(data)); } catch {}
+}
+
+// تۆماری کلیک لە دوگمەیەک
+function akTrackClick(label) {
+    const data = akLoad();
+    if (!data.clicks[label]) data.clicks[label] = { count: 0, last: null };
+    data.clicks[label].count++;
+    data.clicks[label].last = akNow();
+    akSave(data);
+}
+
+// تۆماری تێکستی داخڵکراو (ژمارەی وشە و پیت)
+function akTrackText() {
+    const box = document.getElementById("textBox");
+    if (!box || !box.value.trim()) return;
+    const words = box.value.trim().split(/\s+/).filter(Boolean).length;
+    const chars = box.value.length;
+    const data = akLoad();
+    data.textEvents.push({ time: akNow(), words, chars });
+    // تەنها ١٠٠ تۆمارى دوایین نگه‌ده‌ره‌وه
+    if (data.textEvents.length > 100) data.textEvents = data.textEvents.slice(-100);
+    akSave(data);
+}
+
+// تۆماری سەردانی نشست (Session)
+function akStartSession() {
+    const data = akLoad();
+    data.sessions.push({ start: akNow(), page: location.href });
+    if (data.sessions.length > 200) data.sessions = data.sessions.slice(-200);
+    akSave(data);
+}
+
+// چالاک کردنی شوێنکەوتن لە سەر هەموو دوگمەکان
+(function akInit() {
+    akStartSession();
+
+    // شوێنکەوتنی دوگمەکانی تووڵبار
+    const btnMap = {
+        "removeEmptyLines": "سڕینەوەی بۆشایی",
+        "toggleFindReplace": "گەڕان و گۆڕین",
+        "fileInput.click": "هێنانی Word",
+        "triggerOcrInput": "تێکستی ناو وێنه",
+        "toggleDlModal": "داگرتنی ڤیدیۆ",
+        "toggleNewsModal": "هەواڵەکان",
+        "toggleAbout": "دەربارە",
+        "toggleT": "تەما",
+        "sendToGemini": "Gemini",
+        "downloadAsWord": "پاشەکەوت Word",
+        "copyText": "کەتکردن",
+        "clearText": "سڕینەوەی دەق",
+        "convert_toUni": "گۆڕین بۆ یونیکۆد",
+        "convert_toAli": "گۆڕین بۆ عەلی کەی",
+        "frFindOrSnippet": "دۆزینەوە",
+        "frReplaceAll": "گۆڕینی هەموو",
+    };
+
+    // هەموو دوگمەکان بگرە
+    document.querySelectorAll("button, [onclick]").forEach(el => {
+        const oc = el.getAttribute("onclick") || "";
+        let label = null;
+        if (oc.includes("removeEmptyLines")) label = btnMap["removeEmptyLines"];
+        else if (oc.includes("toggleFindReplace")) label = btnMap["toggleFindReplace"];
+        else if (oc.includes("fileInput")) label = btnMap["fileInput.click"];
+        else if (oc.includes("triggerOcrInput")) label = btnMap["triggerOcrInput"];
+        else if (oc.includes("toggleDlModal")) label = btnMap["toggleDlModal"];
+        else if (oc.includes("toggleNewsModal")) label = btnMap["toggleNewsModal"];
+        else if (oc.includes("toggleAbout")) label = btnMap["toggleAbout"];
+        else if (oc.includes("toggleT()")) label = btnMap["toggleT"];
+        else if (oc.includes("sendToGemini")) label = btnMap["sendToGemini"];
+        else if (oc.includes("downloadAsWord")) label = btnMap["downloadAsWord"];
+        else if (oc.includes("copyText")) label = btnMap["copyText"];
+        else if (oc.includes("clearText")) label = btnMap["clearText"];
+        else if (oc.includes("frFindOrSnippet")) label = btnMap["frFindOrSnippet"];
+        else if (oc.includes("frReplaceAll")) label = btnMap["frReplaceAll"];
+        if (label) {
+            el.addEventListener("click", () => akTrackClick(label));
+        }
+    });
+
+    // شوێنکەوتنی دوگمەی گۆڕین (convert)
+    document.querySelectorAll("[onclick*=\"convert(\"]").forEach(el => {
+        const oc = el.getAttribute("onclick") || "";
+        const lbl = oc.includes("toUni") ? btnMap["convert_toUni"] : btnMap["convert_toAli"];
+        el.addEventListener("click", () => akTrackClick(lbl));
+    });
+
+    // تۆماری تێکستی داخڵکراو — هەر ٣٠ چرکە یەک جار
+    setInterval(() => {
+        const box = document.getElementById("textBox");
+        if (box && box.value.trim().length > 10) akTrackText();
+    }, 30000);
+})();
 
 
 </script>

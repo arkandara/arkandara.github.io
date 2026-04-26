@@ -3376,108 +3376,115 @@ setTimeout(typeIntro, 3400);
 // ==============================
 //  سیستەمی شوێنکەوتنی بەکارهێنان
 // ==============================
-const AK_KEY = "ak_stats";
+var AK_KEY = "ak_stats";
 
 function akNow() { return new Date().toISOString(); }
 
 function akLoad() {
     try { return JSON.parse(localStorage.getItem(AK_KEY) || "null") || { clicks: {}, sessions: [], textEvents: [] }; }
-    catch { return { clicks: {}, sessions: [], textEvents: [] }; }
+    catch(e) { return { clicks: {}, sessions: [], textEvents: [] }; }
 }
 
 function akSave(data) {
-    try { localStorage.setItem(AK_KEY, JSON.stringify(data)); } catch {}
+    try { localStorage.setItem(AK_KEY, JSON.stringify(data)); } catch(e) {}
 }
 
-// تۆماری کلیک لە دوگمەیەک
+// تۆماری کلیک + وردەکاری تێکست لە کاتی کلیک
 function akTrackClick(label) {
-    const data = akLoad();
+    var data = akLoad();
     if (!data.clicks[label]) data.clicks[label] = { count: 0, last: null };
     data.clicks[label].count++;
     data.clicks[label].last = akNow();
+
+    // تێکستی ناوچەی نووسین لە کاتی کلیک تۆمار دەکرێت
+    var box = document.getElementById("textBox");
+    if (box && box.value.trim().length > 5) {
+        var txt = box.value.trim();
+        var words = txt.split(/\s+/).filter(Boolean).length;
+        var chars = txt.length;
+        // تێکستی کوتا (١٥٠ پیتی یەکەم) بۆ پیشاندان لە پانێل
+        var preview = txt.substring(0, 150) + (txt.length > 150 ? "…" : "");
+        if (!data.textEvents) data.textEvents = [];
+        data.textEvents.push({ time: akNow(), words: words, chars: chars, preview: preview, btn: label });
+        if (data.textEvents.length > 100) data.textEvents = data.textEvents.slice(-100);
+    }
+
     akSave(data);
 }
 
-// تۆماری تێکستی داخڵکراو (ژمارەی وشە و پیت)
-function akTrackText() {
-    const box = document.getElementById("textBox");
-    if (!box || !box.value.trim()) return;
-    const words = box.value.trim().split(/\s+/).filter(Boolean).length;
-    const chars = box.value.length;
-    const data = akLoad();
-    data.textEvents.push({ time: akNow(), words, chars });
-    // تەنها ١٠٠ تۆمارى دوایین نگه‌ده‌ره‌وه
-    if (data.textEvents.length > 100) data.textEvents = data.textEvents.slice(-100);
-    akSave(data);
-}
-
-// تۆماری سەردانی نشست (Session)
+// تۆماری سەردانی نشست بە شار و وڵات
 function akStartSession() {
-    const data = akLoad();
-    data.sessions.push({ start: akNow(), page: location.href });
+    var data = akLoad();
+    var session = { start: akNow(), city: "---", country: "---", ip: "" };
+    data.sessions.push(session);
     if (data.sessions.length > 200) data.sessions = data.sessions.slice(-200);
     akSave(data);
+
+    // وەرگرتنی شار و وڵات لە API ی بەخۆراییی
+    var idx = data.sessions.length - 1;
+    fetch("https://ipapi.co/json/")
+        .then(function(r) { return r.json(); })
+        .then(function(info) {
+            var d2 = akLoad();
+            if (d2.sessions[idx]) {
+                d2.sessions[idx].city    = info.city    || "---";
+                d2.sessions[idx].country = info.country_name || info.country || "---";
+                d2.sessions[idx].ip      = info.ip      || "";
+                d2.sessions[idx].region  = info.region  || "";
+            }
+            akSave(d2);
+        })
+        .catch(function() {});
 }
 
-// چالاک کردنی شوێنکەوتن لە سەر هەموو دوگمەکان
+// چالاک کردنی شوێنکەوتن
 (function akInit() {
     akStartSession();
 
-    // شوێنکەوتنی دوگمەکانی تووڵبار
-    const btnMap = {
+    var btnMap = {
         "removeEmptyLines": "سڕینەوەی بۆشایی",
         "toggleFindReplace": "گەڕان و گۆڕین",
-        "fileInput.click": "هێنانی Word",
-        "triggerOcrInput": "تێکستی ناو وێنه",
-        "toggleDlModal": "داگرتنی ڤیدیۆ",
-        "toggleNewsModal": "هەواڵەکان",
-        "toggleAbout": "دەربارە",
-        "toggleT": "تەما",
-        "sendToGemini": "Gemini",
-        "downloadAsWord": "پاشەکەوت Word",
-        "copyText": "کەتکردن",
-        "clearText": "سڕینەوەی دەق",
-        "convert_toUni": "گۆڕین بۆ یونیکۆد",
-        "convert_toAli": "گۆڕین بۆ عەلی کەی",
-        "frFindOrSnippet": "دۆزینەوە",
-        "frReplaceAll": "گۆڕینی هەموو",
+        "fileInput.click":   "هێنانی Word",
+        "triggerOcrInput":   "تێکستی ناو وێنه",
+        "toggleDlModal":     "داگرتنی ڤیدیۆ",
+        "toggleNewsModal":   "هەواڵەکان",
+        "toggleAbout":       "دەربارە",
+        "toggleT":           "تەما",
+        "sendToGemini":      "Gemini",
+        "downloadAsWord":    "پاشەکەوت Word",
+        "copyText":          "کەتکردن",
+        "clearText":         "سڕینەوەی دەق",
+        "convert_toUni":     "گۆڕین بۆ یونیکۆد",
+        "convert_toAli":     "گۆڕین بۆ عەلی کەی",
+        "frFindOrSnippet":   "دۆزینەوە",
+        "frReplaceAll":      "گۆڕینی هەموو"
     };
 
-    // هەموو دوگمەکان بگرە
-    document.querySelectorAll("button, [onclick]").forEach(el => {
-        const oc = el.getAttribute("onclick") || "";
-        let label = null;
-        if (oc.includes("removeEmptyLines")) label = btnMap["removeEmptyLines"];
+    document.querySelectorAll("button, [onclick]").forEach(function(el) {
+        var oc = el.getAttribute("onclick") || "";
+        var label = null;
+        if (oc.includes("removeEmptyLines"))  label = btnMap["removeEmptyLines"];
         else if (oc.includes("toggleFindReplace")) label = btnMap["toggleFindReplace"];
-        else if (oc.includes("fileInput")) label = btnMap["fileInput.click"];
+        else if (oc.includes("fileInput"))    label = btnMap["fileInput.click"];
         else if (oc.includes("triggerOcrInput")) label = btnMap["triggerOcrInput"];
         else if (oc.includes("toggleDlModal")) label = btnMap["toggleDlModal"];
         else if (oc.includes("toggleNewsModal")) label = btnMap["toggleNewsModal"];
-        else if (oc.includes("toggleAbout")) label = btnMap["toggleAbout"];
-        else if (oc.includes("toggleT()")) label = btnMap["toggleT"];
+        else if (oc.includes("toggleAbout"))  label = btnMap["toggleAbout"];
+        else if (oc.includes("toggleT()"))    label = btnMap["toggleT"];
         else if (oc.includes("sendToGemini")) label = btnMap["sendToGemini"];
         else if (oc.includes("downloadAsWord")) label = btnMap["downloadAsWord"];
-        else if (oc.includes("copyText")) label = btnMap["copyText"];
-        else if (oc.includes("clearText")) label = btnMap["clearText"];
+        else if (oc.includes("copyText"))     label = btnMap["copyText"];
+        else if (oc.includes("clearText"))    label = btnMap["clearText"];
         else if (oc.includes("frFindOrSnippet")) label = btnMap["frFindOrSnippet"];
         else if (oc.includes("frReplaceAll")) label = btnMap["frReplaceAll"];
-        if (label) {
-            el.addEventListener("click", () => akTrackClick(label));
-        }
+        if (label) el.addEventListener("click", function() { akTrackClick(label); });
     });
 
-    // شوێنکەوتنی دوگمەی گۆڕین (convert)
-    document.querySelectorAll("[onclick*=\"convert(\"]").forEach(el => {
-        const oc = el.getAttribute("onclick") || "";
-        const lbl = oc.includes("toUni") ? btnMap["convert_toUni"] : btnMap["convert_toAli"];
-        el.addEventListener("click", () => akTrackClick(lbl));
+    document.querySelectorAll("[onclick*=\"convert(\"]").forEach(function(el) {
+        var oc = el.getAttribute("onclick") || "";
+        var lbl = oc.includes("toUni") ? btnMap["convert_toUni"] : btnMap["convert_toAli"];
+        el.addEventListener("click", function() { akTrackClick(lbl); });
     });
-
-    // تۆماری تێکستی داخڵکراو — هەر ٣٠ چرکە یەک جار
-    setInterval(() => {
-        const box = document.getElementById("textBox");
-        if (box && box.value.trim().length > 10) akTrackText();
-    }, 30000);
 })();
 
 

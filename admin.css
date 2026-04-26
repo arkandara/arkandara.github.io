@@ -663,6 +663,31 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     .bar-last { display: none; }
 }
 
+.badge-btn {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.text-preview {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    direction: rtl;
+}
+
+.text-muted {
+    color: var(--text-muted);
+    font-size: 0.85em;
+}
+
 /* ریسپۆنسیڤ */
 @media (max-width: 900px) {
     .card-grid { grid-template-columns: 1fr; }

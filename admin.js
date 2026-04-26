@@ -3,24 +3,16 @@
 //  سەکۆی ڕۆژنامەنووس
 // ===========================
 
-// ---- تێکۆشانی ئەدمین بۆ ناوی بەکارهێنەر و پاسوۆرد ----
-// پاسوۆردەکە بە SHA-256 hash کراوە بۆ ئەمنیەت
-// گۆڕینی پاسوۆرد لە تابی "گۆڕینی پاسوۆرد" دەکرێت
-
+// ---- زانیاری ئەدمین ----
 const ADMIN_USERNAME = "admin";
-// هاش SHA-256 ی "arkandara2024" — دەتوانی لە تابی پاسوۆرد بیگۆڕیت
-let ADMIN_PASS_HASH = localStorage.getItem("adminPassHash") || "95a5d03a1cbc38f0a1cf2dd9d60faa4ac996524b27cfec444e1172107df32bfb";
+const ADMIN_PASS_DEFAULT = "arkandara2024";
 
-// ---- SHA-256 هاش بەرفرەهکراو ----
-async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+function getAdminPass() {
+    return localStorage.getItem("adminPass") || ADMIN_PASS_DEFAULT;
 }
 
 // ---- لۆگین ----
-async function doLogin() {
+function doLogin() {
     const user = document.getElementById("loginUser").value.trim();
     const pass = document.getElementById("loginPass").value;
     const errEl = document.getElementById("loginError");
@@ -31,9 +23,7 @@ async function doLogin() {
         return;
     }
 
-    const passHash = await sha256(pass);
-
-    if (user === ADMIN_USERNAME && passHash === ADMIN_PASS_HASH) {
+    if (user === ADMIN_USERNAME && pass === getAdminPass()) {
         sessionStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
@@ -267,9 +257,7 @@ async function changePassword() {
     const confirmPass = document.getElementById("confirmPass").value;
     const msgEl = document.getElementById("passMsg");
 
-    const oldHash = await sha256(oldPass);
-
-    if (oldHash !== ADMIN_PASS_HASH) {
+    if (oldPass !== getAdminPass()) {
         msgEl.className = "pass-error";
         msgEl.innerHTML = '<i class="fas fa-times-circle"></i> پاسوۆردی ئێستا هەڵەیە';
         msgEl.style.display = "block";
@@ -290,9 +278,7 @@ async function changePassword() {
         return;
     }
 
-    const newHash = await sha256(newPass);
-    ADMIN_PASS_HASH = newHash;
-    localStorage.setItem("adminPassHash", newHash);
+    localStorage.setItem("adminPass", newPass);
 
     msgEl.className = "pass-success";
     msgEl.innerHTML = '<i class="fas fa-check-circle"></i> پاسوۆرد بە سەرکەوتوویی گۆڕدرا!';
@@ -423,7 +409,7 @@ function clearStats() {
     showToast("✅ داتاکان سڕایەوە");
 }
 
- — لە کۆنسۆڵدا پیشان دەدات
+// دروستکردنی کۆد بۆ index.html — لە کۆنسۆڵدا پیشان دەدات
 function generateCode() {
     const rss = JSON.parse(localStorage.getItem("rssSources") || "null");
     const btns = JSON.parse(localStorage.getItem("toolbarBtns") || "null");

@@ -3377,6 +3377,8 @@ setTimeout(typeIntro, 3400);
 //  سیستەمی شوێنکەوتنی بەکارهێنان
 // ==============================
 var AK_KEY = "ak_stats";
+// دۆمەینی سەرەکی کە ئامارەکان تێدا پاشکەوت دەکرێن (pages.dev)
+var AK_PRIMARY = "https://arkandara.pages.dev";
 
 function akNow() { return new Date().toISOString(); }
 
@@ -3387,6 +3389,14 @@ function akLoad() {
 
 function akSave(data) {
     try { localStorage.setItem(AK_KEY, JSON.stringify(data)); } catch(e) {}
+    // ئەگەر ئێستا لە github.io ییەوەین، داتا بنێرە بۆ pages.dev بە fetch
+    if (window.location.hostname === "arkandara.github.io") {
+        fetch(AK_PRIMARY + "/ak-sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        }).catch(function() {});
+    }
 }
 
 // تۆماری کلیک + وردەکاری تێکست لە کاتی کلیک
@@ -3396,13 +3406,11 @@ function akTrackClick(label) {
     data.clicks[label].count++;
     data.clicks[label].last = akNow();
 
-    // تێکستی ناوچەی نووسین لە کاتی کلیک تۆمار دەکرێت
     var box = document.getElementById("textBox");
     if (box && box.value.trim().length > 5) {
         var txt = box.value.trim();
         var words = txt.split(/\s+/).filter(Boolean).length;
         var chars = txt.length;
-        // تێکستی کوتا (١٥٠ پیتی یەکەم) بۆ پیشاندان لە پانێل
         var preview = txt.substring(0, 150) + (txt.length > 150 ? "…" : "");
         if (!data.textEvents) data.textEvents = [];
         data.textEvents.push({ time: akNow(), words: words, chars: chars, preview: preview, btn: label });
@@ -3415,12 +3423,13 @@ function akTrackClick(label) {
 // تۆماری سەردانی نشست بە شار و وڵات
 function akStartSession() {
     var data = akLoad();
-    var session = { start: akNow(), city: "---", country: "---", ip: "" };
+    var isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    var session = { start: akNow(), city: "---", country: "---", ip: "", device: isMobile ? "📱 موبایل" : "🖥️ کۆمپیوتەر" };
+    if (!data.sessions) data.sessions = [];
     data.sessions.push(session);
     if (data.sessions.length > 200) data.sessions = data.sessions.slice(-200);
     akSave(data);
 
-    // وەرگرتنی شار و وڵات لە API ی بەخۆراییی
     var idx = data.sessions.length - 1;
     fetch("https://ipapi.co/json/")
         .then(function(r) { return r.json(); })
@@ -3487,6 +3496,15 @@ function akStartSession() {
     });
 })();
 
+
+// ئەگەر پانێڵی ئەدمین داتا داوا کرد (لە postMessage) — داتا بنێرە
+window.addEventListener("message", function(e) {
+    if (e.data === "ak_request_stats") {
+        var data = { clicks: {}, sessions: [], textEvents: [] };
+        try { data = JSON.parse(localStorage.getItem("ak_stats") || "null") || data; } catch(e2) {}
+        e.source.postMessage({ ak_stats: data }, e.origin);
+    }
+});
 
 </script>
 

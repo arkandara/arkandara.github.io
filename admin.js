@@ -72,6 +72,7 @@ const tabTitles = {
     "tab-site": "زانیاری سایت",
     "tab-news": "سەرچاوەی هەواڵ",
     "tab-buttons": "دوگمەکانی تووڵبار",
+    "tab-stats": "ئامارەکان",
     "tab-password": "گۆڕینی پاسوۆرد"
 };
 
@@ -98,6 +99,7 @@ function initPanel() {
     loadSiteInfo();
     loadRssSources();
     loadButtons();
+    loadStats();
 
     // ئایکۆنی ڕەنگ
     const colorInput = document.getElementById("primaryColor");
@@ -323,7 +325,105 @@ function escHtml(str) {
         .replace(/>/g, "&gt;");
 }
 
-// دروستکردنی کۆد بۆ index.html — لە کۆنسۆڵدا پیشان دەدات
+// ===========================
+//  تاب ٤ — ئامارەکان
+// ===========================
+
+const AK_KEY = "ak_stats";
+
+function akLoad() {
+    try { return JSON.parse(localStorage.getItem(AK_KEY) || "null") || { clicks: {}, sessions: [], textEvents: [] }; }
+    catch { return { clicks: {}, sessions: [], textEvents: [] }; }
+}
+
+function loadStats() {
+    const data = akLoad();
+
+    // ژمارەی گشتی
+    const totalClicks = Object.values(data.clicks).reduce((s, v) => s + v.count, 0);
+    const totalSessions = data.sessions.length;
+    const totalTextSaves = data.textEvents.length;
+    const avgWords = totalTextSaves
+        ? Math.round(data.textEvents.reduce((s, e) => s + e.words, 0) / totalTextSaves)
+        : 0;
+
+    document.getElementById("statsTopGrid").innerHTML = `
+        <div class="stat-card"><div class="stat-num">${totalClicks}</div><div class="stat-lbl"><i class="fas fa-mouse-pointer"></i> گشتی کلیکەکان</div></div>
+        <div class="stat-card"><div class="stat-num">${totalSessions}</div><div class="stat-lbl"><i class="fas fa-globe"></i> سەردانەکان</div></div>
+        <div class="stat-card"><div class="stat-num">${totalTextSaves}</div><div class="stat-lbl"><i class="fas fa-keyboard"></i> جار تێکست نووسراوە</div></div>
+        <div class="stat-card"><div class="stat-num">${avgWords}</div><div class="stat-lbl"><i class="fas fa-align-left"></i> ناوەندی وشەکان</div></div>
+    `;
+
+    // چارتی کلیکەکان
+    const clicks = data.clicks;
+    const sorted = Object.entries(clicks).sort((a, b) => b[1].count - a[1].count);
+    const maxCount = sorted.length ? sorted[0][1].count : 1;
+
+    const chartEl = document.getElementById("clickChart");
+    if (!sorted.length) {
+        chartEl.innerHTML = `<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا داتایەک نییە — سایتەکە بکەرەوە و دوگمەکان کلیک بکە</div>`;
+    } else {
+        chartEl.innerHTML = sorted.map(([name, val]) => {
+            const pct = Math.round((val.count / maxCount) * 100);
+            const last = val.last ? new Date(val.last).toLocaleString("ku") : "-";
+            return `
+            <div class="bar-row">
+                <div class="bar-label">${escHtml(name)}</div>
+                <div class="bar-wrap">
+                    <div class="bar-fill" style="width:${pct}%"></div>
+                </div>
+                <div class="bar-count">${val.count}</div>
+                <div class="bar-last">${last}</div>
+            </div>`;
+        }).join("");
+    }
+
+    // تێکستی داخڵکراو
+    const txtEl = document.getElementById("textStats");
+    if (!data.textEvents.length) {
+        txtEl.innerHTML = `<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا تێکستێک داخڵ نەکراوە</div>`;
+    } else {
+        const last5 = [...data.textEvents].reverse().slice(0, 5);
+        txtEl.innerHTML = `
+        <table class="stats-table">
+            <thead><tr><th>کات</th><th>ژمارەی وشە</th><th>ژمارەی پیت</th></tr></thead>
+            <tbody>${last5.map(e => `
+                <tr>
+                    <td>${new Date(e.time).toLocaleString("ku")}</td>
+                    <td>${e.words}</td>
+                    <td>${e.chars}</td>
+                </tr>`).join("")}
+            </tbody>
+        </table>`;
+    }
+
+    // نشستەکان
+    const sesEl = document.getElementById("sessionList");
+    const last10 = [...data.sessions].reverse().slice(0, 10);
+    if (!last10.length) {
+        sesEl.innerHTML = `<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە</div>`;
+    } else {
+        sesEl.innerHTML = `
+        <table class="stats-table">
+            <thead><tr><th>#</th><th>کاتی سەردان</th></tr></thead>
+            <tbody>${last10.map((s, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${new Date(s.start).toLocaleString("ku")}</td>
+                </tr>`).join("")}
+            </tbody>
+        </table>`;
+    }
+}
+
+function clearStats() {
+    if (!confirm("دڵنیایت لە سڕینەوەی هەموو داتاکان؟")) return;
+    localStorage.removeItem(AK_KEY);
+    loadStats();
+    showToast("✅ داتاکان سڕایەوە");
+}
+
+ — لە کۆنسۆڵدا پیشان دەدات
 function generateCode() {
     const rss = JSON.parse(localStorage.getItem("rssSources") || "null");
     const btns = JSON.parse(localStorage.getItem("toolbarBtns") || "null");

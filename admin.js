@@ -9,7 +9,7 @@
 
 const ADMIN_USERNAME = "admin";
 // هاش SHA-256 ی "arkandara2024" — دەتوانی لە تابی پاسوۆرد بیگۆڕیت
-let ADMIN_PASS_HASH = localStorage.getItem("adminPassHash") || "a7b3c9d2e8f1042a6e5d4c3b2a1908f7e6d5c4b3a2910847f6e5d4c3b2a19087";
+let ADMIN_PASS_HASH = localStorage.getItem("adminPassHash") || "95a5d03a1cbc38f0a1cf2dd9d60faa4ac996524b27cfec444e1172107df32bfb";
 
 // ---- SHA-256 هاش بەرفرەهکراو ----
 async function sha256(message) {

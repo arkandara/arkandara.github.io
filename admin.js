@@ -3,13 +3,9 @@
 //  سەکۆی ڕۆژنامەنووس
 // ===========================
 
-// ---- زانیاری ئەدمین ----
 const ADMIN_USERNAME = "admin";
-const ADMIN_PASS_DEFAULT = "arkandara2024";
-
-function getAdminPass() {
-    return localStorage.getItem("adminPass") || ADMIN_PASS_DEFAULT;
-}
+// پاسوۆرد — دەتوانی لە تابی "گۆڕینی پاسوۆرد" بیگۆڕیت
+let ADMIN_PASS = localStorage.getItem("adminPass") || "arkandara2024";
 
 // ---- لۆگین ----
 function doLogin() {
@@ -23,7 +19,7 @@ function doLogin() {
         return;
     }
 
-    if (user === ADMIN_USERNAME && pass === getAdminPass()) {
+    if (user === ADMIN_USERNAME && pass === ADMIN_PASS) {
         sessionStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
@@ -67,13 +63,14 @@ const tabTitles = {
 };
 
 function showTab(id) {
-    document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
-    document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(function(el) { el.classList.remove("active"); });
+    document.querySelectorAll(".nav-item").forEach(function(el) { el.classList.remove("active"); });
     document.getElementById(id).classList.add("active");
-    document.getElementById("nav-" + id.replace("tab-", "")).classList.add("active");
+    var navId = "nav-" + id.replace("tab-", "");
+    var navEl = document.getElementById(navId);
+    if (navEl) navEl.classList.add("active");
     document.getElementById("pageTitle").textContent = tabTitles[id] || "";
-
-    // داخستنی سایدبار لە موبایل
+    if (id === "tab-stats") loadStats();
     if (window.innerWidth <= 700) {
         document.getElementById("sidebar").classList.remove("open");
     }
@@ -90,20 +87,19 @@ function initPanel() {
     loadRssSources();
     loadButtons();
     loadStats();
-
-    // ئایکۆنی ڕەنگ
-    const colorInput = document.getElementById("primaryColor");
-    colorInput.addEventListener("input", () => {
-        document.getElementById("primaryHex").textContent = colorInput.value;
-    });
+    var colorInput = document.getElementById("primaryColor");
+    if (colorInput) {
+        colorInput.addEventListener("input", function() {
+            document.getElementById("primaryHex").textContent = colorInput.value;
+        });
+    }
 }
 
 // ===========================
 //  تاب ١ — زانیاری سایت
 // ===========================
 
-// داتای پێشکەوتووی سایت — ئەمانە دەیانخوێنێتەوە لە localStorage یان ئێستا لە index.html
-const SITE_DEFAULTS = {
+var SITE_DEFAULTS = {
     siteName: "سه‌كۆی ڕۆژنامه‌نووس",
     siteAuthor: "Arkan Dara",
     siteTitle: "سه‌كۆی ڕۆژنامه‌نووس",
@@ -114,9 +110,9 @@ const SITE_DEFAULTS = {
 };
 
 function loadSiteInfo() {
-    const saved = JSON.parse(localStorage.getItem("siteInfo") || "{}");
-    const data = { ...SITE_DEFAULTS, ...saved };
-
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem("siteInfo") || "{}"); } catch(e) {}
+    var data = Object.assign({}, SITE_DEFAULTS, saved);
     document.getElementById("siteName").value = data.siteName;
     document.getElementById("siteAuthor").value = data.siteAuthor;
     document.getElementById("siteTitle").value = data.siteTitle;
@@ -128,25 +124,24 @@ function loadSiteInfo() {
 }
 
 function saveSiteInfo() {
-    const data = {
+    var data = {
         siteName: document.getElementById("siteName").value.trim(),
         siteAuthor: document.getElementById("siteAuthor").value.trim(),
         siteTitle: document.getElementById("siteTitle").value.trim(),
         siteDesc: document.getElementById("siteDesc").value.trim(),
         primaryColor: document.getElementById("primaryColor").value,
         bismillahText: document.getElementById("bismillahText").value.trim(),
-        bismillahSub: document.getElementById("bismillahSub").value.trim(),
+        bismillahSub: document.getElementById("bismillahSub").value.trim()
     };
-
     localStorage.setItem("siteInfo", JSON.stringify(data));
-    showToast("✅ زانیاری سایت پاشەکەوت کرا! — پێویستە فایلی index.html بەدەستی دەستکاری بکەیت بۆ گۆڕانکاری جێگیر");
+    showToast("✅ زانیاری سایت پاشەکەوت کرا!");
 }
 
 // ===========================
 //  تاب ٢ — RSS سەرچاوەکان
 // ===========================
 
-const RSS_DEFAULTS = [
+var RSS_DEFAULTS = [
     { name: 'الجزيرة', url: 'https://www.aljazeera.net/rss' },
     { name: 'سكاى نيوز', url: 'https://www.skynewsarabia.com/rss' },
     { name: 'العراقية', url: 'https://news.google.com/rss/search?q=وكالة+الأنباء+العراقية+INA&hl=ar&gl=IQ&ceid=IQ:ar&tbs=qdr:h' },
@@ -155,53 +150,47 @@ const RSS_DEFAULTS = [
 ];
 
 function loadRssSources() {
-    const saved = JSON.parse(localStorage.getItem("rssSources") || "null");
-    const sources = saved || RSS_DEFAULTS;
-    const list = document.getElementById("rssList");
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem("rssSources")); } catch(e) {}
+    var sources = saved || RSS_DEFAULTS;
+    var list = document.getElementById("rssList");
     list.innerHTML = "";
-    sources.forEach((s, i) => addRssRow(s.name, s.url));
+    sources.forEach(function(s) { addRssRow(s.name, s.url); });
 }
 
-function addRssRow(name = "", url = "") {
-    const list = document.getElementById("rssList");
-    const row = document.createElement("div");
+function addRssRow(name, url) {
+    name = name || "";
+    url = url || "";
+    var list = document.getElementById("rssList");
+    var row = document.createElement("div");
     row.className = "rss-row";
-    row.innerHTML = `
-        <input type="text" placeholder="ناوی سەرچاوە" value="${escHtml(name)}" class="rss-name">
-        <input type="url" placeholder="ئادرەسی RSS" value="${escHtml(url)}" class="url-input rss-url" dir="ltr">
-        <button class="del-btn" onclick="this.closest('.rss-row').remove()" title="سڕینەوە">
-            <i class="fas fa-trash"></i>
-        </button>
-    `;
+    row.innerHTML =
+        '<input type="text" placeholder="ناوی سەرچاوە" value="' + escHtml(name) + '" class="rss-name">' +
+        '<input type="url" placeholder="ئادرەسی RSS" value="' + escHtml(url) + '" class="url-input rss-url" dir="ltr">' +
+        '<button class="del-btn" onclick="this.closest(\'.rss-row\').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
     list.appendChild(row);
 }
 
 function saveRss() {
-    const rows = document.querySelectorAll(".rss-row");
-    const sources = [];
-    let valid = true;
-    rows.forEach(row => {
-        const name = row.querySelector(".rss-name").value.trim();
-        const url = row.querySelector(".rss-url").value.trim();
-        if (name && url) sources.push({ name, url });
+    var rows = document.querySelectorAll(".rss-row");
+    var sources = [];
+    var valid = true;
+    rows.forEach(function(row) {
+        var name = row.querySelector(".rss-name").value.trim();
+        var url = row.querySelector(".rss-url").value.trim();
+        if (name && url) sources.push({ name: name, url: url });
         else if (name || url) valid = false;
     });
-
-    if (!valid) {
-        showToast("⚠️ تکایە هەموو خانەکانی ناو و ئادرەس پڕ بکەرەوە", true);
-        return;
-    }
-
+    if (!valid) { showToast("⚠️ تکایە هەموو خانەکانی ناو و ئادرەس پڕ بکەرەوە", true); return; }
     localStorage.setItem("rssSources", JSON.stringify(sources));
     showToast("✅ سەرچاوەکانی هەواڵ پاشەکەوت کران!");
-    generateCode();
 }
 
 // ===========================
 //  تاب ٣ — دوگمەکانی تووڵبار
 // ===========================
 
-const BTN_DEFAULTS = [
+var BTN_DEFAULTS = [
     { label: "سڕینه‌وه‌ی‌ بۆشایی دێڕه‌كان", color: "#ff9800", action: "removeEmptyLines()" },
     { label: "گەڕان و گۆڕینی وشه‌ 🔍", color: "#e91e63", action: "toggleFindReplace()" },
     { label: "هێنانی Word", color: "#607d8b", action: "document.getElementById('fileInput').click()" },
@@ -210,195 +199,134 @@ const BTN_DEFAULTS = [
 ];
 
 function loadButtons() {
-    const saved = JSON.parse(localStorage.getItem("toolbarBtns") || "null");
-    const btns = saved || BTN_DEFAULTS;
-    const list = document.getElementById("btnList");
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem("toolbarBtns")); } catch(e) {}
+    var btns = saved || BTN_DEFAULTS;
+    var list = document.getElementById("btnList");
     list.innerHTML = "";
-    btns.forEach(b => addBtnRow(b.label, b.color, b.action));
+    btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action); });
 }
 
-function addBtnRow(label = "", color = "#2e7d32", action = "") {
-    const list = document.getElementById("btnList");
-    const row = document.createElement("div");
+function addBtnRow(label, color, action) {
+    label = label || "";
+    color = color || "#2e7d32";
+    action = action || "";
+    var list = document.getElementById("btnList");
+    var row = document.createElement("div");
     row.className = "btn-row";
-    row.innerHTML = `
-        <input type="color" class="btn-color-preview" value="${escHtml(color)}" title="ڕەنگ">
-        <input type="text" placeholder="تێکستی دوگمە" value="${escHtml(label)}" class="btn-label">
-        <input type="text" placeholder="فەنکشن (onclick)" value="${escHtml(action)}" class="btn-action" dir="ltr" style="font-family:monospace;font-size:0.82em;">
-        <button class="del-btn" onclick="this.closest('.btn-row').remove()" title="سڕینەوە">
-            <i class="fas fa-trash"></i>
-        </button>
-    `;
+    row.innerHTML =
+        '<input type="color" class="btn-color-preview" value="' + escHtml(color) + '" title="ڕەنگ">' +
+        '<input type="text" placeholder="تێکستی دوگمە" value="' + escHtml(label) + '" class="btn-label">' +
+        '<input type="text" placeholder="فەنکشن (onclick)" value="' + escHtml(action) + '" class="btn-action" dir="ltr" style="font-family:monospace;font-size:0.82em;">' +
+        '<button class="del-btn" onclick="this.closest(\'.btn-row\').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
     list.appendChild(row);
 }
 
 function saveButtons() {
-    const rows = document.querySelectorAll(".btn-row");
-    const btns = [];
-    rows.forEach(row => {
-        const label = row.querySelector(".btn-label").value.trim();
-        const color = row.querySelector(".btn-color-preview").value;
-        const action = row.querySelector(".btn-action").value.trim();
-        if (label) btns.push({ label, color, action });
+    var rows = document.querySelectorAll(".btn-row");
+    var btns = [];
+    rows.forEach(function(row) {
+        var label = row.querySelector(".btn-label").value.trim();
+        var color = row.querySelector(".btn-color-preview").value;
+        var action = row.querySelector(".btn-action").value.trim();
+        if (label) btns.push({ label: label, color: color, action: action });
     });
-
     localStorage.setItem("toolbarBtns", JSON.stringify(btns));
     showToast("✅ دوگمەکانی تووڵبار پاشەکەوت کران!");
-    generateCode();
-}
-
-// ===========================
-//  تاب ٤ — گۆڕینی پاسوۆرد
-// ===========================
-
-async function changePassword() {
-    const oldPass = document.getElementById("oldPass").value;
-    const newPass = document.getElementById("newPass").value;
-    const confirmPass = document.getElementById("confirmPass").value;
-    const msgEl = document.getElementById("passMsg");
-
-    if (oldPass !== getAdminPass()) {
-        msgEl.className = "pass-error";
-        msgEl.innerHTML = '<i class="fas fa-times-circle"></i> پاسوۆردی ئێستا هەڵەیە';
-        msgEl.style.display = "block";
-        return;
-    }
-
-    if (newPass.length < 6) {
-        msgEl.className = "pass-error";
-        msgEl.innerHTML = '<i class="fas fa-times-circle"></i> پاسوۆردی نوێ دەبێت لانیکەم ٦ پیت بێت';
-        msgEl.style.display = "block";
-        return;
-    }
-
-    if (newPass !== confirmPass) {
-        msgEl.className = "pass-error";
-        msgEl.innerHTML = '<i class="fas fa-times-circle"></i> پاسوۆردەکان یەکسان نین';
-        msgEl.style.display = "block";
-        return;
-    }
-
-    localStorage.setItem("adminPass", newPass);
-
-    msgEl.className = "pass-success";
-    msgEl.innerHTML = '<i class="fas fa-check-circle"></i> پاسوۆرد بە سەرکەوتوویی گۆڕدرا!';
-    msgEl.style.display = "block";
-
-    document.getElementById("oldPass").value = "";
-    document.getElementById("newPass").value = "";
-    document.getElementById("confirmPass").value = "";
-
-    showToast("✅ پاسوۆرد گۆڕدرا!");
-}
-
-// ===========================
-//  یارمەتیدەرەکان
-// ===========================
-
-function showToast(msg, isError = false) {
-    const toast = document.getElementById("toast");
-    toast.textContent = msg;
-    toast.className = "toast" + (isError ? " error" : "");
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3500);
-}
-
-function escHtml(str) {
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
 }
 
 // ===========================
 //  تاب ٤ — ئامارەکان
 // ===========================
 
-const AK_KEY = "ak_stats";
+var AK_KEY = "ak_stats";
 
 function akLoad() {
     try { return JSON.parse(localStorage.getItem(AK_KEY) || "null") || { clicks: {}, sessions: [], textEvents: [] }; }
-    catch { return { clicks: {}, sessions: [], textEvents: [] }; }
+    catch(e) { return { clicks: {}, sessions: [], textEvents: [] }; }
 }
 
 function loadStats() {
-    const data = akLoad();
-
-    // ژمارەی گشتی
-    const totalClicks = Object.values(data.clicks).reduce((s, v) => s + v.count, 0);
-    const totalSessions = data.sessions.length;
-    const totalTextSaves = data.textEvents.length;
-    const avgWords = totalTextSaves
-        ? Math.round(data.textEvents.reduce((s, e) => s + e.words, 0) / totalTextSaves)
+    var data = akLoad();
+    var totalClicks = Object.values(data.clicks).reduce(function(s, v) { return s + v.count; }, 0);
+    var totalSessions = data.sessions.length;
+    var totalTextSaves = data.textEvents.length;
+    var avgWords = totalTextSaves
+        ? Math.round(data.textEvents.reduce(function(s, e) { return s + e.words; }, 0) / totalTextSaves)
         : 0;
 
-    document.getElementById("statsTopGrid").innerHTML = `
-        <div class="stat-card"><div class="stat-num">${totalClicks}</div><div class="stat-lbl"><i class="fas fa-mouse-pointer"></i> گشتی کلیکەکان</div></div>
-        <div class="stat-card"><div class="stat-num">${totalSessions}</div><div class="stat-lbl"><i class="fas fa-globe"></i> سەردانەکان</div></div>
-        <div class="stat-card"><div class="stat-num">${totalTextSaves}</div><div class="stat-lbl"><i class="fas fa-keyboard"></i> جار تێکست نووسراوە</div></div>
-        <div class="stat-card"><div class="stat-num">${avgWords}</div><div class="stat-lbl"><i class="fas fa-align-left"></i> ناوەندی وشەکان</div></div>
-    `;
+    var topGrid = document.getElementById("statsTopGrid");
+    if (!topGrid) return;
+    topGrid.innerHTML =
+        '<div class="stat-card"><div class="stat-num">' + totalClicks + '</div><div class="stat-lbl"><i class="fas fa-mouse-pointer"></i> گشتی کلیکەکان</div></div>' +
+        '<div class="stat-card"><div class="stat-num">' + totalSessions + '</div><div class="stat-lbl"><i class="fas fa-globe"></i> سەردانەکان</div></div>' +
+        '<div class="stat-card"><div class="stat-num">' + totalTextSaves + '</div><div class="stat-lbl"><i class="fas fa-keyboard"></i> جار تێکست بەکارهاتووە</div></div>' +
+        '<div class="stat-card"><div class="stat-num">' + avgWords + '</div><div class="stat-lbl"><i class="fas fa-align-left"></i> ناوەندی وشەکان</div></div>';
 
     // چارتی کلیکەکان
-    const clicks = data.clicks;
-    const sorted = Object.entries(clicks).sort((a, b) => b[1].count - a[1].count);
-    const maxCount = sorted.length ? sorted[0][1].count : 1;
-
-    const chartEl = document.getElementById("clickChart");
+    var clicks = data.clicks;
+    var sorted = Object.entries(clicks).sort(function(a, b) { return b[1].count - a[1].count; });
+    var maxCount = sorted.length ? sorted[0][1].count : 1;
+    var chartEl = document.getElementById("clickChart");
+    if (!chartEl) return;
     if (!sorted.length) {
-        chartEl.innerHTML = `<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا داتایەک نییە — سایتەکە بکەرەوە و دوگمەکان کلیک بکە</div>`;
+        chartEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا داتایەک نییە</div>';
     } else {
-        chartEl.innerHTML = sorted.map(([name, val]) => {
-            const pct = Math.round((val.count / maxCount) * 100);
-            const last = val.last ? new Date(val.last).toLocaleString("ku") : "-";
-            return `
-            <div class="bar-row">
-                <div class="bar-label">${escHtml(name)}</div>
-                <div class="bar-wrap">
-                    <div class="bar-fill" style="width:${pct}%"></div>
-                </div>
-                <div class="bar-count">${val.count}</div>
-                <div class="bar-last">${last}</div>
-            </div>`;
+        chartEl.innerHTML = sorted.map(function(item) {
+            var name = item[0], val = item[1];
+            var pct = Math.round((val.count / maxCount) * 100);
+            var last = val.last ? new Date(val.last).toLocaleString() : "-";
+            return '<div class="bar-row">' +
+                '<div class="bar-label">' + escHtml(name) + '</div>' +
+                '<div class="bar-wrap"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
+                '<div class="bar-count">' + val.count + '</div>' +
+                '<div class="bar-last">' + last + '</div>' +
+                '</div>';
         }).join("");
     }
 
-    // تێکستی داخڵکراو
-    const txtEl = document.getElementById("textStats");
-    if (!data.textEvents.length) {
-        txtEl.innerHTML = `<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا تێکستێک داخڵ نەکراوە</div>`;
+    // تێکستی داخڵکراو — بە پێشبینی و ناوی دوگمە
+    var txtEl = document.getElementById("textStats");
+    if (!txtEl) return;
+    if (!data.textEvents || !data.textEvents.length) {
+        txtEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا تێکستێک تۆمار نەکراوە — کاتێک بەکارهێنەر دوگمەیەک کلیک دەکات تۆمار دەکرێت</div>';
     } else {
-        const last5 = [...data.textEvents].reverse().slice(0, 5);
-        txtEl.innerHTML = `
-        <table class="stats-table">
-            <thead><tr><th>کات</th><th>ژمارەی وشە</th><th>ژمارەی پیت</th></tr></thead>
-            <tbody>${last5.map(e => `
-                <tr>
-                    <td>${new Date(e.time).toLocaleString("ku")}</td>
-                    <td>${e.words}</td>
-                    <td>${e.chars}</td>
-                </tr>`).join("")}
-            </tbody>
-        </table>`;
+        var last10txt = data.textEvents.slice().reverse().slice(0, 10);
+        var trows = last10txt.map(function(e) {
+            return '<tr>' +
+                '<td>' + new Date(e.time).toLocaleString() + '</td>' +
+                '<td><span class="badge-btn">' + escHtml(e.btn || "-") + '</span></td>' +
+                '<td>' + (e.words || 0) + ' وشە / ' + (e.chars || 0) + ' پیت</td>' +
+                '<td class="text-preview">' + escHtml(e.preview || "") + '</td>' +
+                '</tr>';
+        }).join("");
+        txtEl.innerHTML = '<table class="stats-table">' +
+            '<thead><tr><th>کات</th><th>دوگمە</th><th>قەبارە</th><th>پێشبینی تێکست</th></tr></thead>' +
+            '<tbody>' + trows + '</tbody></table>';
     }
 
-    // نشستەکان
-    const sesEl = document.getElementById("sessionList");
-    const last10 = [...data.sessions].reverse().slice(0, 10);
-    if (!last10.length) {
-        sesEl.innerHTML = `<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە</div>`;
+    // سەردانەکان — بە شار و وڵات
+    var sesEl = document.getElementById("sessionList");
+    if (!sesEl) return;
+    var last15 = data.sessions.slice().reverse().slice(0, 15);
+    if (!last15.length) {
+        sesEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە</div>';
     } else {
-        sesEl.innerHTML = `
-        <table class="stats-table">
-            <thead><tr><th>#</th><th>کاتی سەردان</th></tr></thead>
-            <tbody>${last10.map((s, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${new Date(s.start).toLocaleString("ku")}</td>
-                </tr>`).join("")}
-            </tbody>
-        </table>`;
+        var srows = last15.map(function(s, i) {
+            var flag = s.country && s.country !== "---" ? "" : "";
+            var location = (s.city && s.city !== "---" ? s.city : "") +
+                           (s.city && s.city !== "---" && s.country && s.country !== "---" ? "، " : "") +
+                           (s.country && s.country !== "---" ? s.country : "نەناسراو");
+            var region = s.region ? '<span class="text-muted"> (' + escHtml(s.region) + ')</span>' : "";
+            return '<tr>' +
+                '<td>' + (i + 1) + '</td>' +
+                '<td>' + new Date(s.start).toLocaleString() + '</td>' +
+                '<td><i class="fas fa-map-marker-alt" style="color:#e53935;margin-left:4px;"></i>' + escHtml(location) + region + '</td>' +
+                '</tr>';
+        }).join("");
+        sesEl.innerHTML = '<table class="stats-table">' +
+            '<thead><tr><th>#</th><th>کاتی سەردان</th><th>شار و وڵات</th></tr></thead>' +
+            '<tbody>' + srows + '</tbody></table>';
     }
 }
 
@@ -409,28 +337,67 @@ function clearStats() {
     showToast("✅ داتاکان سڕایەوە");
 }
 
-// دروستکردنی کۆد بۆ index.html — لە کۆنسۆڵدا پیشان دەدات
-function generateCode() {
-    const rss = JSON.parse(localStorage.getItem("rssSources") || "null");
-    const btns = JSON.parse(localStorage.getItem("toolbarBtns") || "null");
+// ===========================
+//  تاب ٥ — گۆڕینی پاسوۆرد
+// ===========================
 
-    console.log("=== RSS Code بۆ index.html ===");
-    if (rss) {
-        const rssCode = `const rssSources = [\n${rss.map(s => `    { name: '${s.name}', url: '${s.url}' }`).join(",\n")}\n];`;
-        console.log(rssCode);
-    }
+function changePassword() {
+    var oldPass = document.getElementById("oldPass").value;
+    var newPass = document.getElementById("newPass").value;
+    var confirmPass = document.getElementById("confirmPass").value;
+    var msgEl = document.getElementById("passMsg");
 
-    console.log("\n=== Toolbar Buttons Code بۆ index.html ===");
-    if (btns) {
-        const btnCode = btns.map(b =>
-            `<button class="news-ticker-btn" style="background:${b.color};" onclick="${b.action}">${b.label}</button>`
-        ).join("\n");
-        console.log(btnCode);
+    if (oldPass !== ADMIN_PASS) {
+        msgEl.className = "pass-error";
+        msgEl.innerHTML = '<i class="fas fa-times-circle"></i> پاسوۆردی ئێستا هەڵەیە';
+        msgEl.style.display = "block";
+        return;
     }
+    if (newPass.length < 6) {
+        msgEl.className = "pass-error";
+        msgEl.innerHTML = '<i class="fas fa-times-circle"></i> پاسوۆردی نوێ دەبێت لانیکەم ٦ پیت بێت';
+        msgEl.style.display = "block";
+        return;
+    }
+    if (newPass !== confirmPass) {
+        msgEl.className = "pass-error";
+        msgEl.innerHTML = '<i class="fas fa-times-circle"></i> پاسوۆردەکان یەکسان نین';
+        msgEl.style.display = "block";
+        return;
+    }
+    ADMIN_PASS = newPass;
+    localStorage.setItem("adminPass", newPass);
+    msgEl.className = "pass-success";
+    msgEl.innerHTML = '<i class="fas fa-check-circle"></i> پاسوۆرد بە سەرکەوتوویی گۆڕدرا!';
+    msgEl.style.display = "block";
+    document.getElementById("oldPass").value = "";
+    document.getElementById("newPass").value = "";
+    document.getElementById("confirmPass").value = "";
+    showToast("✅ پاسوۆرد گۆڕدرا!");
+}
+
+// ===========================
+//  یارمەتیدەرەکان
+// ===========================
+
+function showToast(msg, isError) {
+    var toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.className = "toast" + (isError ? " error" : "");
+    toast.classList.add("show");
+    setTimeout(function() { toast.classList.remove("show"); }, 3500);
+}
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
 }
 
 // ---- پشاندانی پانێل ئەگەر پێشتر لۆگین کراوە ----
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", function() {
     if (sessionStorage.getItem("adminAuth") === "1") {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";

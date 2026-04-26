@@ -75,6 +75,9 @@
             <a class="nav-item" onclick="showTab('tab-buttons')" id="nav-buttons">
                 <i class="fas fa-th-large"></i> دوگمەکانی تووڵبار
             </a>
+            <a class="nav-item" onclick="showTab('tab-stats')" id="nav-stats">
+                <i class="fas fa-chart-bar"></i> ئامارەکان
+            </a>
             <a class="nav-item" onclick="showTab('tab-password')" id="nav-password">
                 <i class="fas fa-key"></i> گۆڕینی پاسوۆرد
             </a>
@@ -209,7 +212,46 @@
             </button>
         </div>
 
-        <!-- ===== تاب ٤: گۆڕینی پاسوۆرد ===== -->
+        <!-- ===== تاب ٤: ئامارەکان ===== -->
+        <div class="tab-content" id="tab-stats">
+            <div class="section-title">
+                <i class="fas fa-chart-bar"></i> ئامارەکانی بەکارهێنان
+            </div>
+
+            <!-- کارتە سەرەکییەکان -->
+            <div class="stats-top-grid" id="statsTopGrid"></div>
+
+            <!-- چارتی دوگمەکان -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-mouse-pointer"></i> زیاترین دوگمەی کلیک کراو
+                    <button class="add-btn" onclick="clearStats()" style="background:#ffebee;color:#e53935;border:none;">
+                        <i class="fas fa-trash"></i> سڕینەوە
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="clickChart" class="click-chart"></div>
+                </div>
+            </div>
+
+            <!-- تێکستی داخڵکراو -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-keyboard"></i> ئامارەکانی تێکستی داخڵکراو</div>
+                <div class="card-body">
+                    <div id="textStats" class="stats-text-grid"></div>
+                </div>
+            </div>
+
+            <!-- نشستەکان -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-clock"></i> دوایین سەردانەکان</div>
+                <div class="card-body">
+                    <div id="sessionList" class="session-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== تاب ٥: گۆڕینی پاسوۆرد ===== -->
         <div class="tab-content" id="tab-password">
             <div class="section-title">
                 <i class="fas fa-key"></i> گۆڕینی پاسوۆردی ئەدمین

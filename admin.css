@@ -1,0 +1,558 @@
+/* ===== ریشەی گشتی ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --primary: #2e7d32;
+    --primary-dark: #1b5e20;
+    --primary-light: #e8f5e9;
+    --accent: #4caf50;
+    --bg: #f4f6f8;
+    --sidebar-bg: #0f2010;
+    --sidebar-text: #c8e6c9;
+    --sidebar-hover: rgba(76,175,80,0.15);
+    --sidebar-active: rgba(76,175,80,0.25);
+    --card-bg: #ffffff;
+    --border: #e0e7e0;
+    --text: #1a2e1a;
+    --text-muted: #6b8a6b;
+    --danger: #e53935;
+    --warn: #f57c00;
+    --success: #2e7d32;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+    --transition: 0.22s ease;
+    --sidebar-w: 240px;
+}
+
+body {
+    font-family: 'Noto Sans Arabic', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    direction: rtl;
+    min-height: 100vh;
+    font-size: 14px;
+}
+
+/* ===== لۆگین ===== */
+#loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0a2010 0%, #1b5e20 60%, #0a2010 100%);
+    padding: 20px;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px 36px 32px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.login-logo {
+    width: 64px; height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: #fff;
+    margin: 0 auto 4px;
+    box-shadow: 0 6px 18px rgba(46,125,50,0.35);
+}
+
+.login-title {
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.login-sub {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85em;
+    margin-top: -10px;
+}
+
+.login-error {
+    background: #ffebee;
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.88em;
+    border: 1px solid #ffcdd2;
+}
+
+.login-btn {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 1em;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(46,125,50,0.3); }
+
+.back-link {
+    text-align: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85em;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: var(--transition);
+}
+.back-link:hover { color: var(--primary); }
+
+/* ===== پانێلی سەرەکی ===== */
+#adminPanel {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* سایدبار */
+.sidebar {
+    width: var(--sidebar-w);
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; right: 0;
+    height: 100vh;
+    z-index: 100;
+    transition: transform var(--transition);
+    box-shadow: -3px 0 20px rgba(0,0,0,0.25);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 18px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.sidebar-logo {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #fff;
+    flex-shrink: 0;
+}
+
+.sidebar-title {
+    font-size: 0.95em;
+    font-weight: 700;
+    color: #fff;
+}
+
+.sidebar-sub {
+    font-size: 0.72em;
+    color: var(--sidebar-text);
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+.sidebar-nav {
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    color: var(--sidebar-text);
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    user-select: none;
+}
+
+.nav-item i { width: 18px; text-align: center; opacity: 0.8; }
+.nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+.nav-item.active { background: var(--sidebar-active); color: var(--accent); font-weight: 600; }
+.nav-item.active i { opacity: 1; }
+
+.sidebar-footer {
+    padding: 14px 10px 20px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.logout-btn {
+    width: 100%;
+    background: rgba(229,57,53,0.12);
+    border: 1px solid rgba(229,57,53,0.25);
+    color: #ef9a9a;
+    border-radius: 10px;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.logout-btn:hover { background: rgba(229,57,53,0.22); color: #fff; }
+
+/* ناوەرۆکی سەرەکی */
+.main-content {
+    flex: 1;
+    margin-right: var(--sidebar-w);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* تاپ بار */
+.top-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: var(--shadow);
+}
+
+.menu-toggle {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: 18px;
+    display: none;
+}
+
+.top-bar-title {
+    font-weight: 700;
+    font-size: 1em;
+    color: var(--text);
+}
+
+.top-bar-right { margin-right: auto; }
+
+.view-site-btn {
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid rgba(46,125,50,0.2);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.85em;
+    font-family: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex; align-items: center; gap: 6px;
+    transition: var(--transition);
+}
+.view-site-btn:hover { background: var(--primary); color: #fff; }
+
+/* تاب کۆنتێنت */
+.tab-content {
+    display: none;
+    padding: 28px 24px;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 0.25s ease;
+}
+.tab-content.active { display: flex; }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.section-title {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-title i { color: var(--accent); }
+
+/* کارد */
+.card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.card-header {
+    padding: 14px 18px;
+    background: #f8faf8;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.92em;
+}
+.card-header i { color: var(--accent); }
+
+.card-body {
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* فۆرم */
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-group label {
+    font-size: 0.82em;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.form-input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family: inherit;
+    font-size: 0.92em;
+    color: var(--text);
+    background: #fafafa;
+    transition: var(--transition);
+    outline: none;
+    direction: rtl;
+}
+.form-input:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(76,175,80,0.12); }
+
+textarea.form-input { resize: vertical; min-height: 70px; }
+
+.input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-wrap i {
+    position: absolute;
+    right: 12px;
+    color: var(--text-muted);
+    font-size: 13px;
+    pointer-events: none;
+}
+.input-wrap .form-input { padding-right: 36px; }
+.input-wrap .eye-btn {
+    position: absolute;
+    left: 10px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: 13px;
+    padding: 4px;
+}
+.input-wrap .eye-btn:hover { color: var(--primary); }
+
+/* ڕەنگی پیکەر */
+.color-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.color-picker {
+    width: 48px;
+    height: 36px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 2px;
+    background: #fff;
+}
+
+.color-hex {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+/* RSS لیست */
+.rss-list, .btn-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rss-row, .btn-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8faf8;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    transition: var(--transition);
+}
+.rss-row:hover, .btn-row:hover { border-color: var(--accent); }
+
+.rss-row input, .btn-row input {
+    flex: 1;
+    border: 1px solid #e0e7e0;
+    border-radius: 7px;
+    padding: 7px 10px;
+    font-family: inherit;
+    font-size: 0.88em;
+    background: #fff;
+    outline: none;
+    direction: rtl;
+    transition: var(--transition);
+}
+.rss-row input:focus, .btn-row input:focus { border-color: var(--accent); }
+
+.rss-row .url-input { direction: ltr; font-family: monospace; font-size: 0.82em; }
+
+.del-btn {
+    background: #ffebee;
+    border: none;
+    border-radius: 8px;
+    width: 32px; height: 32px;
+    color: var(--danger);
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition);
+    font-size: 13px;
+}
+.del-btn:hover { background: var(--danger); color: #fff; }
+
+.add-btn {
+    margin-right: auto;
+    background: var(--primary-light);
+    border: none;
+    border-radius: 8px;
+    padding: 5px 12px;
+    color: var(--primary);
+    font-size: 0.82em;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    transition: var(--transition);
+}
+.add-btn:hover { background: var(--primary); color: #fff; }
+
+/* دوگمەکانی ڕەنگ */
+.btn-color-preview {
+    width: 32px; height: 32px;
+    border-radius: 7px;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* پاشەکەوتکردن */
+.save-btn {
+    align-self: flex-start;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-family: inherit;
+    font-size: 0.95em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 3px 12px rgba(46,125,50,0.25);
+}
+.save-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(46,125,50,0.3); }
+
+/* پاسوۆرد مەساج */
+.pass-success {
+    background: #e8f5e9;
+    color: var(--success);
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.88em;
+}
+.pass-error {
+    background: #ffebee;
+    color: var(--danger);
+    border: 1px solid #ffcdd2;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.88em;
+}
+
+/* تۆست */
+.toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1b5e20;
+    color: #fff;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 0.92em;
+    font-weight: 600;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.2);
+    max-width: 380px;
+    text-align: center;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.toast.error { background: var(--danger); }
+
+/* ریسپۆنسیڤ */
+@media (max-width: 900px) {
+    .card-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+    .sidebar {
+        transform: translateX(100%);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .main-content {
+        margin-right: 0;
+    }
+    .menu-toggle {
+        display: block;
+    }
+    .top-bar { padding: 0 14px; }
+    .tab-content { padding: 18px 14px; }
+}

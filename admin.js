@@ -1,27 +1,11 @@
 // ===========================
 //  ئەدمین پانێل — JavaScript
 //  سەکۆی ڕۆژنامەنووس
+//  نسخەی نوێ: بەبێ Firebase — داتا لە Cloudflare KV
 // ===========================
 
 const ADMIN_USERNAME = "admin";
 let ADMIN_PASS = localStorage.getItem("adminPass") || "arkandara2024";
-
-// ---- دەستپێکردنی Firebase ----
-const firebaseConfig = {
-    apiKey: "AIzaSyAjwAfukcjHc9ordWMUprqxyYA6wykc3mQ",
-    authDomain: "arkandara-platform.firebaseapp.com",
-    databaseURL: "https://arkandara-platform-default-rtdb.firebaseio.com",
-    projectId: "arkandara-platform",
-    storageBucket: "arkandara-platform.firebasestorage.app",
-    messagingSenderId: "727863632327",
-    appId: "1:727863632327:web:abf874c8f6446a082039e2",
-    measurementId: "G-XWB6XXB8GL"
-};
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.database();
 
 // ===========================
 //  لۆگین / دەرچوون
@@ -78,6 +62,7 @@ function initPanel() {
     loadRssSources();
     loadButtons();
     loadStats();
+    loadArchiveList();
 
     const colorInput = document.getElementById("primaryColor");
     if (colorInput) {
@@ -96,6 +81,7 @@ const tabTitles = {
     "tab-news":     "سەرچاوەی هەواڵ",
     "tab-buttons":  "دوگمەکانی تووڵبار",
     "tab-stats":    "ئامارەکان",
+    "tab-archive":  "ئەرشیفی هەفتانە",
     "tab-password": "گۆڕینی پاسوۆرد"
 };
 
@@ -106,7 +92,8 @@ function showTab(id) {
     const navEl = document.getElementById("nav-" + id.replace("tab-", ""));
     if (navEl) navEl.classList.add("active");
     document.getElementById("pageTitle").textContent = tabTitles[id] || "";
-    if (id === "tab-stats") loadStats();
+    if (id === "tab-stats")   loadStats();
+    if (id === "tab-archive") loadArchiveList();
     if (window.innerWidth <= 700) {
         document.getElementById("sidebar").classList.remove("open");
     }
@@ -212,10 +199,10 @@ function saveRss() {
 // ===========================
 
 var BTN_DEFAULTS = [
-    { label: "گۆڕین بۆ یونیکۆد",  color: "#2e7d32", action: "convert('toUni')" },
-    { label: "گۆڕین بۆ عەلی کەی", color: "#1565c0", action: "convert('toAli')" },
-    { label: "کۆپی کردن",          color: "#6a1b9a", action: "copyText()" },
-    { label: "سڕینەوەی دەق",       color: "#c62828", action: "clearText()" }
+    { label: "گۆڕین بۆ یونیکۆد", color: "#2e7d32", action: "convert('toUni')" },
+    { label: "گۆڕین بۆ عەلی",    color: "#1565c0", action: "convert('toAli')" },
+    { label: "کەتکردن",           color: "#6a1b9a", action: "copyText()" },
+    { label: "سڕینەوەی دەق",      color: "#c62828", action: "clearText()" }
 ];
 
 function loadButtons() {
@@ -235,7 +222,7 @@ function addBtnRow(label, color, action) {
     var row  = document.createElement("div");
     row.className = "btn-row";
     row.innerHTML =
-        '<input type="color" class="btn-color-preview" value="' + escHtml(color) + '" title="ڕەنگ">' +
+        '<input type="color" value="' + escHtml(color) + '" class="btn-color-preview" title="ڕەنگ">' +
         '<input type="text" placeholder="تێکستی دوگمە" value="' + escHtml(label) + '" class="btn-label">' +
         '<input type="text" placeholder="فەنکشن (onclick)" value="' + escHtml(action) + '" class="btn-action" dir="ltr" style="font-family:monospace;font-size:0.82em;">' +
         '<button class="del-btn" onclick="this.closest(\'.btn-row\').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
@@ -256,50 +243,48 @@ function saveButtons() {
 }
 
 // ===========================
-//  تاب ٤ — ئامارەکان (Firebase Real-time)
+//  تاب ٤ — ئامارەکان (Cloudflare KV)
 // ===========================
 
-var _statsUnsub = null;
-
 function loadStats() {
-    // ئەگەر گوێستنەوەیەکی پێشوەختە هەبوو پاکی بکەرەوە
-    if (_statsUnsub) {
-        db.ref("stats").off("value", _statsUnsub);
-        _statsUnsub = null;
-    }
+    setEl("stat-total-visits",  "⏳");
+    setEl("stat-total-clicks",  "⏳");
+    setEl("stat-btn-count",     "⏳");
+    setEl("stat-top-btn",       "⏳");
+    setEl("stat-total-textarea","⏳");
 
-    setFbStatus("connecting");
+    fetch("/stats")
+        .then(function(r) {
+            if (!r.ok) throw new Error("هەڵەی " + r.status);
+            return r.json();
+        })
+        .then(function(data) {
+            var clicks  = data.clicks  || {};
+            var btnCount    = Object.keys(clicks).length;
+            var totalClicks = Object.values(clicks).reduce(function(s, v) { return s + v; }, 0);
+            var topBtn = "—";
+            if (btnCount > 0) {
+                topBtn = Object.entries(clicks).sort(function(a, b) { return b[1] - a[1]; })[0][0];
+            }
 
-    _statsUnsub = db.ref("stats").on("value", function(snapshot) {
-        setFbStatus("connected");
-        var data   = snapshot.val() || {};
-        var clicks = data.clicks    || {};
+            setEl("stat-total-visits",   data.totalVisits   || 0);
+            setEl("stat-total-clicks",   totalClicks);
+            setEl("stat-btn-count",      btnCount);
+            setEl("stat-top-btn",        topBtn);
+            setEl("stat-total-textarea", data.totalTextarea || 0);
 
-        // ---- کارتە سەرەکییەکان ----
-        var totalVisits = data.totalVisits || 0;
-        var btnCount    = Object.keys(clicks).length;
-        var totalClicks = Object.values(clicks).reduce(function(s, v) { return s + v; }, 0);
-        var topBtn      = "—";
-        if (btnCount > 0) {
-            topBtn = Object.entries(clicks).sort(function(a, b) { return b[1] - a[1]; })[0][0];
-        }
-
-        setEl("stat-total-visits", totalVisits);
-        setEl("stat-total-clicks", totalClicks);
-        setEl("stat-btn-count",    btnCount);
-        setEl("stat-top-btn",      topBtn);
-
-        // ---- چارت ----
-        renderClickChart(clicks);
-
-        // ---- سەردانەکان لە localStorage ----
-        renderSessions();
-
-    }, function(error) {
-        setFbStatus("error");
-        showToast("⚠️ هەڵە لە وەرگرتنی داتا!", true);
-        console.error(error);
-    });
+            renderClickChart(clicks);
+            renderSessions(data.recentSessions || []);
+            renderTextareaEvents(data.textareaToday || []);
+        })
+        .catch(function(err) {
+            showToast("⚠️ هەڵە لە بارکردنی ئامارەکان: " + err.message, true);
+            setEl("stat-total-visits",  "—");
+            setEl("stat-total-clicks",  "—");
+            setEl("stat-btn-count",     "—");
+            setEl("stat-top-btn",       "—");
+            setEl("stat-total-textarea","—");
+        });
 }
 
 function renderClickChart(clicks) {
@@ -324,20 +309,16 @@ function renderClickChart(clicks) {
     }).join("");
 }
 
-function renderSessions() {
+function renderSessions(sessions) {
     var sesEl = document.getElementById("sessionList");
     if (!sesEl) return;
 
-    var data = { sessions: [] };
-    try { data = JSON.parse(localStorage.getItem("ak_stats") || "null") || data; } catch(e) {}
-    var last15 = (data.sessions || []).slice().reverse().slice(0, 15);
-
-    if (!last15.length) {
-        sesEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە لەم براوزەرەدا</div>';
+    if (!sessions || !sessions.length) {
+        sesEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە</div>';
         return;
     }
 
-    var rows = last15.map(function(s, i) {
+    var rows = sessions.slice(0, 15).map(function(s, i) {
         var loc = "";
         if (s.city    && s.city    !== "---") loc += s.city;
         if (s.city    && s.country && s.city !== "---" && s.country !== "---") loc += "، ";
@@ -346,7 +327,7 @@ function renderSessions() {
         var region = s.region ? ' <span style="color:#aaa;font-size:0.85em;">(' + escHtml(s.region) + ')</span>' : "";
         return '<tr>' +
             '<td>' + (i + 1) + '</td>' +
-            '<td>' + new Date(s.start).toLocaleString() + '</td>' +
+            '<td>' + new Date(s.time || s.start || "").toLocaleString() + '</td>' +
             '<td><i class="fas fa-map-marker-alt" style="color:#e53935;margin-left:4px;"></i>' + escHtml(loc) + region + '</td>' +
             '<td>' + escHtml(s.device || "") + '</td>' +
             '</tr>';
@@ -357,15 +338,75 @@ function renderSessions() {
         '<tbody>' + rows + '</tbody></table>';
 }
 
-function clearFirebaseStats() {
-    if (!confirm("دڵنیایت لە سڕینەوەی هەموو کلیکەکانی Firebase؟")) return;
-    db.ref("stats/clicks").remove()
-        .then(function() { showToast("✅ داتاکانی کلیک سڕایەوە"); })
-        .catch(function(e) { showToast("⚠️ هەڵە: " + e.message, true); });
+// ---- Textarea ئامارەکان ----
+function renderTextareaEvents(events) {
+    var el = document.getElementById("textareaList");
+    if (!el) return;
+
+    if (!events || !events.length) {
+        el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک نووسراو نییە ئەمرۆ</div>';
+        return;
+    }
+
+    var rows = events.slice().reverse().slice(0, 20).map(function(e, i) {
+        return '<tr>' +
+            '<td>' + (i + 1) + '</td>' +
+            '<td>' + new Date(e.time).toLocaleTimeString() + '</td>' +
+            '<td>' + e.length + ' پیت</td>' +
+            '<td style="font-size:0.85em;direction:rtl;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+                escHtml(e.preview || "") + '</td>' +
+            '</tr>';
+    }).join("");
+
+    el.innerHTML = '<table class="stats-table">' +
+        '<thead><tr><th>#</th><th>کات</th><th>درێژی</th><th>دەستپێک</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table>';
+}
+
+function clearStats() {
+    if (!confirm("دڵنیایت لە سڕینەوەی ئامارەکان؟\nئەمە تەنها لە پانێڵەکەدا پاکی دەکاتەوە — داتای KV ناگۆڕێت.")) return;
+    showToast("⚠️ بۆ سڕینی داتای KV تکایە ڕاستەوخۆ لە داشبۆردی Cloudflare بیسڕەوە", true);
 }
 
 // ===========================
-//  تاب ٥ — گۆڕینی پاسوۆرد
+//  تاب ٥ — ئەرشیفی هەفتانە
+// ===========================
+
+function loadArchiveList() {
+    var listEl = document.getElementById("archiveListContainer");
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
+
+    fetch("/stats")
+        .then(r => r.json())
+        .then(function(data) {
+            var archives = data.archiveList || [];
+            if (!archives.length) {
+                listEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا ئەرشیفێک نییە</div>';
+                return;
+            }
+
+            listEl.innerHTML = archives.map(function(a) {
+                return '<div class="archive-row">' +
+                    '<div class="archive-week"><i class="fas fa-calendar-week"></i> ' + escHtml(a.week.replace("_", " → ")) + '</div>' +
+                    '<div class="archive-meta">' +
+                        '<span><i class="fas fa-globe"></i> ' + (a.totalVisits || 0) + ' سەردان</span>' +
+                        '<span><i class="fas fa-mouse-pointer"></i> ' + (a.totalClicks || 0) + ' کلیک</span>' +
+                    '</div>' +
+                    '<div class="archive-btns">' +
+                        '<a href="' + escHtml(a.fileJson) + '" target="_blank" class="archive-dl json">JSON</a>' +
+                        '<a href="' + escHtml(a.fileCsv)  + '" target="_blank" class="archive-dl csv">CSV</a>' +
+                    '</div>' +
+                    '</div>';
+            }).join("");
+        })
+        .catch(function() {
+            listEl.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردنی ئەرشیفەکان</div>';
+        });
+}
+
+// ===========================
+//  تاب ٦ — گۆڕینی پاسوۆرد
 // ===========================
 
 function changePassword() {
@@ -408,17 +449,6 @@ function changePassword() {
 function setEl(id, val) {
     var el = document.getElementById(id);
     if (el) el.textContent = val;
-}
-
-function setFbStatus(state) {
-    var el = document.getElementById("fb-status");
-    if (!el) return;
-    var map = {
-        connecting: '<i class="fas fa-circle" style="font-size:8px;color:#f9a825;"></i> پەیوەندی دەکرێت...',
-        connected:  '<i class="fas fa-circle" style="font-size:8px;color:#4caf50;"></i> پەیوەندی هەیە',
-        error:      '<i class="fas fa-circle" style="font-size:8px;color:#e53935;"></i> هەڵە لە پەیوەندی'
-    };
-    el.innerHTML = map[state] || "";
 }
 
 function showToast(msg, isError) {

@@ -3426,14 +3426,15 @@ function akSave(data) {
 function akTrackClick(label) {
     if (!label) return;
 
-    // ئاراستەکردنی داتا بۆ stats/clicks/ناو_ی_دوگمە
-    const clickRef = firebase.database().ref('stats/clicks/' + label);
-    
-    clickRef.transaction(function(currentCount) {
-        return (currentCount || 0) + 1;
-    }).catch(function(error) {
-        console.error("هەڵە لە ناردنی کلیک:", error);
-    });
+    // ناردنی داتا بۆ فەنکشنەکەی کڵاودفلێر
+    fetch('/functions/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: label })
+    })
+    .then(response => response.json())
+    .then(data => console.log('تۆمارکرا:', data))
+    .catch(error => console.error('هەڵە لە ناردن:', error));
 }
 
 // تۆمارکردنی سەردان یەکسەر دوای کردنەوەی سایتەکە

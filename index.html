@@ -1610,6 +1610,7 @@ textarea {
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
+            <button class="btn-nav" style="background:#6a1b9a;" onclick="sendTextToAdmin()" title="ناردنی دەق بۆ پانێڵی ئەدمین">📤 بینینی دەق لە پانێڵ</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
 
@@ -3506,6 +3507,22 @@ function akStartSession() {
         el.addEventListener("click", function() { akTrackClick(lbl); });
     });
 })();
+
+// ---- ناردنی تێکستی textBox بۆ پانێڵی ئەدمین ----
+function sendTextToAdmin() {
+    var tb  = document.getElementById('textBox');
+    var txt = tb ? tb.value.trim() : '';
+    if (!txt) {
+        alert('خانەی نووسین بۆشایە!');
+        return;
+    }
+    // پاشەکەوتکردن لە localStorage بۆ ئەوەی admin.html بیخوێنێتەوە
+    localStorage.setItem('admin_preview_text', txt);
+    localStorage.setItem('admin_preview_time', new Date().toISOString());
+    // کردنەوەی پانێڵ لە تابێکی نوێ
+    window.open('admin.html?tab=preview', '_blank');
+}
+
 
 </script>
 

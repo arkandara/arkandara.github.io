@@ -17,6 +17,26 @@
     
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script>
+// ---- ئەگەر لە github.io بوو، بگوازەرەوە بۆ pages.dev ----
+if (window.location.hostname === "arkandara.github.io") {
+    window.location.replace("https://arkandara.pages.dev" + window.location.pathname + window.location.search + window.location.hash);
+}
+// ---- دەستپێکردنی Firebase ----
+var firebaseConfig = {
+    apiKey: "AIzaSyAjwAfukcjHc9ordWMUprqxyYA6wykc3mQ",
+    authDomain: "arkandara-platform.firebaseapp.com",
+    databaseURL: "https://arkandara-platform-default-rtdb.firebaseio.com",
+    projectId: "arkandara-platform",
+    storageBucket: "arkandara-platform.firebasestorage.app",
+    messagingSenderId: "727863632327",
+    appId: "1:727863632327:web:abf874c8f6446a082039e2",
+    measurementId: "G-XWB6XXB8GL"
+};
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+</script>
 
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lateef&family=Reem+Kufi&display=swap" rel="stylesheet">
     
@@ -3421,14 +3441,7 @@ firebase.database().ref('stats/totalVisits').transaction(function(currentVisits)
     return (currentVisits || 0) + 1;
 });
 
-// ئەگەر پێویستت بەوە بوو داتاکان لە مۆبایلی بەکارهێنەریش بمێنێتەوە، ئەمە بەکاربهێنە (ئارەزوومەندانەیە)
-function akSave(data) {
-    try {
-        localStorage.setItem("ak_journal_stats", JSON.stringify(data));
-    } catch(e) { 
-        console.error("LocalStorage Save Error");
-    }
-}
+// (یەکەم akSave() بەکاردەهێنرێت — دووەمەکەی سڕایەوە)
 
 
 // تۆماری سەردانی نشست بە شار و وڵات

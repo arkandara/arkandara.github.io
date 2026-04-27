@@ -212,41 +212,57 @@
             </button>
         </div>
 
-        <!-- ===== تاب ٤: ئامارەکان ===== -->
+        <!-- ===== تاب 4: ئامارەکان ===== -->
         <div class="tab-content" id="tab-stats">
             <div class="section-title">
                 <i class="fas fa-chart-bar"></i> ئامارەکانی بەکارهێنان
+                <span id="fb-status" style="font-size:12px;font-weight:normal;margin-right:12px;color:#888;">
+                    <i class="fas fa-circle" style="font-size:8px;"></i> پەیوەندی نییە
+                </span>
             </div>
 
             <!-- کارتە سەرەکییەکان -->
-            <div class="stats-top-grid" id="statsTopGrid"></div>
+            <div class="stats-top-grid" id="statsTopGrid">
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-total-visits">&#8212;</div>
+                    <div class="stat-lbl"><i class="fas fa-globe"></i> گشتی سەردانەکان</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-total-clicks">&#8212;</div>
+                    <div class="stat-lbl"><i class="fas fa-mouse-pointer"></i> گشتی کلیکەکان</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-btn-count">&#8212;</div>
+                    <div class="stat-lbl"><i class="fas fa-th-large"></i> جۆری دوگمە</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-top-btn" style="font-size:1rem;">&#8212;</div>
+                    <div class="stat-lbl"><i class="fas fa-trophy"></i> زیاترین کلیک</div>
+                </div>
+            </div>
 
-            <!-- چارتی دوگمەکان -->
+            <!-- چارتی کلیکەکان -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-mouse-pointer"></i> زیاترین دوگمەی کلیک کراو
-                    <button class="add-btn" onclick="clearStats()" style="background:#ffebee;color:#e53935;border:none;">
+                    <button class="add-btn" onclick="clearFirebaseStats()" style="background:#ffebee;color:#e53935;border:none;">
                         <i class="fas fa-trash"></i> سڕینەوە
                     </button>
                 </div>
                 <div class="card-body">
-                    <div id="clickChart" class="click-chart"></div>
+                    <div id="clickChart" class="click-chart">
+                        <div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- تێکستی داخڵکراو -->
-            <div class="card">
-                <div class="card-header"><i class="fas fa-keyboard"></i> ئامارەکانی تێکستی داخڵکراو</div>
-                <div class="card-body">
-                    <div id="textStats" class="stats-text-grid"></div>
-                </div>
-            </div>
-
-            <!-- نشستەکان -->
+            <!-- دوایین سەردانەکان -->
             <div class="card">
                 <div class="card-header"><i class="fas fa-clock"></i> دوایین سەردانەکان</div>
                 <div class="card-body">
-                    <div id="sessionList" class="session-list"></div>
+                    <div id="sessionList" class="session-list">
+                        <div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -296,6 +312,8 @@
 <!-- تۆست نۆتیفیکەیشن -->
 <div id="toast" class="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>

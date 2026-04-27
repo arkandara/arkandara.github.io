@@ -8,6 +8,83 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="admin.css">
+    <style>
+        /* ===== ستایلی تابی ئەرشیف ===== */
+        .archive-row {
+            background: #f8faf8;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: var(--transition);
+            flex-wrap: wrap;
+        }
+        .archive-row:hover { border-color: var(--accent); background: #f0f7f0; }
+
+        .archive-week {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 0.92em;
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .archive-meta {
+            display: flex;
+            gap: 14px;
+            font-size: 0.84em;
+            color: var(--text-muted);
+        }
+        .archive-meta span { display: flex; align-items: center; gap: 5px; }
+        .archive-meta i { color: var(--accent); }
+
+        .archive-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .archive-dl {
+            padding: 5px 14px;
+            border-radius: 7px;
+            font-size: 0.82em;
+            font-weight: 700;
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .archive-dl.json {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+        }
+        .archive-dl.json:hover { background: #1565c0; color: #fff; }
+        .archive-dl.csv {
+            background: #e8f5e9;
+            color: var(--primary);
+            border: 1px solid #c8e6c9;
+        }
+        .archive-dl.csv:hover { background: var(--primary); color: #fff; }
+
+        .archive-list-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ستایلی تابی Textarea */
+        .textarea-stats-card .stat-num { font-size: 1.6em; }
+
+        /* stat-card ی پێنجەم */
+        .stats-top-grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+        }
+        @media (max-width: 1100px) { .stats-top-grid-5 { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 700px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); } }
+    </style>
 </head>
 <body>
 
@@ -24,14 +101,14 @@
             <label>ناوی بەکارهێنەر</label>
             <div class="input-wrap">
                 <i class="fas fa-user"></i>
-                <input type="text" id="loginUser" placeholder="ناوی بەکارهێنەر بنووسە" autocomplete="off">
+                <input type="text" id="loginUser" class="form-input" placeholder="ناوی بەکارهێنەر بنووسە" autocomplete="off">
             </div>
         </div>
         <div class="field-group">
             <label>پاسوۆرد</label>
             <div class="input-wrap">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="loginPass" placeholder="پاسوۆرد بنووسە" onkeydown="if(event.key==='Enter') doLogin()">
+                <input type="password" id="loginPass" class="form-input" placeholder="پاسوۆرد بنووسە" onkeydown="if(event.key==='Enter') doLogin()">
                 <button class="eye-btn" onclick="togglePass()" id="eyeBtn"><i class="fas fa-eye"></i></button>
             </div>
         </div>
@@ -77,6 +154,9 @@
             </a>
             <a class="nav-item" onclick="showTab('tab-stats')" id="nav-stats">
                 <i class="fas fa-chart-bar"></i> ئامارەکان
+            </a>
+            <a class="nav-item" onclick="showTab('tab-archive')" id="nav-archive">
+                <i class="fas fa-archive"></i> ئەرشیفی هەفتانە
             </a>
             <a class="nav-item" onclick="showTab('tab-password')" id="nav-password">
                 <i class="fas fa-key"></i> گۆڕینی پاسوۆرد
@@ -212,17 +292,17 @@
             </button>
         </div>
 
-        <!-- ===== تاب 4: ئامارەکان ===== -->
+        <!-- ===== تاب ٤: ئامارەکان ===== -->
         <div class="tab-content" id="tab-stats">
             <div class="section-title">
                 <i class="fas fa-chart-bar"></i> ئامارەکانی بەکارهێنان
-                <span id="fb-status" style="font-size:12px;font-weight:normal;margin-right:12px;color:#888;">
-                    <i class="fas fa-circle" style="font-size:8px;"></i> پەیوەندی نییە
-                </span>
+                <button class="add-btn" onclick="loadStats()" style="margin-right:auto;">
+                    <i class="fas fa-sync-alt"></i> نوێکردنەوە
+                </button>
             </div>
 
-            <!-- کارتە سەرەکییەکان -->
-            <div class="stats-top-grid" id="statsTopGrid">
+            <!-- کارتە سەرەکییەکان — ٥ کارت -->
+            <div class="stats-top-grid-5">
                 <div class="stat-card">
                     <div class="stat-num" id="stat-total-visits">&#8212;</div>
                     <div class="stat-lbl"><i class="fas fa-globe"></i> گشتی سەردانەکان</div>
@@ -239,15 +319,16 @@
                     <div class="stat-num" id="stat-top-btn" style="font-size:1rem;">&#8212;</div>
                     <div class="stat-lbl"><i class="fas fa-trophy"></i> زیاترین کلیک</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-total-textarea">&#8212;</div>
+                    <div class="stat-lbl"><i class="fas fa-keyboard"></i> جارەکانی نووسین</div>
+                </div>
             </div>
 
             <!-- چارتی کلیکەکان -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-mouse-pointer"></i> زیاترین دوگمەی کلیک کراو
-                    <button class="add-btn" onclick="clearFirebaseStats()" style="background:#ffebee;color:#e53935;border:none;">
-                        <i class="fas fa-trash"></i> سڕینەوە
-                    </button>
                 </div>
                 <div class="card-body">
                     <div id="clickChart" class="click-chart">
@@ -256,18 +337,76 @@
                 </div>
             </div>
 
+            <!-- Textarea ئەمرۆ -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-keyboard"></i> دەقەکانی نووسراوی ئەمرۆ (Textarea)
+                </div>
+                <div class="card-body">
+                    <div id="textareaList">
+                        <div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- دوایین سەردانەکان -->
             <div class="card">
-                <div class="card-header"><i class="fas fa-clock"></i> دوایین سەردانەکان</div>
+                <div class="card-header"><i class="fas fa-clock"></i> دوایین سەردانەکان (٧ رۆژ)</div>
                 <div class="card-body">
                     <div id="sessionList" class="session-list">
-                        <div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە</div>
+                        <div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ===== تاب ٥: گۆڕینی پاسوۆرد ===== -->
+        <!-- ===== تاب ٥: ئەرشیفی هەفتانە ===== -->
+        <div class="tab-content" id="tab-archive">
+            <div class="section-title">
+                <i class="fas fa-archive"></i> ئەرشیفی هەفتانەی ئامارەکان
+                <button class="add-btn" onclick="loadArchiveList()" style="margin-right:auto;">
+                    <i class="fas fa-sync-alt"></i> نوێکردنەوە
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-calendar-week"></i> ئەرشیفەکان
+                    <span style="font-size:0.8em;font-weight:normal;color:var(--text-muted);margin-right:8px;">
+                        — هەر یەکشەممە خۆکارانە پاشەکەوت دەبێت لە GitHub
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div id="archiveListContainer" class="archive-list-wrap">
+                        <div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ڕێنمایی سازدانی GitHub -->
+            <div class="card" style="border-color:#e3f2fd;">
+                <div class="card-header" style="background:#e3f2fd;color:#1565c0;">
+                    <i class="fas fa-info-circle"></i> چۆنیەتی سازکردنی GitHub Action
+                </div>
+                <div class="card-body" style="gap:10px;">
+                    <p style="font-size:0.88em;color:var(--text-muted);line-height:1.8;">
+                        بۆ ئەوەی ئەرشیفی خۆکار کار بکات، ئەم سیکرێتانە دەبێت لە ڕیپۆزیتۆریەکەت زیاد بکەیت:
+                    </p>
+                    <div style="background:#f8faf8;border-radius:8px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;">
+                        <code style="font-size:0.82em;color:#1565c0;direction:ltr;display:block;">GH_PAT — GitHub Personal Access Token (repo scope)</code>
+                        <code style="font-size:0.82em;color:#1565c0;direction:ltr;display:block;">CF_ACCOUNT_ID — Cloudflare Account ID</code>
+                        <code style="font-size:0.82em;color:#1565c0;direction:ltr;display:block;">CF_API_TOKEN — Cloudflare API Token (KV read)</code>
+                        <code style="font-size:0.82em;color:#1565c0;direction:ltr;display:block;">CF_KV_NAMESPACE_ID — KV Namespace ID ی STATS_DB</code>
+                    </div>
+                    <p style="font-size:0.82em;color:var(--text-muted);">
+                        <i class="fas fa-map-marker-alt" style="color:var(--accent);"></i>
+                        Settings → Secrets and variables → Actions → New repository secret
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== تاب ٦: گۆڕینی پاسوۆرد ===== -->
         <div class="tab-content" id="tab-password">
             <div class="section-title">
                 <i class="fas fa-key"></i> گۆڕینی پاسوۆردی ئەدمین
@@ -312,8 +451,7 @@
 <!-- تۆست نۆتیفیکەیشن -->
 <div id="toast" class="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<!-- Firebase سڕایەوە — ئێستا Cloudflare KV بەکاردەهێنرێت -->
 <script src="admin.js"></script>
 </body>
 </html>

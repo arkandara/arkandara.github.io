@@ -3427,7 +3427,7 @@ function akTrackClick(label) {
     if (!label) return;
 
     // ناردنی داتا بۆ فەنکشنەکەی کڵاودفلێر
-    fetch('/functions/track', {
+    fetch('/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ label: label })

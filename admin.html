@@ -158,6 +158,9 @@
             <a class="nav-item" onclick="showTab('tab-archive')" id="nav-archive">
                 <i class="fas fa-archive"></i> ئەرشیفی هەفتانە
             </a>
+            <a class="nav-item" onclick="showTab('tab-preview')" id="nav-preview">
+                <i class="fas fa-eye"></i> بینینی دەقی سایت
+            </a>
             <a class="nav-item" onclick="showTab('tab-password')" id="nav-password">
                 <i class="fas fa-key"></i> گۆڕینی پاسوۆرد
             </a>
@@ -402,6 +405,31 @@
                         <i class="fas fa-map-marker-alt" style="color:var(--accent);"></i>
                         Settings → Secrets and variables → Actions → New repository secret
                     </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== تابی بینینی دەق ===== -->
+        <div class="tab-content" id="tab-preview">
+            <div class="section-title">
+                <i class="fas fa-eye"></i> دەقی نێردراو لە سایتەکە
+                <button class="add-btn" onclick="loadPreviewText()" style="margin-right:auto;">
+                    <i class="fas fa-sync-alt"></i> نوێکردنەوە
+                </button>
+                <button class="add-btn" onclick="clearPreviewText()" style="background:#ffebee;color:#e53935;border:none;">
+                    <i class="fas fa-trash"></i> سڕینەوە
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-keyboard"></i> دەقی نووسراو لە خانەی سایت
+                    <span id="previewTextTime" style="font-size:0.78em;font-weight:normal;color:var(--text-muted);margin-right:auto;"></span>
+                </div>
+                <div class="card-body">
+                    <div id="previewTextContent" style="min-height:200px;max-height:600px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:14px 18px;background:#fafafa;font-family:'Noto Sans Arabic',sans-serif;">
+                        <div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک نەنێردراوە لە سایتەکەوە</div>
+                    </div>
                 </div>
             </div>
         </div>

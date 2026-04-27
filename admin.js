@@ -253,7 +253,7 @@ function loadStats() {
     setEl("stat-top-btn",       "⏳");
     setEl("stat-total-textarea","⏳");
 
-    fetch("/stats")
+    fetch("/track")
         .then(function(r) {
             if (!r.ok) throw new Error("هەڵەی " + r.status);
             return r.json();
@@ -377,7 +377,7 @@ function loadArchiveList() {
     if (!listEl) return;
     listEl.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
 
-    fetch("/stats")
+    fetch("/track")
         .then(r => r.json())
         .then(function(data) {
             var archives = data.archiveList || [];

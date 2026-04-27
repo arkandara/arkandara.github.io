@@ -61,14 +61,22 @@ function initPanel() {
     loadSiteInfo();
     loadRssSources();
     loadButtons();
-    loadStats();
     loadArchiveList();
 
-    const colorInput = document.getElementById("primaryColor");
+    var colorInput = document.getElementById("primaryColor");
     if (colorInput) {
         colorInput.addEventListener("input", function () {
             document.getElementById("primaryHex").textContent = colorInput.value;
         });
+    }
+
+    // ---- بپشکنە URL: ئەگەر ?tab=preview بوو → تابی preview ----
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("tab") === "preview") {
+        showTab("tab-preview");
+    } else {
+        // بە شێوەی گشتی: ڕاستەوخۆ بچۆ بۆ ئامارەکان
+        showTab("tab-stats");
     }
 }
 
@@ -82,7 +90,8 @@ const tabTitles = {
     "tab-buttons":  "دوگمەکانی تووڵبار",
     "tab-stats":    "ئامارەکان",
     "tab-archive":  "ئەرشیفی هەفتانە",
-    "tab-password": "گۆڕینی پاسوۆرد"
+    "tab-password": "گۆڕینی پاسوۆرد",
+    "tab-preview":  "بینینی دەقی سایت"
 };
 
 function showTab(id) {
@@ -94,6 +103,7 @@ function showTab(id) {
     document.getElementById("pageTitle").textContent = tabTitles[id] || "";
     if (id === "tab-stats")   loadStats();
     if (id === "tab-archive") loadArchiveList();
+    if (id === "tab-preview")  loadPreviewText();
     if (window.innerWidth <= 700) {
         document.getElementById("sidebar").classList.remove("open");
     }
@@ -467,6 +477,49 @@ function escHtml(str) {
         .replace(/"/g, "&quot;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
+}
+
+
+// ===========================
+//  تابی بینینی دەقی سایت
+// ===========================
+
+function loadPreviewText() {
+    var el   = document.getElementById("previewTextContent");
+    var time = document.getElementById("previewTextTime");
+    if (!el) return;
+
+    var txt = localStorage.getItem("admin_preview_text") || "";
+    var ts  = localStorage.getItem("admin_preview_time") || "";
+
+    if (!txt) {
+        el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک نەنێردراوە لە سایتەکەوە</div>';
+        if (time) time.textContent = "";
+        return;
+    }
+
+    // نیشاندانی دەقەکە بە شێوەی ئاراستەکراو
+    el.style.direction = "rtl";
+    el.style.textAlign = "right";
+    el.style.whiteSpace = "pre-wrap";
+    el.style.lineHeight = "2";
+    el.style.fontSize = "1em";
+    el.style.padding = "8px 4px";
+    el.textContent = txt;
+
+    if (time && ts) {
+        try {
+            time.textContent = "کات: " + new Date(ts).toLocaleString();
+        } catch(e) { time.textContent = ts; }
+    }
+}
+
+function clearPreviewText() {
+    if (!confirm("دڵنیایت لە سڕینەوەی دەقەکە؟")) return;
+    localStorage.removeItem("admin_preview_text");
+    localStorage.removeItem("admin_preview_time");
+    loadPreviewText();
+    showToast("✅ دەقەکە سڕایەوە");
 }
 
 // ---- پشاندانی پانێل ئەگەر پێشتر لۆگین کراوە ----

@@ -15,26 +15,10 @@
     <meta property="og:url" content="https://arkandara.github.io/">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 <script>
 // ---- ئەگەر لە github.io بوو، بگوازەرەوە بۆ pages.dev ----
 if (window.location.hostname === "arkandara.github.io") {
     window.location.replace("https://arkandara.pages.dev" + window.location.pathname + window.location.search + window.location.hash);
-}
-// ---- دەستپێکردنی Firebase ----
-var firebaseConfig = {
-    apiKey: "AIzaSyAjwAfukcjHc9ordWMUprqxyYA6wykc3mQ",
-    authDomain: "arkandara-platform.firebaseapp.com",
-    databaseURL: "https://arkandara-platform-default-rtdb.firebaseio.com",
-    projectId: "arkandara-platform",
-    storageBucket: "arkandara-platform.firebasestorage.app",
-    messagingSenderId: "727863632327",
-    appId: "1:727863632327:web:abf874c8f6446a082039e2",
-    measurementId: "G-XWB6XXB8GL"
-};
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
 }
 </script>
 
@@ -3398,85 +3382,87 @@ setTimeout(typeIntro, 3400);
 
 // ==============================
 //  سیستەمی شوێنکەوتنی بەکارهێنان
+//  نسخەی نوێ: هەموو داتا بۆ Cloudflare KV
 // ==============================
-var AK_KEY = "ak_stats";
-// دۆمەینی سەرەکی کە ئامارەکان تێدا پاشکەوت دەکرێن (pages.dev)
-var AK_PRIMARY = "https://arkandara.pages.dev";
 
-function akNow() { return new Date().toISOString(); }
-
-function akLoad() {
-    try { return JSON.parse(localStorage.getItem(AK_KEY) || "null") || { clicks: {}, sessions: [], textEvents: [] }; }
-    catch(e) { return { clicks: {}, sessions: [], textEvents: [] }; }
-}
-
-function akSave(data) {
-    try { localStorage.setItem(AK_KEY, JSON.stringify(data)); } catch(e) {}
-    // ئەگەر ئێستا لە github.io ییەوەین، داتا بنێرە بۆ pages.dev بە fetch
-    if (window.location.hostname === "arkandara.github.io") {
-        fetch(AK_PRIMARY + "/ak-sync", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        }).catch(function() {});
-    }
-}
-
-// --- ناردنی داتای کلیک بۆ فایەربەیس ---
+// ---- ناردنی کلیک بۆ KV ----
 function akTrackClick(label) {
     if (!label) return;
-
-    // ناردنی داتا بۆ فەنکشنەکەی کڵاودفلێر
     fetch('/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label: label })
-    })
-    .then(response => response.json())
-    .then(data => console.log('تۆمارکرا:', data))
-    .catch(error => console.error('هەڵە لە ناردن:', error));
+        body: JSON.stringify({ type: 'click', label: label })
+    }).catch(function() {});
 }
 
-// تۆمارکردنی سەردان یەکسەر دوای کردنەوەی سایتەکە
-firebase.database().ref('stats/totalVisits').transaction(function(currentVisits) {
-    return (currentVisits || 0) + 1;
-});
-
-// (یەکەم akSave() بەکاردەهێنرێت — دووەمەکەی سڕایەوە)
-
-
-// تۆماری سەردانی نشست بە شار و وڵات
+// ---- تۆمارکردنی سەردان بۆ KV ----
 function akStartSession() {
-    var data = akLoad();
     var isMobile = /Mobi|Android/i.test(navigator.userAgent);
-    var session = { start: akNow(), city: "---", country: "---", ip: "", device: isMobile ? "📱 موبایل" : "🖥️ کۆمپیوتەر" };
-    if (!data.sessions) data.sessions = [];
-    data.sessions.push(session);
-    if (data.sessions.length > 200) data.sessions = data.sessions.slice(-200);
-    akSave(data);
+    var sessionData = {
+        type:   'visit',
+        device: isMobile ? '📱 موبایل' : '🖥️ کۆمپیوتەر',
+        city:    '---',
+        country: '---',
+        region:  '',
+        ip:      ''
+    };
 
-    var idx = data.sessions.length - 1;
-    fetch("https://ipapi.co/json/")
+    // یەکەم: سەردان بە بەبێ شوێن تۆمار بکە
+    fetch('/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData)
+    }).catch(function() {});
+
+    // دووەم: شوێن وەربگرە و دووبارە بنێرە
+    fetch('https://ipapi.co/json/')
         .then(function(r) { return r.json(); })
         .then(function(info) {
-            var d2 = akLoad();
-            if (d2.sessions[idx]) {
-                d2.sessions[idx].city    = info.city    || "---";
-                d2.sessions[idx].country = info.country_name || info.country || "---";
-                d2.sessions[idx].ip      = info.ip      || "";
-                d2.sessions[idx].region  = info.region  || "";
-            }
-            akSave(d2);
+            fetch('/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type:    'visit',
+                    device:  sessionData.device,
+                    city:    info.city             || '---',
+                    country: info.country_name || info.country || '---',
+                    region:  info.region           || '',
+                    ip:      info.ip               || ''
+                })
+            }).catch(function() {});
         })
         .catch(function() {});
 }
 
-// چالاک کردنی شوێنکەوتن
+// ---- تۆمارکردنی Textarea (دەق نووسراو) بۆ KV ----
+// دوای 3 چرکەی راوەستان، ئەگەر ٢٠+ پیت بوو دەنێرێت
+(function akWatchTextarea() {
+    var tb = document.getElementById('textBox');
+    if (!tb) return;
+    var _timer = null;
+    var _lastSent = '';
+    tb.addEventListener('input', function() {
+        clearTimeout(_timer);
+        _timer = setTimeout(function() {
+            var txt = tb.value.trim();
+            if (txt.length >= 20 && txt !== _lastSent) {
+                _lastSent = txt;
+                fetch('/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'textarea', text: txt })
+                }).catch(function() {});
+            }
+        }, 3000);
+    });
+})();
+
+// ---- دەستپێکردنی چالاکی شوێنکەوتن ----
 (function akInit() {
     akStartSession();
 
     var btnMap = {
-        "removeEmptyLines": "سڕینەوەی بۆشایی",
+        "removeEmptyLines":  "سڕینەوەی بۆشایی",
         "toggleFindReplace": "گەڕان و گۆڕین",
         "fileInput.click":   "هێنانی Word",
         "triggerOcrInput":   "تێکستی ناو وێنه",
@@ -3497,20 +3483,20 @@ function akStartSession() {
     document.querySelectorAll("button, [onclick]").forEach(function(el) {
         var oc = el.getAttribute("onclick") || "";
         var label = null;
-        if (oc.includes("removeEmptyLines"))  label = btnMap["removeEmptyLines"];
-        else if (oc.includes("toggleFindReplace")) label = btnMap["toggleFindReplace"];
-        else if (oc.includes("fileInput"))    label = btnMap["fileInput.click"];
-        else if (oc.includes("triggerOcrInput")) label = btnMap["triggerOcrInput"];
-        else if (oc.includes("toggleDlModal")) label = btnMap["toggleDlModal"];
-        else if (oc.includes("toggleNewsModal")) label = btnMap["toggleNewsModal"];
-        else if (oc.includes("toggleAbout"))  label = btnMap["toggleAbout"];
-        else if (oc.includes("toggleT()"))    label = btnMap["toggleT"];
-        else if (oc.includes("sendToGemini")) label = btnMap["sendToGemini"];
-        else if (oc.includes("downloadAsWord")) label = btnMap["downloadAsWord"];
-        else if (oc.includes("copyText"))     label = btnMap["copyText"];
-        else if (oc.includes("clearText"))    label = btnMap["clearText"];
-        else if (oc.includes("frFindOrSnippet")) label = btnMap["frFindOrSnippet"];
-        else if (oc.includes("frReplaceAll")) label = btnMap["frReplaceAll"];
+        if      (oc.includes("removeEmptyLines"))   label = btnMap["removeEmptyLines"];
+        else if (oc.includes("toggleFindReplace"))  label = btnMap["toggleFindReplace"];
+        else if (oc.includes("fileInput"))          label = btnMap["fileInput.click"];
+        else if (oc.includes("triggerOcrInput"))    label = btnMap["triggerOcrInput"];
+        else if (oc.includes("toggleDlModal"))      label = btnMap["toggleDlModal"];
+        else if (oc.includes("toggleNewsModal"))    label = btnMap["toggleNewsModal"];
+        else if (oc.includes("toggleAbout"))        label = btnMap["toggleAbout"];
+        else if (oc.includes("toggleT()"))          label = btnMap["toggleT"];
+        else if (oc.includes("sendToGemini"))       label = btnMap["sendToGemini"];
+        else if (oc.includes("downloadAsWord"))     label = btnMap["downloadAsWord"];
+        else if (oc.includes("copyText"))           label = btnMap["copyText"];
+        else if (oc.includes("clearText"))          label = btnMap["clearText"];
+        else if (oc.includes("frFindOrSnippet"))    label = btnMap["frFindOrSnippet"];
+        else if (oc.includes("frReplaceAll"))       label = btnMap["frReplaceAll"];
         if (label) el.addEventListener("click", function() { akTrackClick(label); });
     });
 
@@ -3520,16 +3506,6 @@ function akStartSession() {
         el.addEventListener("click", function() { akTrackClick(lbl); });
     });
 })();
-
-
-// ئەگەر پانێڵی ئەدمین داتا داوا کرد (لە postMessage) — داتا بنێرە
-window.addEventListener("message", function(e) {
-    if (e.data === "ak_request_stats") {
-        var data = { clicks: {}, sessions: [], textEvents: [] };
-        try { data = JSON.parse(localStorage.getItem("ak_stats") || "null") || data; } catch(e2) {}
-        e.source.postMessage({ ak_stats: data }, e.origin);
-    }
-});
 
 </script>
 

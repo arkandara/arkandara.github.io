@@ -15,6 +15,9 @@
     <meta property="og:url" content="https://arkandara.github.io/">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lateef&family=Reem+Kufi&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -3399,26 +3402,34 @@ function akSave(data) {
     }
 }
 
-// تۆماری کلیک + وردەکاری تێکست لە کاتی کلیک
+// --- ناردنی داتای کلیک بۆ فایەربەیس ---
 function akTrackClick(label) {
-    var data = akLoad();
-    if (!data.clicks[label]) data.clicks[label] = { count: 0, last: null };
-    data.clicks[label].count++;
-    data.clicks[label].last = akNow();
+    if (!label) return;
 
-    var box = document.getElementById("textBox");
-    if (box && box.value.trim().length > 5) {
-        var txt = box.value.trim();
-        var words = txt.split(/\s+/).filter(Boolean).length;
-        var chars = txt.length;
-        var preview = txt.substring(0, 150) + (txt.length > 150 ? "…" : "");
-        if (!data.textEvents) data.textEvents = [];
-        data.textEvents.push({ time: akNow(), words: words, chars: chars, preview: preview, btn: label });
-        if (data.textEvents.length > 100) data.textEvents = data.textEvents.slice(-100);
-    }
-
-    akSave(data);
+    // ئاراستەکردنی داتا بۆ stats/clicks/ناو_ی_دوگمە
+    const clickRef = firebase.database().ref('stats/clicks/' + label);
+    
+    clickRef.transaction(function(currentCount) {
+        return (currentCount || 0) + 1;
+    }).catch(function(error) {
+        console.error("هەڵە لە ناردنی کلیک:", error);
+    });
 }
+
+// تۆمارکردنی سەردان یەکسەر دوای کردنەوەی سایتەکە
+firebase.database().ref('stats/totalVisits').transaction(function(currentVisits) {
+    return (currentVisits || 0) + 1;
+});
+
+// ئەگەر پێویستت بەوە بوو داتاکان لە مۆبایلی بەکارهێنەریش بمێنێتەوە، ئەمە بەکاربهێنە (ئارەزوومەندانەیە)
+function akSave(data) {
+    try {
+        localStorage.setItem("ak_journal_stats", JSON.stringify(data));
+    } catch(e) { 
+        console.error("LocalStorage Save Error");
+    }
+}
+
 
 // تۆماری سەردانی نشست بە شار و وڵات
 function akStartSession() {

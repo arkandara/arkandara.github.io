@@ -1,46 +1,77 @@
 // ============================================================
 //  functions/track.js  — Cloudflare Pages Function
-//  تۆمارکردنی: کلیک، سەردان، داتای Textarea — لە Cloudflare KV
+//  POST /track  → تۆمارکردنی کلیک، سەردان، Textarea
+//  GET  /track  → خوێندنەوەی هەموو ئامارەکان (بۆ ئەدمین)
 // ============================================================
 
-export async function onRequestPost(context) {
-    const { request, env } = context;
+const CORS = {
+    "Access-Control-Allow-Origin":  "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type":                 "application/json"
+};
 
-    const corsHeaders = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Content-Type": "application/json"
-    };
-
+// ---- GET: خوێندنەوەی ئامارەکان ----
+export async function onRequestGet(context) {
+    const { env } = context;
     try {
-        const body = await request.json();
-        const type = body.type || "click"; // "click" | "visit" | "textarea"
-
-        // ---- ١: تۆمارکردنی کلیک ----
-        if (type === "click") {
-            const label = body.label;
-            if (!label) {
-                return json({ error: "label پێویستە" }, 400, corsHeaders);
-            }
-
-            const key = "click:" + label;
-            const current = await env.STATS_DB.get(key);
-            const newCount = parseInt(current || "0") + 1;
-            await env.STATS_DB.put(key, String(newCount));
-
-            // تۆمارکردن لە لیستی کلیکەکانیش
-            const allClicksRaw = await env.STATS_DB.get("meta:clicks_list");
-            let allClicks = allClicksRaw ? JSON.parse(allClicksRaw) : [];
-            if (!allClicks.includes(label)) {
-                allClicks.push(label);
-                await env.STATS_DB.put("meta:clicks_list", JSON.stringify(allClicks));
-            }
-
-            return json({ success: true, label, count: newCount }, 200, corsHeaders);
+        const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
+        const clickLabels   = safeJson(clicksListRaw, []);
+        const clicks = {};
+        for (const label of clickLabels) {
+            const val = await env.STATS_DB.get("click:" + label);
+            if (val) clicks[label] = parseInt(val) || 0;
         }
 
-        // ---- ٢: تۆمارکردنی سەردان ----
+        const totalVisits   = parseInt(await env.STATS_DB.get("meta:total_visits")   || "0");
+        const totalTextarea = parseInt(await env.STATS_DB.get("meta:total_textarea") || "0");
+
+        const sessions = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const raw = await env.STATS_DB.get("visits:" + isoDate(d));
+            sessions.push(...safeJson(raw, []));
+        }
+        const recentSessions = sessions
+            .sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0))
+            .slice(0, 50);
+
+        const txRaw = await env.STATS_DB.get("textarea:" + isoDate(new Date()));
+        const textareaToday = safeJson(txRaw, []);
+
+        const archiveListRaw = await env.STATS_DB.get("meta:archive_list");
+        const archiveList    = safeJson(archiveListRaw, []);
+
+        return ok({ clicks, totalVisits, totalTextarea, recentSessions, textareaToday, archiveList });
+
+    } catch (err) {
+        return err500(err);
+    }
+}
+
+// ---- POST: تۆمارکردن ----
+export async function onRequestPost(context) {
+    const { request, env } = context;
+    try {
+        const body = await request.json();
+        const type = body.type || "click";
+
+        if (type === "click") {
+            const label = (body.label || "").trim();
+            if (!label) return bad("label پێویستە");
+            const key     = "click:" + label;
+            const current = parseInt(await env.STATS_DB.get(key) || "0");
+            await env.STATS_DB.put(key, String(current + 1));
+            const listRaw = await env.STATS_DB.get("meta:clicks_list");
+            const list    = safeJson(listRaw, []);
+            if (!list.includes(label)) {
+                list.push(label);
+                await env.STATS_DB.put("meta:clicks_list", JSON.stringify(list));
+            }
+            return ok({ success: true, label, count: current + 1 });
+        }
+
         if (type === "visit") {
             const session = {
                 time:    new Date().toISOString(),
@@ -50,75 +81,43 @@ export async function onRequestPost(context) {
                 ip:      body.ip      || "",
                 device:  body.device  || "نەناسراو"
             };
-
-            // ژمارەی گشتی سەردانەکان
-            const totalRaw = await env.STATS_DB.get("meta:total_visits");
-            const newTotal = parseInt(totalRaw || "0") + 1;
-            await env.STATS_DB.put("meta:total_visits", String(newTotal));
-
-            // پاشەکەوتکردنی سەردانی ئەمرۆ (لیست)
-            const todayKey = "visits:" + todayStr();
-            const todayRaw = await env.STATS_DB.get(todayKey);
-            let todaySessions = todayRaw ? JSON.parse(todayRaw) : [];
-            todaySessions.push(session);
-            // زیاتر لە ٥٠٠ نەپاشەکەوت بکە
-            if (todaySessions.length > 500) todaySessions = todaySessions.slice(-500);
-            await env.STATS_DB.put(todayKey, JSON.stringify(todaySessions), { expirationTtl: 60 * 60 * 24 * 8 }); // 8 رۆژ
-
-            return json({ success: true, total: newTotal }, 200, corsHeaders);
+            const tot = parseInt(await env.STATS_DB.get("meta:total_visits") || "0");
+            await env.STATS_DB.put("meta:total_visits", String(tot + 1));
+            const dayKey = "visits:" + isoDate(new Date());
+            const daySes = safeJson(await env.STATS_DB.get(dayKey), []);
+            daySes.push(session);
+            if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
+            await env.STATS_DB.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
+            return ok({ success: true, total: tot + 1 });
         }
 
-        // ---- ٣: تۆمارکردنی Textarea (دەقی نووسراو) ----
         if (type === "textarea") {
-            const text = body.text;
-            if (!text || text.trim().length < 3) {
-                return json({ error: "دەقەکە زۆر کورتە" }, 400, corsHeaders);
-            }
-
-            const event = {
-                time:   new Date().toISOString(),
-                length: text.length,
-                preview: text.substring(0, 120) // تەنها ١٢٠ پیتی یەکەم
-            };
-
-            const key = "textarea:" + todayStr();
-            const raw = await env.STATS_DB.get(key);
-            let events = raw ? JSON.parse(raw) : [];
+            const text = (body.text || "").trim();
+            if (text.length < 3) return bad("دەقەکە زۆر کورتە");
+            const event  = { time: new Date().toISOString(), length: text.length, preview: text.substring(0, 120) };
+            const key    = "textarea:" + isoDate(new Date());
+            const events = safeJson(await env.STATS_DB.get(key), []);
             events.push(event);
-            if (events.length > 200) events = events.slice(-200);
-            await env.STATS_DB.put(key, JSON.stringify(events), { expirationTtl: 60 * 60 * 24 * 8 });
-
-            // ژمارەی گشتی جارەکانی نووسین
-            const totalTxRaw = await env.STATS_DB.get("meta:total_textarea");
-            const newTotalTx = parseInt(totalTxRaw || "0") + 1;
-            await env.STATS_DB.put("meta:total_textarea", String(newTotalTx));
-
-            return json({ success: true }, 200, corsHeaders);
+            if (events.length > 200) events.splice(0, events.length - 200);
+            await env.STATS_DB.put(key, JSON.stringify(events), { expirationTtl: 691200 });
+            const tot = parseInt(await env.STATS_DB.get("meta:total_textarea") || "0");
+            await env.STATS_DB.put("meta:total_textarea", String(tot + 1));
+            return ok({ success: true });
         }
 
-        return json({ error: "جۆری داواکارییەکە نادروستە" }, 400, corsHeaders);
+        return bad("جۆری نادروست");
 
     } catch (err) {
-        return json({ error: err.message }, 500, corsHeaders);
+        return err500(err);
     }
 }
 
 export async function onRequestOptions() {
-    return new Response(null, {
-        status: 204,
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        }
-    });
+    return new Response(null, { status: 204, headers: CORS });
 }
 
-// ---- یارمەتیدەرەکان ----
-function todayStr() {
-    return new Date().toISOString().slice(0, 10); // "2025-06-15"
-}
-
-function json(data, status, headers) {
-    return new Response(JSON.stringify(data), { status, headers });
-}
+function isoDate(d) { return d.toISOString().slice(0, 10); }
+function safeJson(raw, def) { try { return raw ? JSON.parse(raw) : def; } catch(e) { return def; } }
+function ok(data)  { return new Response(JSON.stringify(data),                 { status: 200, headers: CORS }); }
+function bad(msg)  { return new Response(JSON.stringify({ error: msg }),       { status: 400, headers: CORS }); }
+function err500(e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: CORS }); }

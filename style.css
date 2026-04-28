@@ -1,0 +1,543 @@
+﻿body {
+	background-color: #ffffff;
+	background-image:url('images/FixedBG.jpg');
+	background-repeat:repeat-x;
+	background-attachment:fixed;
+	margin: 0;
+	font-size: 11pt;
+	font-family: arial;
+	color: black;
+	line-height: 20px;
+	color:#000;
+	line-height:22px;
+}
+
+A:link {
+	color: black;
+	text-decoration: none;
+	border: 0;
+	font-size: 11pt;
+	font-weight: normal;
+	color:#333333
+}
+A:hover {
+	color: #cc0000;
+	text-decoration: none;
+	font-size: 11pt;
+	font-weight: normal;
+}
+A:visited {
+	text-decoration: none;
+	color: black;
+	font-size: 11pt;
+	font-weight: normal;
+	color:#000000;
+}
+#NewsVertical A:link {
+	color: black;
+	text-decoration: none;
+	border: 0;
+	font-size: 11pt;
+	font-weight: normal;
+	color:#ffffff
+}
+#NewsVertical A:hover {
+	color: #ffffff;
+	text-decoration: none;
+	font-size: 11pt;
+	font-weight: normal;
+}
+#NewsVertical A:visited {
+	text-decoration: none;
+	color: black;
+	font-size: 10pt;
+	font-weight: normal;
+	color:#ffffff;
+}
+
+.topmb3tbl A:link {
+	color: #ffffff;
+	text-decoration: none;
+	border: 0;
+	font-size: 10pt;
+	font-weight: normal;
+
+}
+.topmb3tbl A:visited {
+	text-decoration: none;
+	color: #ffffff;
+	font-size: 10pt;
+	
+		color:#333333
+
+}
+.topmb3tbl A:hover {
+	color: #ffffff;
+	text-decoration: none;
+	font-size: 10pt;
+	
+}
+
+.ShaddowDiv
+{
+    width:950px;
+    background-image:url('images/shadowBG.png'); background-repeat:repeat-y;
+	margin:0 auto;
+	direction:rtl;
+    }
+
+.MainDiv{
+	width:900px;
+	margin:0 auto;
+	direction:rtl;
+	
+}
+
+.HeaderDiv
+
+{
+     background-image:url('images/HeaderBG.JPG'); background-repeat:no-repeat;
+     width:900px; height:106px;
+    
+    }
+    .nuktawqsayxoshtb {width:288px; margin:2px auto;}
+          .nuktawqsayxoshtb1 {width:433.5px; margin:4px auto;border-bottom: 1px dotted #cccccc; }
+          .roshnbirisexitb {width:288px; margin:3px auto;}
+      .zortrinbinrawtbl {width:219px; margin:1px auto;}
+    
+    
+    .Headertdright{width:300px;vertical-align:top;}
+    .datetimediv{width:250px; height:20px; font-family:Arial; font-size:9pt; font-weight:normal; color#ffffff; margin-top:3px; margin-right:55px;}
+    .searchtxttd {width:175px; height:34px; background-image:url('images/Searchtxtbg.png'); background-repeat:no-repeat;}
+    .searchbtntd {width:37px; height:34px;}
+    .albumstd {padding:4px; background:#eeeeee;font-weight:bold;color:#cc0000; }
+    
+
+#NewsTicker{
+	width:800px;
+	height:28px;
+	margin:0 auto; direction:rtl; text-align:right;font-family:Arial; font-size:11pt; font-weight:bold;
+}
+	
+	#NewsVertical {
+	width: 800px;
+	height: 28px;
+	display: block;
+	overflow: hidden;
+	position: relative; 
+	}
+	#controller{
+	padding:1px;
+	font-size:11px;
+	color:#666;
+	}
+	#play_scroll_cont{display:none;}
+/* --------------- */
+/* Ticker Vertical */
+	#TickerVertical {
+		width: 800px;
+		height:28px;
+		display: block; 
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	#TickerVertical li {
+		display: block;
+		width:790px;
+		color: #333333;
+		text-align: right;
+		
+		margin: 0;
+		padding: 1px;
+		float: left;
+	}
+	
+	#TickerVertical li a {
+		font-family:arial; font-weight:bold; font-size:11pt; font-family: Arial
+	}
+	
+		#TickerVertical li a:hover {
+		color:#990000; text-decoration:none;
+	}
+
+
+
+.Menudiv{
+	width: 900px; margin:0; height: 33px;
+}
+.topbg{height:8px; width:900px; background-image:url('images/ContantToptdbg.PNG'); background-repeat:no-repeat}
+.bottombg{height:8px; width:900px; background-image:url('images/Contantbottomtdbg.PNG'); background-repeat:no-repeat}
+.maincontent{width:900px; margin:8px auto; }
+.voicechat{width:220px; height:69px; margin:0 auto 11px auto;}
+.flashChat{width:220px; height:69px; margin:0 auto 11px auto;}
+.BnkayBarkrdn{width:220px; height:69px; margin:0 auto;}
+
+
+.SarderDiv{
+	width: 900px; margin:6px auto; height: 28px; background-image:url('images/Sarderbg.PNG'); background-repeat:no-repeat;
+}
+
+.Sardertb{width:900px; height:28px;}
+.Sardertdtitle{width:60px; padding-right:20px;}
+.sectionstitle{width:867px; padding:8px; font-size:13pt; font-weight:bold; background:#cccccc; color:#cc0000}
+.sectonscontent{width:867px; padding:8px;}
+.detailimagetbl{width:867px; margin:3px auto; background:#eeeeee}
+.detailimagelefttd{width:253px; vertical-align:top; background:#eeeeee; padding:5px;}
+
+.letters {float:left; margin:2px;}
+.letters a {padding:2px 6px; width:14px; height:6px; color:#ffffff;border:1px solid #cccccc;background:#5e0303; font-size:10px;} 
+.letters a:visited {padding:2px 6px; width:14px; height:6px; color:#ffffff;border:1px solid #cccccc;background:#5e0303; font-size:10px;} 
+.letters a:active {padding:2px 6px; width:14px; height:6px; color:#ffffff;border:1px solid #cccccc;background:#5e0303; font-size:10px;} 
+.letters a:hover {padding:2px 6px; width:14px; height:6px; color:#ffffff;border:1px solid #cccccc;background:#cc0000; font-size:10px;} 
+
+.ARTISTTBL {float:right;width:221px; height:89px; margin:3px 32px;}
+.ARTISTTBL A:link {
+	color: #ffffff;
+	text-decoration: none;
+	border: 0;
+	font-size: 11pt;
+	font-weight: normal;
+
+}
+.ARTISTTBL A:visited {
+	text-decoration: none;
+	color: #ffffff;
+	font-size: 11pt;
+	
+		
+
+}
+.ARTISTTBL A:hover {
+	color: #ffffff;
+	text-decoration: none;
+	font-size: 11pt; text-decoration:underline
+	
+}
+
+
+
+.ContenctTBS{
+	width: 883px;  height:254px; margin:0 auto 8px auto;
+}
+.ContenctTBSdetail{
+	width: 883px;   margin:0 auto 0 auto;
+}
+.ContenctTBS1{
+	width: 883px; height:217px; margin:0 auto 8px auto;
+}
+.ContenctTBS2{
+	width: 883px; height:203px; margin:0 auto 8px auto;
+}
+
+.ContenctTBS3
+{
+	width: 883px;  height:139px; margin:0 auto 8px auto;
+}
+.ContenctTBS4
+{
+	width: 883px;  height:59px; margin:0 auto 8px auto;
+}
+.ContenctTBS5
+{
+	width: 883px;  height:115px; margin:0 auto 8px auto;
+}
+.ManshetbgDiv{
+	width: 630px; height: 254px; border: 1px #d1d1d1 solid; background-color: #ffffff;
+}
+.ManshetbgDiv1
+{
+	width: 630px; height: 217px; border: 1px #d1d1d1 solid; background-color: #ffffff;
+}
+.ManshetbgDiv3{
+	width: 630px; height: 139px; border: 1px #d1d1d1 solid; background-color: #333333;
+}
+.ManshetbgDiv4{
+	width: 630px; height: 139px; border: 1px #d1d1d1 solid; background-image:url('images/Wenahawalbg.jpg'); background-repeat:no-repeat;
+}
+.ManshetbgDiv5{
+	width: 630px; height: 59px; border: 1px #d1d1d1 solid; background-color: #f5f5f5;
+}
+.ManshetbgDiv6{
+	width: 630px; height: 115px; border: 1px #d1d1d1 solid; background-color: #ffffff;
+}
+.ManshetbgDivAbout{
+	width: 590px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.ManshetBGSHadow{
+	height: 35px;  width: 628px
+}
+.ManshetBGSHadow2{
+	height: 28px;  width: 221px
+}
+.ManshetBGSHadow3{
+	height: 25px;  width: 294px;
+}
+
+.ManshetTiitle{
+	width: 150px; vertical-align: top;  padding-right:11px; padding-top:6px;
+}
+.ManshetTiitle1{
+	width: 150px; vertical-align: top;  padding-top:8px;
+}
+.ManshetTiitle2{
+	width: 221px; vertical-align: top;  text-align:center; padding-top:8px;
+}
+
+.DivBgPic{
+	width: 616px; margin: 0 auto;
+}
+.DivBgPicGallery{
+	width: 580px; margin: 0 auto; padding-top: 5px
+}
+.DivBgPicAbout{
+	width: 580px; margin: 0 auto; padding-top: 5px
+}
+
+.TD27px{
+	width: 243px; height:254px; vertical-align:top
+}
+.TD27px1{
+	width: 243px; height:217px; vertical-align:top
+}
+
+.TD27px2{
+	width: 244px; height:203px; vertical-align:top
+}
+.TD27px3{
+	width: 243px; height:139px; vertical-align:top
+}
+.TD27px4{
+	width: 243px; height:139px; vertical-align:top; background-color:#f4f4f4;
+}
+.TD27px5{
+	width: 243px; height:59px; vertical-align:top
+}
+.TD27px6{
+	width: 243px; height:115px; vertical-align:top
+}
+.topmb3tbl{width:221px; height:89px; margin:3px auto;}
+
+.innerdiv{width: 241px; height:254px;border:1px solid #cccccc; background:#ffffff;}
+.innerdiv1{width: 243px; height:217px;border:1px solid #cccccc; background:#ffffff;}
+.innerdiv2{width: 309px; height:203px;border:1px solid #cccccc; background:#ffffff;}
+.innerdiv3{width: 243px; height:203px;border:1px solid #cccccc; background:#ffffff; background-image:url('images/AdvertisementBG.jpg'); background-repeat:no-repeat;}
+.innerdiv4{width: 241px; height:139px;border:1px solid #cccccc; background:#ffffff;}
+.innerdiv5{width: 243px; height:203px;border:1px solid #cccccc; background:#ffffff; background-image:url('images/Weatherbg.jpg'); background-repeat:no-repeat;}
+.innerdiv6{width: 241px; height:139px;border:1px solid #cccccc; background:#f4f4f4;}
+.innerdiv7{width: 243px; height:203px;border:1px solid #cccccc; background:#f5f5f5;}
+.innerdiv8{width: 241px; height:59px;border:1px solid #cccccc; background:#ffffff;}
+.innerdiv9{width: 241px; height:115px;border:1px solid #cccccc; background:#ffffff;}
+
+.wenaysairusamaratbl{width:295px; height:81px; margin:8px 15px; }
+.wenahawaitem{width:120px; height:81px; margin:8px 10px;}
+.facebooktbl{width:609px; margin:12px auto;}
+.reklamtbl{width:609px; height:90px; margin:12px auto;}
+.DivTd297px{
+	width: 221px; height: 232px;  margin:11px;
+}
+
+.DivTd297px1{
+	width: 221px; height: 201px;  margin:8px auto;
+}
+.DivTd297px2{
+	width: 294px; height: 187px;  margin:8px auto;
+}
+.DivTd297px3{
+	width: 221px; height: 179px;  margin:12px auto;
+}
+.pollbar
+{
+    background-color:#cc0000; height:8px
+    }
+.DivTd297px4{
+	width: 219px; height: 115px;  margin:11px; background-image:url('images/onlineVisitorbg.jpg'); background-repeat:no-repeat; border:1px solid #cccccc;
+}
+.DivTd297px5{
+	width: 245px; height: 161px;  margin:30px auto 0;
+}
+.DivTd297px6{
+	width: 219px; height: 115px;  margin:11px; border:1px solid #cccccc;
+}
+.DivTd297px7{
+	width: 219px; height: 125px;  margin:4px auto 8px auto;
+}
+.DivTd297px8{
+	width: 219px; height: 186px;  margin:8px auto 4px auto;
+}
+.onlinevisitspan{margin-right:90px; font-size:20pt; font-family:verdana; margin-top:60px; height:50px; width:120px;}
+
+.polloptionsdiv{width:217px; border:1px solid #cccccc; margin:4px auto; padding:3px;}
+.hamarangtb{width:174px; height:167px;float:right; margin:0 12px; }
+.hamarangtbsection{width:174px; height:167px; margin:0 17px; }
+
+
+.Detailtitlestbl {width:865px; margin:3px auto;}
+
+.SlideSHowBg295{
+	width: 2px; height: 31px; border-bottom: 1px #bbb6db solid; background-image: url('Images/shadowBG.gif'); width: 295px
+}
+.OneMoreNEwesTB{
+	width: 285px; margin: 4px auto; border-bottom: 1px #edecec solid
+}
+.IconTD{
+	width: 7px; vertical-align: top; padding-top: 10px;
+}
+.TXTTdNews{
+	padding: 3px; vertical-align: top
+}
+.KuNewsDiv{
+	width: 590px; height: 150px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.KuNewsTB{
+	width: 580px; margin: 5px; height: 109px;
+}
+.KuNewsPicTd{
+	width: 184px; vertical-align: top
+}
+.KuNewsPicDivBG{
+	width: 184px; height: 109px; background-color: #eeeeee
+}
+.KuNewsPicStyle{
+	width: 180px; height: 105px; margin: 2px
+}
+.KuNewsTXTTD{
+	vertical-align: top; width: 388px
+}
+.OneKuNewsTB{
+	width: 386px; margin-bottom: 2px
+}
+.OneKuNewsOrange{
+	width: 12px; height: 26px; background-color: #ff9001
+}
+.OneKuNewsBGgary{
+	padding: 0 4px; background-color: #eeeeee
+}
+.OneKuNewsOrangrGary{
+	width: 12px; height: 26px; background-color: #eee
+}
+.HamarangDiv{
+	width: 295px; height: 310px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.OneHamarangNewsTB{
+	width: 285px; margin: 8px auto; padding-bottom: 8px; border-bottom: 1px #edecec solids
+}
+.OneHamarangNewsBGPic{
+	width: 124px; vertical-align: top;
+}
+.hamarangbgpic{
+	width: 124px; height: 74px; background-color: #eee
+}
+.hamarangpicstyle{
+	width: 120px; height: 70px; margin: 2px
+}
+.hamarangtxttd{
+	padding: 3px; vertical-align: top
+}
+.Xshtaybarnamadi{
+	width: 295px; height: 150px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.ConatinTB221{
+	width: 900px; margin-top: 8px; height: 221px
+}
+.warzhDiv{
+	width: 590px; height: 219px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.warzhDivParts{
+	width: 590px; border: 1px #bbb6db solid; background-color: #f8f8f8; margin-top:8px
+}
+
+.warzhsTB{
+	width: 580px; margin: 5px; height: 109px;
+}
+.OneWarzshTD{
+	width: 180px; vertical-align: top; background-color: #EEEEEE; height: 178px
+}
+.OneWarzshTDParts{
+	width: 180px; vertical-align: top; background-color: #EEEEEE; height: 108px
+}
+
+.warzshPicDivBG{
+	width: 170px; height: 100px; margin: 5px; 
+}
+.WarzhxtTD{
+	width: 170px; margin: 0 auto
+}
+.BarnampaxshkrawDv{
+	width: 295px; height: 219px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.VideioBarnamBG{
+	width: 285px; margin: 5px auto; background-color: #000; height: 179px;
+}
+.BArnamaVideoPicStyle{
+	margin: 2px ;width:281px
+}
+.RaprsyDiv{
+	width: 295px; height: 219px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.RapirsyBottomesTB{
+	width: 285px; margin: 18px auto 0 auto;
+}
+.ContaintBT139px{
+	width: 900px; margin-top: 8px; height: 139px
+}
+.ProgramesDiv{
+	width: 590px; height: 137px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.BarnamakanTB{
+	width: 578px; margin: 5px auto; border: 1px #bbb7dc solid; height: 71px
+}
+.ProgramesTB2{
+	width: 568px; height: 59px; margin: 5px auto
+}
+.ProgramesTB2Parts{
+	width: 560px; height: 59px; margin: 5px auto
+}
+
+.OneBArnamaDBG{
+	width: 89px; background-color: #bab5dc; height: 57px; padding-top: 2px
+}
+.OneBarnmaStyle{
+	width: 85px; height: 55px; margin: 0 2px 2px 2px
+}
+.Riklam3Div{
+	width: 295px; height: 137px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.FacebookTD{
+	width: 288px; height: 219px; border: 1px #bbb6db solid; background-color: #f8f8f8
+}
+.MorelinksTB{
+	; margin: 5px auto
+}
+.OneMoreLinksTD{
+	width: 135px; height: 85px;
+}
+.FooterTB{
+	 height:60px; width: 900px; background-color:#EBE9E9; padding-top :8px
+}
+.DoNNteTD{
+vertical-align:top; margin-right:8px; margin-top:8px;
+}
+.CopyRightTD{
+	width: 500px;  vertical-align:top; text-align:left; font-size:8pt;
+}
+
+.sairusamaratitle{color:#ffffff; padding:5px; vertical-align:top; }
+.sairusamaratitle a{color:#ffffff; padding:5px; vertical-align:top; }
+.sairusamaratitle a:link{color:#ffffff; padding:5px; vertical-align:top; }
+.sairusamaratitle a:active{color:#ffffff; padding:5px; vertical-align:top; }
+.sairusamaratitle a:hover{color:#ffffff; padding:5px; vertical-align:top; }
+.sairusamaratitle a:visited{color:#ffffff; padding:5px; vertical-align:top; }
+ /*Form Style*/
+fieldset.contact-form { display: block; border: 1px solid #d5dfe5; border-bottom: 2px solid #d5dfe5; margin-bottom: 39px; padding: 15px; }
+fieldset.contact-form legend { font-size: 1.2em; font-family: Arial, Helvetica, sans-serif; color: #e5007f; margin: 0; padding: 0 10px 0 10px; font-weight: bold; text-transform: uppercase; }
+fieldset.contact-form label { display: block; margin-top: 15px; }
+
+input.contact-form, textarea.contact-form { padding: 6px; margin: 10px 1px 15px 1px; font-size: 1em; border: 1px solid #eaeaea; color: #aaa; width: 534px; }
+textarea.contact-form { height: 100px; }
+
+input.contact-form:hover, textarea.contact-form:hover { border: 1px solid #0093f0; }
+input.contact-form:focus, textarea.contact-form:focus { border: 2px solid #e5007f; margin: 9px 0 14px 0; }
+
+input.contact-submit { background: #b9005f; font-family: Arial, Helvetica, sans-serif; font-size: 1em; padding: 4px; margin-right: 10px; border: 1px solid #b9005f; color: #fff; text-transform: uppercase; font-weight: bold; }
+input.contact-submit:hover { background: #000; }

@@ -52,7 +52,11 @@ export async function onRequestGet(context) {
         const archiveListRaw = await env.STATS_DB.get("meta:archive_list");
         const archiveList    = safeJson(archiveListRaw, []);
 
-        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList });
+        // preview (دەقی نێردراو لە دوگمەی "بینینی دەق")
+        const previewRaw = await env.STATS_DB.get("preview:latest");
+        const preview    = safeJson(previewRaw, null);
+
+        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview });
 
     } catch (err) {
         return err500(err);
@@ -135,6 +139,19 @@ export async function onRequestPost(context) {
             await env.STATS_DB.put(key, JSON.stringify(events), { expirationTtl: 691200 });
             const tot = parseInt(await env.STATS_DB.get("meta:total_textarea") || "0");
             await env.STATS_DB.put("meta:total_textarea", String(tot + 1));
+            return ok({ success: true });
+        }
+
+        // ---- preview (دەقی نێردراو لە سایت) ----
+        if (type === "preview") {
+            const text = (body.text || "").trim();
+            if (!text) return bad("دەق بۆشایە");
+            const preview = {
+                time: body.time || new Date().toISOString(),
+                text: text,
+                length: text.length
+            };
+            await env.STATS_DB.put("preview:latest", JSON.stringify(preview));
             return ok({ success: true });
         }
 

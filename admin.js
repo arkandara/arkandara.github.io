@@ -255,10 +255,20 @@ function saveRss() {
 // ===========================
 
 var BTN_DEFAULTS = [
-    { label: "گۆڕین بۆ یونیکۆد", color: "#2e7d32", action: "convert('toUni')" },
-    { label: "گۆڕین بۆ عەلی",    color: "#1565c0", action: "convert('toAli')" },
-    { label: "کەتکردن",           color: "#6a1b9a", action: "copyText()" },
-    { label: "سڕینەوەی دەق",      color: "#c62828", action: "clearText()" }
+    // ---- گروپی تووڵبار (btn-group) ----
+    { label: "↺ یونیكۆد - ڕێنووس",       color: "#2e7d32", action: "convert('toUni')",    group: "toolbar", cls: "btn-uni" },
+    { label: "↻ عەلی کەی",               color: "#d4ac0d", action: "convert('toAli')",    group: "toolbar", cls: "btn-ali" },
+    { label: "✂️ كه‌تكردن",              color: "#6a1b9a", action: "copyText()",           group: "toolbar", cls: "btn-copy" },
+    { label: "🗑️ سڕینه‌وه‌",            color: "#c62828", action: "clearText()",          group: "toolbar", cls: "btn-clear" },
+    { label: "✦ Gemini",                  color: "#1a73e8", action: "sendToGemini()",       group: "toolbar", cls: "btn-nav" },
+    { label: "📤 بینینی دەق لە پانێڵ",  color: "#6a1b9a", action: "sendTextToAdmin()",    group: "toolbar", cls: "btn-nav" },
+    { label: "💾 پاشه‌كه‌وتكردن به‌ Word", color: "#2b5797", action: "downloadAsWord()",  group: "toolbar", cls: "btn-nav", fixed: true },
+    // ---- گروپی تیکەر (news-ticker) ----
+    { label: "سڕینه‌وه‌ی بۆشایی دێڕه‌كان", color: "#ff9800", action: "removeEmptyLines()",                         group: "ticker" },
+    { label: "گەڕان و گۆڕینی وشه‌ 🔍",    color: "#e91e63", action: "toggleFindReplace()",                          group: "ticker" },
+    { label: "هێنانی Word",               color: "#607d8b", action: "document.getElementById('fileInput').click()", group: "ticker" },
+    { label: "تێكستی ناو وێنه 🖼️",       color: "#808080", action: "triggerOcrInput()",                            group: "ticker" },
+    { label: "داگرتنی ڤیدیۆ",             color: "#1a73e8", action: "toggleDlModal()",                              group: "ticker" }
 ];
 
 function loadButtons() {
@@ -267,26 +277,41 @@ function loadButtons() {
         .then(function(d) {
             var btns = (d.settings && d.settings.toolbarBtns) ? d.settings.toolbarBtns : BTN_DEFAULTS;
             var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action); }); }
+            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed); }); }
         })
         .catch(function() {
             var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action); }); }
+            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed); }); }
         });
 }
 
-function addBtnRow(label, color, action) {
+function addBtnRow(label, color, action, group, fixed) {
     label  = label  || "";
     color  = color  || "#2e7d32";
     action = action || "";
+    group  = group  || "toolbar";
+    fixed  = fixed  || false;
+
     var list = document.getElementById("btnList");
     var row  = document.createElement("div");
     row.className = "btn-row";
+
+    var groupBadge = group === "ticker"
+        ? '<span style="font-size:0.72em;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:4px;border:1px solid #ffe0b2;">تیکەر</span>'
+        : '<span style="font-size:0.72em;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:4px;border:1px solid #c8e6c9;">تووڵبار</span>';
+
+    var delBtn = fixed
+        ? '<span style="font-size:0.72em;color:#aaa;padding:0 8px;"><i class="fas fa-lock"></i></span>'
+        : '<button class="del-btn" onclick="this.closest(\'.btn-row\').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
+
     row.innerHTML =
+        '<input type="hidden" class="btn-group-val" value="' + escHtml(group) + '">' +
+        '<input type="hidden" class="btn-fixed-val" value="' + (fixed ? "1" : "0") + '">' +
         '<input type="color" value="' + escHtml(color) + '" class="btn-color-preview" title="ڕەنگ">' +
-        '<input type="text" placeholder="تێکستی دوگمە" value="' + escHtml(label) + '" class="btn-label">' +
-        '<input type="text" placeholder="فەنکشن (onclick)" value="' + escHtml(action) + '" class="btn-action" dir="ltr" style="font-family:monospace;font-size:0.82em;">' +
-        '<button class="del-btn" onclick="this.closest(\'.btn-row\').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
+        groupBadge +
+        '<input type="text" placeholder="تێکستی دوگمە" value="' + escHtml(label) + '" class="btn-label" style="flex:1;">' +
+        '<input type="text" placeholder="فەنکشن (onclick)" value="' + escHtml(action) + '" class="btn-action" dir="ltr" style="font-family:monospace;font-size:0.82em;flex:1.2;">' +
+        delBtn;
     list.appendChild(row);
 }
 
@@ -297,7 +322,9 @@ function saveButtons() {
         var label  = row.querySelector(".btn-label").value.trim();
         var color  = row.querySelector(".btn-color-preview").value;
         var action = row.querySelector(".btn-action").value.trim();
-        if (label) btns.push({ label: label, color: color, action: action });
+        var group  = row.querySelector(".btn-group-val")  ? row.querySelector(".btn-group-val").value  : "toolbar";
+        var fixed  = row.querySelector(".btn-fixed-val")  ? row.querySelector(".btn-fixed-val").value === "1" : false;
+        if (label) btns.push({ label: label, color: color, action: action, group: group, fixed: fixed });
     });
     fetch("/track", {
         method: "POST",
@@ -478,6 +505,21 @@ function renderSnapshots(snaps) {
     el.innerHTML = html;
 }
 
+
+function deleteAllSnaps() {
+    if (!_currentSnaps.length) { showToast("⚠️ هیچ دەقێک نییە", true); return; }
+    if (!confirm("دڵنیایت لە سڕینەوەی هەموو " + _currentSnaps.length + " دەق؟")) return;
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "snapshots_replace", snaps: [] })
+    }).then(function() {
+        _currentSnaps = [];
+        renderSnapshots([]);
+        showToast("✅ هەموو دەقەکان سڕایەوە");
+    }).catch(function() { showToast("⚠️ هەڵە لە سڕینەوە", true); });
+}
+
 function toggleSnap(uid) {
     var prev = document.getElementById(uid + "_prev");
     var full = document.getElementById(uid + "_full");
@@ -583,21 +625,17 @@ function changePassword() {
 
 // ---- سفرکردنەوەی دەستی ئامارەکان ----
 function manualClearStats() {
-    if (!confirm("دڵنیایت لە سفرکردنەوەی هەموو ئامارەکان؟\nئەمە ناگەڕێتەوە!")) return;
+    if (!confirm("دڵنیایت لە سفرکردنەوەی ئامارەکان؟\nئامارەی کلیک و سەردان دەمێننەوە — تەنها دەقەکان دەسڕێنەوە.")) return;
+    // تەنها snapshot ەکانی ئەمرۆ بسڕەوە
     fetch("/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "daily_clear", secret: "clear_daily_2024" })
-    }).then(function(r) { return r.json(); })
-    .then(function(d) {
-        if (d.success) {
-            showToast("✅ ئامارەکان سفر کران — " + (d.cleared || ""));
-            loadStats();
-        } else {
-            showToast("⚠️ " + (d.error || "هەڵە"), true);
-        }
-    })
-    .catch(function() { showToast("⚠️ هەڵە لە سفرکردنەوە", true); });
+        body: JSON.stringify({ type: "snapshots_replace", snaps: [] })
+    }).then(function() {
+        _currentSnaps = [];
+        renderSnapshots([]);
+        showToast("✅ دەقەکانی ئەمرۆ سڕایەوە");
+    }).catch(function() { showToast("⚠️ هەڵە لە سفرکردنەوە", true); });
 }
 
 

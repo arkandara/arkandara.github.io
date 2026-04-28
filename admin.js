@@ -285,7 +285,7 @@ function loadStats() {
 
             renderClickChart(clicks);
             renderSessions(data.recentSessions || []);
-            renderTextareaEvents(data.textareaToday || []);
+            renderSnapshots(data.snapshots || []);
         })
         .catch(function(err) {
             showToast("⚠️ هەڵە لە بارکردنی ئامارەکان: " + err.message, true);
@@ -349,28 +349,62 @@ function renderSessions(sessions) {
 }
 
 // ---- Textarea ئامارەکان ----
-function renderTextareaEvents(events) {
+function renderSnapshots(snaps) {
     var el = document.getElementById("textareaList");
     if (!el) return;
 
-    if (!events || !events.length) {
-        el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک نووسراو نییە ئەمرۆ</div>';
+    if (!snaps || !snaps.length) {
+        el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک تۆمار نەکراوە ئەمرۆ</div>';
         return;
     }
 
-    var rows = events.slice().reverse().slice(0, 20).map(function(e, i) {
-        return '<tr>' +
-            '<td>' + (i + 1) + '</td>' +
-            '<td>' + new Date(e.time).toLocaleTimeString() + '</td>' +
-            '<td>' + e.length + ' پیت</td>' +
-            '<td style="font-size:0.85em;direction:rtl;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
-                escHtml(e.preview || "") + '</td>' +
-            '</tr>';
-    }).join("");
+    var html = '<div class="snap-list">';
+    snaps.slice(0, 50).forEach(function(s, i) {
+        var uid     = "snap_" + i;
+        var timeStr = "";
+        try { timeStr = new Date(s.time).toLocaleTimeString(); } catch(e) {}
+        var txt     = s.text || s.preview || "";
+        var shortTxt = txt.length > 80 ? txt.substring(0, 80) + "…" : txt;
 
-    el.innerHTML = '<table class="stats-table">' +
-        '<thead><tr><th>#</th><th>کات</th><th>درێژی</th><th>دەستپێک</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table>';
+        html += '<div class="snap-row" id="' + uid + '_row">' +
+            '<div class="snap-header">' +
+                '<span class="snap-label"><i class="fas fa-mouse-pointer"></i> ' + escHtml(s.label || "—") + '</span>' +
+                '<span class="snap-time"><i class="fas fa-clock"></i> ' + timeStr + '</span>' +
+                '<span class="snap-len">' + (s.length || txt.length) + ' پیت</span>' +
+                (txt.length > 0
+                    ? '<button class="snap-toggle-btn" onclick="toggleSnap('' + uid + '')">' +
+                      '<i class="fas fa-chevron-down" id="' + uid + '_icon"></i> خوێندنەوە</button>'
+                    : '<span style="color:#aaa;font-size:0.8em">— بۆشا —</span>') +
+            '</div>' +
+            (txt.length > 0
+                ? '<div class="snap-preview" id="' + uid + '_prev">' + escHtml(shortTxt) + '</div>' +
+                  '<div class="snap-full" id="' + uid + '_full" style="display:none">' + escHtml(txt) + '</div>'
+                : '') +
+        '</div>';
+    });
+    html += '</div>';
+
+    el.innerHTML = html;
+}
+
+function toggleSnap(uid) {
+    var prev = document.getElementById(uid + "_prev");
+    var full = document.getElementById(uid + "_full");
+    var icon = document.getElementById(uid + "_icon");
+    var btn  = icon ? icon.closest("button") : null;
+    if (!prev || !full) return;
+
+    if (full.style.display === "none") {
+        prev.style.display = "none";
+        full.style.display = "block";
+        if (icon) icon.className = "fas fa-chevron-up";
+        if (btn)  btn.innerHTML  = '<i class="fas fa-chevron-up" id="' + uid + '_icon"></i> داخستن';
+    } else {
+        prev.style.display = "block";
+        full.style.display = "none";
+        if (icon) icon.className = "fas fa-chevron-down";
+        if (btn)  btn.innerHTML  = '<i class="fas fa-chevron-down" id="' + uid + '_icon"></i> خوێندنەوە';
+    }
 }
 
 function clearStats() {

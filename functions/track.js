@@ -56,7 +56,11 @@ export async function onRequestGet(context) {
         const previewRaw = await env.STATS_DB.get("preview:latest");
         const preview    = safeJson(previewRaw, null);
 
-        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview });
+        // ڕێکخستنەکانی سایت
+        const settingsRaw = await env.STATS_DB.get("settings:site");
+        const settings    = safeJson(settingsRaw, null);
+
+        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings });
 
     } catch (err) {
         return err500(err);
@@ -152,6 +156,30 @@ export async function onRequestPost(context) {
                 length: text.length
             };
             await env.STATS_DB.put("preview:latest", JSON.stringify(preview));
+            return ok({ success: true });
+        }
+
+        // ---- ڕێکخستنەکانی سایت ----
+        if (type === "settings") {
+            const allowed = ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","rssSources","toolbarBtns"];
+            const settings = {};
+            allowed.forEach(k => { if (body[k] !== undefined) settings[k] = body[k]; });
+            await env.STATS_DB.put("settings:site", JSON.stringify(settings));
+            return ok({ success: true });
+        }
+
+        // ---- settings (ڕێکخستنەکانی سایت لە ئەدمین) ----
+        if (type === "settings") {
+            const allowed = ["siteName","siteAuthor","siteTitle","siteDesc",
+                             "primaryColor","bismillahText","bismillahSub",
+                             "rssSources","toolbarBtns"];
+            const data = {};
+            allowed.forEach(k => { if (body[k] !== undefined) data[k] = body[k]; });
+            if (!Object.keys(data).length) return bad("داتا بۆشایە");
+            // merge لەگەڵ ئەوەی کە هەیە
+            const existing = safeJson(await env.STATS_DB.get("settings:site"), {});
+            const merged   = Object.assign({}, existing, data);
+            await env.STATS_DB.put("settings:site", JSON.stringify(merged));
             return ok({ success: true });
         }
 

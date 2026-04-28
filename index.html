@@ -1604,17 +1604,16 @@ textarea {
 
             <textarea id="textBox" placeholder="لێره‌ بنووسه‌ یان ده‌قێك دابنێ..."></textarea>
         </div>
-        <div class="btn-group">
+        <div class="btn-group" id="mainBtnGroup">
             <button class="btn-uni" onclick="convert('toUni')">↺ یونیكۆد - ڕێنووس</button>
 <button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻ عەلی کەی</button>        
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
             <button class="btn-nav" style="background:#6a1b9a;" onclick="sendTextToAdmin()" title="ناردنی دەق بۆ پانێڵی ئەدمین">📤 بینینی دەق لە پانێڵ</button>
+            <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن به‌ Word</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
-
-            <button onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن به‌ Word</button>
            
 
 <div id="findReplaceModal">
@@ -3464,13 +3463,14 @@ function akTrackClick(label) {
                 window._kvRssSources = s.rssSources;
             }
 
-            // دوگمەکانی تووڵبار
+            // دوگمەکانی تووڵبار (دوگمەی Word هەرگیز ناسڕێتەوە)
             if (s.toolbarBtns && s.toolbarBtns.length) {
-                var btnGroup = document.querySelector('.btn-group');
-                if (btnGroup) {
-                    btnGroup.innerHTML = s.toolbarBtns.map(function(b) {
-                        return '<button class="btn-nav" style="background:' + (b.color || '#2e7d32') + ';" onclick="' + (b.action || '') + '">' + b.label + '</button>';
-                    }).join('');
+                var wordBtn = document.getElementById('wordBtn');
+                var kvBtns  = s.toolbarBtns.map(function(b) {
+                    return '<button class="btn-nav" style="background:' + (b.color || '#2e7d32') + ';" onclick="' + (b.action || '') + '">' + b.label + '</button>';
+                }).join('');
+                if (wordBtn) {
+                    wordBtn.insertAdjacentHTML('beforebegin', kvBtns);
                 }
             }
         })

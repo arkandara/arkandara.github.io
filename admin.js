@@ -317,6 +317,7 @@ function loadStats() {
     setEl("stat-btn-count",     "⏳");
     setEl("stat-top-btn",       "⏳");
     setEl("stat-total-textarea","⏳");
+    setEl("stat-kv-usage",      "⏳");
 
     fetch("/track")
         .then(function(r) {
@@ -341,6 +342,7 @@ function loadStats() {
             renderClickChart(clicks);
             renderSessions(data.recentSessions || []);
             renderSnapshots(data.snapshots || []);
+            renderKvUsage(data.kvUsage || null);
         })
         .catch(function(err) {
             showToast("⚠️ هەڵە لە بارکردنی ئامارەکان: " + err.message, true);
@@ -349,6 +351,7 @@ function loadStats() {
             setEl("stat-btn-count",     "—");
             setEl("stat-top-btn",       "—");
             setEl("stat-total-textarea","—");
+            setEl("stat-kv-usage",      "—");
         });
 }
 
@@ -401,6 +404,39 @@ function renderSessions(sessions) {
     sesEl.innerHTML = '<table class="stats-table">' +
         '<thead><tr><th>#</th><th>کات</th><th>شار و وڵات</th><th>ئامێر</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table>';
+}
+
+
+// ---- پری KV ----
+function renderKvUsage(usage) {
+    var el = document.getElementById("stat-kv-usage");
+    if (!el) return;
+    if (!usage) { el.textContent = "—"; return; }
+    var pct  = usage.percent || 0;
+    var used = usage.usedMB  || "?";
+    var max  = usage.maxMB   || "?";
+    el.textContent = used + " / " + max + " MB";
+    var bar = document.getElementById("kv-usage-bar");
+    if (bar) {
+        bar.style.width = Math.min(pct, 100) + "%";
+        bar.style.background = pct > 80 ? "#e53935" : pct > 50 ? "#fb8c00" : "var(--accent)";
+    }
+}
+
+
+function renderKvUsage(usage) {
+    var el = document.getElementById("stat-kv-usage");
+    if (!el) return;
+    if (!usage) { el.textContent = "نادیاره"; return; }
+    var pct  = usage.percent || 0;
+    var used = usage.usedMB  || "?";
+    var max  = usage.maxMB   || "?";
+    el.textContent = used + " / " + max + " MB  (" + pct + "%)";
+    var bar = document.getElementById("kv-usage-bar");
+    if (bar) {
+        bar.style.width = Math.min(pct, 100) + "%";
+        bar.style.background = pct > 80 ? "#e53935" : pct > 50 ? "#fb8c00" : "var(--accent)";
+    }
 }
 
 // ---- Textarea ئامارەکان ----
@@ -544,6 +580,27 @@ function changePassword() {
 // ===========================
 //  یارمەتیدەرەکان
 // ===========================
+
+// ---- سفرکردنەوەی دەستی ئامارەکان ----
+function manualClearStats() {
+    if (!confirm("دڵنیایت لە سفرکردنەوەی هەموو ئامارەکان؟\nئەمە ناگەڕێتەوە!")) return;
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "daily_clear", secret: "clear_daily_2024" })
+    }).then(function(r) { return r.json(); })
+    .then(function(d) {
+        if (d.success) {
+            showToast("✅ ئامارەکان سفر کران — " + (d.cleared || ""));
+            loadStats();
+        } else {
+            showToast("⚠️ " + (d.error || "هەڵە"), true);
+        }
+    })
+    .catch(function() { showToast("⚠️ هەڵە لە سفرکردنەوە", true); });
+}
+
+
 
 function setEl(id, val) {
     var el = document.getElementById(id);

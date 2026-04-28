@@ -61,7 +61,6 @@ function initPanel() {
     loadSiteInfo();
     loadRssSources();
     loadButtons();
-    loadArchiveList();
 
     var colorInput = document.getElementById("primaryColor");
     if (colorInput) {
@@ -75,7 +74,6 @@ function initPanel() {
     if (urlParams.get("tab") === "preview") {
         showTab("tab-preview");
     } else {
-        // بە شێوەی گشتی: ڕاستەوخۆ بچۆ بۆ ئامارەکان
         showTab("tab-stats");
     }
 }
@@ -95,17 +93,36 @@ const tabTitles = {
 };
 
 function showTab(id) {
-    document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
-    document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-    const navEl = document.getElementById("nav-" + id.replace("tab-", ""));
+    var tabEl = document.getElementById(id);
+    if (!tabEl) { console.warn("showTab: tab not found:", id); return; }
+    document.querySelectorAll(".tab-content").forEach(function(el) { el.classList.remove("active"); });
+    document.querySelectorAll(".nav-item").forEach(function(el) { el.classList.remove("active"); });
+    tabEl.classList.add("active");
+    var navEl = document.getElementById("nav-" + id.replace("tab-", ""));
     if (navEl) navEl.classList.add("active");
-    document.getElementById("pageTitle").textContent = tabTitles[id] || "";
+    var titleEl = document.getElementById("pageTitle");
+    if (titleEl) titleEl.textContent = tabTitles[id] || "";
     if (id === "tab-stats")   loadStats();
     if (id === "tab-archive") loadArchiveList();
-    if (id === "tab-preview")  loadPreviewText();
+    if (id === "tab-preview") loadPreviewText();
     if (window.innerWidth <= 700) {
-        document.getElementById("sidebar").classList.remove("open");
+        var sb = document.getElementById("sidebar");
+        if (sb) sb.classList.remove("open");
+    }
+}
+
+
+function resetAdminPass() {
+    if (confirm("دڵنیایت لە ڕیسێتکردنی پاسوۆرد؟\nپاسوۆردەکە دەگەڕێتەوە بۆ: arkandara2024")) {
+        localStorage.removeItem("adminPass");
+        ADMIN_PASS = "arkandara2024";
+        var errEl = document.getElementById("loginError");
+        if (errEl) {
+            errEl.style.display = "flex";
+            errEl.style.background = "#e8f5e9";
+            errEl.style.color = "#2e7d32";
+            errEl.innerHTML = '<i class="fas fa-check-circle"></i> پاسوۆرد ڕیسێت کرا: arkandara2024';
+        }
     }
 }
 
@@ -372,7 +389,7 @@ function renderSnapshots(snaps) {
                 '<span class="snap-time"><i class="fas fa-clock"></i> ' + timeStr + '</span>' +
                 '<span class="snap-len">' + (s.length || txt.length) + ' پیت</span>' +
                 (txt.length > 0
-                    ? '<button class="snap-toggle-btn" onclick="toggleSnap('' + uid + '')">' +
+                    ? '<button class="snap-toggle-btn" onclick="toggleSnap(\'' + uid + '\')">' +
                       '<i class="fas fa-chevron-down" id="' + uid + '_icon"></i> خوێندنەوە</button>'
                     : '<span style="color:#aaa;font-size:0.8em">— بۆشا —</span>') +
             '</div>' +

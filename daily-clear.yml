@@ -1,0 +1,25 @@
+# ============================================================
+#  .github/workflows/daily-clear.yml
+#  هەر شەو کاتژمێر ١٢ — ئامارەکانی سایت سفر دەبێتەوە
+# ============================================================
+
+name: 🌙 Daily Stats Clear (12 شەو)
+
+on:
+  schedule:
+    # کاتژمێر ٢١:٠٠ UTC = ١٢ شەو بە کاتی عێراق (UTC+3)
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+jobs:
+  clear:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🗑️ ئامارەکان سفر بکەرەوە
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "${{ secrets.SITE_URL }}/track" \
+            -H "Content-Type: application/json" \
+            -d "{\"type\":\"daily_clear\",\"secret\":\"${{ secrets.CLEAR_SECRET }}\"}")
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | grep -q '"success":true' && echo "✅ سفرکرا" || echo "❌ هەڵە"

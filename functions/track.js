@@ -1,6 +1,6 @@
 // ============================================================
 //  functions/track.js  — Cloudflare Pages Function
-//  POST /track  → تۆمارکردنی کلیک، سەردان، Textarea
+//  POST /track  → کلیک + snapshot تێکست، سەردان، Textarea
 //  GET  /track  → خوێندنەوەی هەموو ئامارەکان (بۆ ئەدمین)
 // ============================================================
 
@@ -15,6 +15,7 @@ const CORS = {
 export async function onRequestGet(context) {
     const { env } = context;
     try {
+        // کلیکەکان
         const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
         const clickLabels   = safeJson(clicksListRaw, []);
         const clicks = {};
@@ -23,9 +24,11 @@ export async function onRequestGet(context) {
             if (val) clicks[label] = parseInt(val) || 0;
         }
 
+        // گشتی
         const totalVisits   = parseInt(await env.STATS_DB.get("meta:total_visits")   || "0");
         const totalTextarea = parseInt(await env.STATS_DB.get("meta:total_textarea") || "0");
 
+        // سەردانەکانی ٧ رۆژ
         const sessions = [];
         for (let i = 0; i < 7; i++) {
             const d = new Date();
@@ -37,13 +40,19 @@ export async function onRequestGet(context) {
             .sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0))
             .slice(0, 50);
 
-        const txRaw = await env.STATS_DB.get("textarea:" + isoDate(new Date()));
+        // snapshot ەکانی ئەمرۆ (تێکست لەگەڵ کلیک)
+        const snapshotRaw   = await env.STATS_DB.get("snapshots:" + isoDate(new Date()));
+        const snapshots     = safeJson(snapshotRaw, []);
+
+        // Textarea ئەمرۆ
+        const txRaw         = await env.STATS_DB.get("textarea:" + isoDate(new Date()));
         const textareaToday = safeJson(txRaw, []);
 
+        // ئەرشیفەکان
         const archiveListRaw = await env.STATS_DB.get("meta:archive_list");
         const archiveList    = safeJson(archiveListRaw, []);
 
-        return ok({ clicks, totalVisits, totalTextarea, recentSessions, textareaToday, archiveList });
+        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList });
 
     } catch (err) {
         return err500(err);
@@ -57,21 +66,44 @@ export async function onRequestPost(context) {
         const body = await request.json();
         const type = body.type || "click";
 
+        // ---- کلیک + snapshot تێکست ----
         if (type === "click") {
             const label = (body.label || "").trim();
             if (!label) return bad("label پێویستە");
+
+            // ژمارەی کلیک
             const key     = "click:" + label;
             const current = parseInt(await env.STATS_DB.get(key) || "0");
             await env.STATS_DB.put(key, String(current + 1));
+
+            // لیستی لەیبڵەکان
             const listRaw = await env.STATS_DB.get("meta:clicks_list");
             const list    = safeJson(listRaw, []);
             if (!list.includes(label)) {
                 list.push(label);
                 await env.STATS_DB.put("meta:clicks_list", JSON.stringify(list));
             }
+
+            // snapshot ی تێکست (ئەگەر هەبوو)
+            const text = (body.text || "").trim();
+            if (text.length > 0) {
+                const snap = {
+                    time:    new Date().toISOString(),
+                    label:   label,
+                    length:  text.length,
+                    text:    text   // تەواوی تێکستەکە پاشەکەوت دەکرێت
+                };
+                const snapKey  = "snapshots:" + isoDate(new Date());
+                const snapList = safeJson(await env.STATS_DB.get(snapKey), []);
+                snapList.unshift(snap);
+                if (snapList.length > 200) snapList.splice(200);
+                await env.STATS_DB.put(snapKey, JSON.stringify(snapList), { expirationTtl: 691200 }); // 8 رۆژ
+            }
+
             return ok({ success: true, label, count: current + 1 });
         }
 
+        // ---- سەردان ----
         if (type === "visit") {
             const session = {
                 time:    new Date().toISOString(),
@@ -91,6 +123,7 @@ export async function onRequestPost(context) {
             return ok({ success: true, total: tot + 1 });
         }
 
+        // ---- Textarea (دوای ٣ چرکەی راوەستان) ----
         if (type === "textarea") {
             const text = (body.text || "").trim();
             if (text.length < 3) return bad("دەقەکە زۆر کورتە");

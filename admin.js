@@ -145,17 +145,31 @@ var SITE_DEFAULTS = {
 };
 
 function loadSiteInfo() {
-    var saved = {};
-    try { saved = JSON.parse(localStorage.getItem("siteInfo") || "{}"); } catch(e) {}
-    var data = Object.assign({}, SITE_DEFAULTS, saved);
-    document.getElementById("siteName").value         = data.siteName;
-    document.getElementById("siteAuthor").value       = data.siteAuthor;
-    document.getElementById("siteTitle").value        = data.siteTitle;
-    document.getElementById("siteDesc").value         = data.siteDesc;
-    document.getElementById("primaryColor").value     = data.primaryColor;
-    document.getElementById("primaryHex").textContent = data.primaryColor;
-    document.getElementById("bismillahText").value    = data.bismillahText;
-    document.getElementById("bismillahSub").value     = data.bismillahSub;
+    fetch("/track")
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            var data = Object.assign({}, SITE_DEFAULTS, d.settings || {});
+            document.getElementById("siteName").value         = data.siteName;
+            document.getElementById("siteAuthor").value       = data.siteAuthor;
+            document.getElementById("siteTitle").value        = data.siteTitle;
+            document.getElementById("siteDesc").value         = data.siteDesc;
+            document.getElementById("primaryColor").value     = data.primaryColor;
+            document.getElementById("primaryHex").textContent = data.primaryColor;
+            document.getElementById("bismillahText").value    = data.bismillahText;
+            document.getElementById("bismillahSub").value     = data.bismillahSub;
+        })
+        .catch(function() {
+            // fallback بۆ default
+            var data = SITE_DEFAULTS;
+            document.getElementById("siteName").value         = data.siteName;
+            document.getElementById("siteAuthor").value       = data.siteAuthor;
+            document.getElementById("siteTitle").value        = data.siteTitle;
+            document.getElementById("siteDesc").value         = data.siteDesc;
+            document.getElementById("primaryColor").value     = data.primaryColor;
+            document.getElementById("primaryHex").textContent = data.primaryColor;
+            document.getElementById("bismillahText").value    = data.bismillahText;
+            document.getElementById("bismillahSub").value     = data.bismillahSub;
+        });
 }
 
 function saveSiteInfo() {
@@ -168,8 +182,14 @@ function saveSiteInfo() {
         bismillahText: document.getElementById("bismillahText").value.trim(),
         bismillahSub:  document.getElementById("bismillahSub").value.trim()
     };
-    localStorage.setItem("siteInfo", JSON.stringify(data));
-    showToast("✅ زانیاری سایت پاشەکەوت کرا!");
+    // پاشەکەوتکردن لە KV (جیهانی)
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.assign({ type: "settings" }, data))
+    }).then(function(r) { return r.json(); })
+    .then(function() { showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
+    .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 
 // ===========================
@@ -185,12 +205,17 @@ var RSS_DEFAULTS = [
 ];
 
 function loadRssSources() {
-    var saved = null;
-    try { saved = JSON.parse(localStorage.getItem("rssSources")); } catch(e) {}
-    var sources = saved || RSS_DEFAULTS;
-    var list = document.getElementById("rssList");
-    list.innerHTML = "";
-    sources.forEach(function(s) { addRssRow(s.name, s.url); });
+    fetch("/track")
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            var sources = (d.settings && d.settings.rssSources) ? d.settings.rssSources : RSS_DEFAULTS;
+            var list = document.getElementById("rssList");
+            if (list) { list.innerHTML = ""; sources.forEach(function(s) { addRssRow(s.name, s.url); }); }
+        })
+        .catch(function() {
+            var list = document.getElementById("rssList");
+            if (list) { list.innerHTML = ""; RSS_DEFAULTS.forEach(function(s) { addRssRow(s.name, s.url); }); }
+        });
 }
 
 function addRssRow(name, url) {
@@ -217,8 +242,12 @@ function saveRss() {
         else if (name || url) valid = false;
     });
     if (!valid) { showToast("⚠️ تکایە هەموو خانەکانی ناو و ئادرەس پڕ بکەرەوە", true); return; }
-    localStorage.setItem("rssSources", JSON.stringify(sources));
-    showToast("✅ سەرچاوەکانی هەواڵ پاشەکەوت کران!");
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "settings", rssSources: sources })
+    }).then(function() { showToast("✅ سەرچاوەکانی هەواڵ پاشەکەوت کران!"); })
+    .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 
 // ===========================
@@ -233,12 +262,17 @@ var BTN_DEFAULTS = [
 ];
 
 function loadButtons() {
-    var saved = null;
-    try { saved = JSON.parse(localStorage.getItem("toolbarBtns")); } catch(e) {}
-    var btns = saved || BTN_DEFAULTS;
-    var list = document.getElementById("btnList");
-    list.innerHTML = "";
-    btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action); });
+    fetch("/track")
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            var btns = (d.settings && d.settings.toolbarBtns) ? d.settings.toolbarBtns : BTN_DEFAULTS;
+            var list = document.getElementById("btnList");
+            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action); }); }
+        })
+        .catch(function() {
+            var list = document.getElementById("btnList");
+            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action); }); }
+        });
 }
 
 function addBtnRow(label, color, action) {
@@ -265,8 +299,12 @@ function saveButtons() {
         var action = row.querySelector(".btn-action").value.trim();
         if (label) btns.push({ label: label, color: color, action: action });
     });
-    localStorage.setItem("toolbarBtns", JSON.stringify(btns));
-    showToast("✅ دوگمەکانی تووڵبار پاشەکەوت کران!");
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "settings", toolbarBtns: btns })
+    }).then(function() { showToast("✅ دوگمەکانی تووڵبار پاشەکەوت کران!"); })
+    .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 
 // ===========================

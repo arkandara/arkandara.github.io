@@ -386,8 +386,8 @@
                 </button>
             </div>
 
-            <!-- کارتە سەرەکییەکان — ٥ کارت -->
-            <div class="stats-top-grid-5">
+            <!-- کارتە سەرەکییەکان — ٦ کارت -->
+            <div class="stats-top-grid-5" style="grid-template-columns:repeat(6,1fr);">
                 <div class="stat-card">
                     <div class="stat-num" id="stat-total-visits">&#8212;</div>
                     <div class="stat-lbl"><i class="fas fa-globe"></i> گشتی سەردانەکان</div>
@@ -408,6 +408,23 @@
                     <div class="stat-num" id="stat-total-textarea">&#8212;</div>
                     <div class="stat-lbl"><i class="fas fa-keyboard"></i> جارەکانی نووسین</div>
                 </div>
+                <div class="stat-card" style="border-color:#e3f2fd;">
+                    <div class="stat-num" id="stat-kv-usage" style="font-size:0.85rem;">&#8212;</div>
+                    <div class="stat-lbl"><i class="fas fa-database" style="color:#1565c0;"></i> پری KV</div>
+                    <div style="height:6px;background:#e3f2fd;border-radius:3px;margin-top:6px;overflow:hidden;">
+                        <div id="kv-usage-bar" style="height:100%;width:0%;background:var(--accent);border-radius:3px;transition:width 0.5s;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- دوگمەی سفرکردنەوەی ئامارەکان -->
+            <div style="display:flex;gap:10px;margin-bottom:4px;flex-wrap:wrap;">
+                <button class="add-btn" onclick="loadStats()" style="background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;">
+                    <i class="fas fa-sync-alt"></i> نوێکردنەوە
+                </button>
+                <button class="add-btn" onclick="manualClearStats()" style="background:#fff3e0;color:#e65100;border:1px solid #ffe0b2;">
+                    <i class="fas fa-moon"></i> سفرکردنەوەی ئامارەکان (دەستی)
+                </button>
             </div>
 
             <!-- چارتی کلیکەکان -->

@@ -1610,7 +1610,7 @@ textarea {
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
-            <button class="btn-nav" style="background:#6a1b9a;" onclick="sendTextToAdmin()" title="ناردنی دەق بۆ پانێڵی ئەدمین">📤 بینینی دەق لە پانێڵ</button>
+           
             <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن به‌ Word</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
@@ -3463,14 +3463,49 @@ function akTrackClick(label) {
                 window._kvRssSources = s.rssSources;
             }
 
-            // دوگمەکانی تووڵبار (دوگمەی Word هەرگیز ناسڕێتەوە)
+            // دوگمەکانی تووڵبار و تیکەر لە KV
             if (s.toolbarBtns && s.toolbarBtns.length) {
-                var wordBtn = document.getElementById('wordBtn');
-                var kvBtns  = s.toolbarBtns.map(function(b) {
-                    return '<button class="btn-nav" style="background:' + (b.color || '#2e7d32') + ';" onclick="' + (b.action || '') + '">' + b.label + '</button>';
-                }).join('');
-                if (wordBtn) {
-                    wordBtn.insertAdjacentHTML('beforebegin', kvBtns);
+
+                // ---- تووڵبار (btn-group) ----
+                var toolbarBtns = s.toolbarBtns.filter(function(b) { return (b.group || "toolbar") === "toolbar"; });
+                var btnGroup = document.getElementById('mainBtnGroup');
+                if (btnGroup && toolbarBtns.length) {
+                    // دوگمەکانی ئێستا بسڕەوە بەپێچەوانەوەی fixed
+                    Array.from(btnGroup.querySelectorAll('button:not(#wordBtn)')).forEach(function(b) { b.remove(); });
+                    // دوگمەکانی نوێ زیاد بکە پێش wordBtn
+                    var wordBtn = document.getElementById('wordBtn');
+                    toolbarBtns.filter(function(b){ return !b.fixed; }).forEach(function(b) {
+                        var el = document.createElement('button');
+                        el.className = b.cls || 'btn-nav';
+                        el.style.background = b.color || '#2e7d32';
+                        el.setAttribute('onclick', b.action || '');
+                        el.textContent = b.label;
+                        if (wordBtn) btnGroup.insertBefore(el, wordBtn);
+                        else btnGroup.appendChild(el);
+                    });
+                    // ڕەنگی wordBtn
+                    var wb = s.toolbarBtns.find(function(b){ return b.fixed; });
+                    if (wb && wordBtn) wordBtn.style.background = wb.color || '#2b5797';
+                }
+
+                // ---- تیکەر (news-ticker) ----
+                var tickerBtns = s.toolbarBtns.filter(function(b) { return b.group === "ticker"; });
+                var tickerWrap = document.querySelector('.news-ticker-buttons') || document.querySelector('.ticker-btns');
+                if (!tickerWrap) {
+                    // بگەڕێ بە دوگمەی سڕینەوەی بۆشایی
+                    var firstTicker = document.querySelector('.news-ticker-btn[onclick*="removeEmpty"]');
+                    if (firstTicker) tickerWrap = firstTicker.parentNode;
+                }
+                if (tickerWrap && tickerBtns.length) {
+                    Array.from(tickerWrap.querySelectorAll('.news-ticker-btn')).forEach(function(b){ b.remove(); });
+                    tickerBtns.forEach(function(b) {
+                        var el = document.createElement('button');
+                        el.className = 'news-ticker-btn';
+                        el.style.background = 'linear-gradient(135deg,' + (b.color || '#607d8b') + ',' + (b.color || '#607d8b') + 'cc)';
+                        el.setAttribute('onclick', b.action || '');
+                        el.textContent = b.label;
+                        tickerWrap.appendChild(el);
+                    });
                 }
             }
         })

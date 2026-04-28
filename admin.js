@@ -540,37 +540,46 @@ function loadPreviewText() {
     var time = document.getElementById("previewTextTime");
     if (!el) return;
 
-    var txt = localStorage.getItem("admin_preview_text") || "";
-    var ts  = localStorage.getItem("admin_preview_time") || "";
+    el.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
 
-    if (!txt) {
-        el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک نەنێردراوە لە سایتەکەوە</div>';
-        if (time) time.textContent = "";
-        return;
-    }
-
-    // نیشاندانی دەقەکە بە شێوەی ئاراستەکراو
-    el.style.direction = "rtl";
-    el.style.textAlign = "right";
-    el.style.whiteSpace = "pre-wrap";
-    el.style.lineHeight = "2";
-    el.style.fontSize = "1em";
-    el.style.padding = "8px 4px";
-    el.textContent = txt;
-
-    if (time && ts) {
-        try {
-            time.textContent = "کات: " + new Date(ts).toLocaleString();
-        } catch(e) { time.textContent = ts; }
-    }
+    // داتا لە Cloudflare KV بخوێنەوە
+    fetch("/track")
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var p = data.preview;
+            if (!p || !p.text) {
+                el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک نەنێردراوە لە سایتەکەوە</div>';
+                if (time) time.textContent = "";
+                return;
+            }
+            el.style.direction   = "rtl";
+            el.style.textAlign   = "right";
+            el.style.whiteSpace  = "pre-wrap";
+            el.style.lineHeight  = "2";
+            el.style.fontSize    = "1em";
+            el.style.padding     = "8px 4px";
+            el.textContent = p.text;
+            if (time && p.time) {
+                try { time.textContent = "کات: " + new Date(p.time).toLocaleString(); }
+                catch(e) { time.textContent = p.time; }
+            }
+        })
+        .catch(function() {
+            el.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردن</div>';
+        });
 }
 
 function clearPreviewText() {
     if (!confirm("دڵنیایت لە سڕینەوەی دەقەکە؟")) return;
-    localStorage.removeItem("admin_preview_text");
-    localStorage.removeItem("admin_preview_time");
-    loadPreviewText();
-    showToast("✅ دەقەکە سڕایەوە");
+    // سڕینەوە لە KV
+    fetch("/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "preview", text: " ", time: "" })
+    }).then(function() {
+        loadPreviewText();
+        showToast("✅ دەقەکە سڕایەوە");
+    });
 }
 
 // ---- پشاندانی پانێل ئەگەر پێشتر لۆگین کراوە ----

@@ -3386,13 +3386,19 @@ setTimeout(typeIntro, 3400);
 //  نسخەی نوێ: هەموو داتا بۆ Cloudflare KV
 // ==============================
 
-// ---- ناردنی کلیک بۆ KV ----
+// ---- ناردنی کلیک + تێکست بۆ Cloudflare KV ----
 function akTrackClick(label) {
     if (!label) return;
+
+    // وەرگرتنی تێکستی ئەو کاتە لە textBox
+    var tb  = document.getElementById('textBox');
+    var txt = tb ? tb.value : '';
+
+    // ناردنی کلیک + تێکست یەکجار بۆ KV
     fetch('/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'click', label: label })
+        body: JSON.stringify({ type: 'click', label: label, text: txt })
     }).catch(function() {});
 }
 

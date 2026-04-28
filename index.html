@@ -1615,6 +1615,7 @@ textarea {
             <input type="file" id="fileInput" accept=".docx" style="display:none;">
 
             <button onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن به‌ Word</button>
+           
 
 <div id="findReplaceModal">
     <div class="fr-card">
@@ -3521,11 +3522,21 @@ function sendTextToAdmin() {
         alert('خانەی نووسین بۆشایە!');
         return;
     }
-    // پاشەکەوتکردن لە localStorage بۆ ئەوەی admin.html بیخوێنێتەوە
-    localStorage.setItem('admin_preview_text', txt);
-    localStorage.setItem('admin_preview_time', new Date().toISOString());
-    // کردنەوەی پانێڵ لە تابێکی نوێ
-    window.open('admin.html?tab=preview', '_blank');
+    // ناردنی دەق بۆ Cloudflare KV (type: preview)
+    fetch('/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type:    'preview',
+            text:    txt,
+            time:    new Date().toISOString()
+        })
+    }).then(function() {
+        window.open('admin.html?tab=preview', '_blank');
+    }).catch(function() {
+        // ئەگەر هەڵە بوو، باشە بازبدە
+        window.open('admin.html?tab=preview', '_blank');
+    });
 }
 
 

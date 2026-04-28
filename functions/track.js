@@ -60,7 +60,17 @@ export async function onRequestGet(context) {
         const settingsRaw = await env.STATS_DB.get("settings:site");
         const settings    = safeJson(settingsRaw, null);
 
-        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings });
+        // پری KV (تەخمینی — Cloudflare API ڕاستەوخۆ نادات)
+        const kvKeys = await env.STATS_DB.list({ limit: 1000 });
+        const keyCount = kvKeys.keys.length;
+        const estimatedBytes = keyCount * 512; // تەخمینی ٥١٢ بایت بۆ هەر کی
+        const maxBytes  = 1024 * 1024 * 1024; // 1 GB (Cloudflare Free: 1GB)
+        const usedMB    = (estimatedBytes / (1024 * 1024)).toFixed(2);
+        const maxMB     = (maxBytes / (1024 * 1024)).toFixed(0);
+        const percent   = Math.round((estimatedBytes / maxBytes) * 100);
+        const kvUsage   = { keyCount, usedMB, maxMB, percent };
+
+        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings, kvUsage });
 
     } catch (err) {
         return err500(err);
@@ -181,6 +191,38 @@ export async function onRequestPost(context) {
             const merged   = Object.assign({}, existing, data);
             await env.STATS_DB.put("settings:site", JSON.stringify(merged));
             return ok({ success: true });
+        }
+
+        // ---- snapshots_replace (سڕینەوەی هەڵبژێردراو) ----
+        if (type === "snapshots_replace") {
+            const snaps = body.snaps || [];
+            const dayKey = "snapshots:" + isoDate(new Date());
+            await env.STATS_DB.put(dayKey, JSON.stringify(snaps), { expirationTtl: 691200 });
+            return ok({ success: true, count: snaps.length });
+        }
+
+        // ---- daily_clear (سفرکردنەوەی ئامارەکان) ----
+        if (type === "daily_clear") {
+            const secret = body.secret || "";
+            if (secret !== (env.CLEAR_SECRET || "clear_daily_2024")) {
+                return bad("مجاز نییە");
+            }
+            const today = isoDate(new Date());
+            // سڕینەوەی ئەمرۆ
+            await env.STATS_DB.delete("snapshots:" + today);
+            await env.STATS_DB.delete("textarea:"  + today);
+            await env.STATS_DB.delete("visits:"    + today);
+            // ڕیسێتی ژمارەی سەردانەکان
+            await env.STATS_DB.put("meta:total_visits",   "0");
+            await env.STATS_DB.put("meta:total_textarea", "0");
+            // کلیکەکان
+            const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
+            const clickLabels   = safeJson(clicksListRaw, []);
+            for (const label of clickLabels) {
+                await env.STATS_DB.delete("click:" + label);
+            }
+            await env.STATS_DB.delete("meta:clicks_list");
+            return ok({ success: true, cleared: today });
         }
 
         return bad("جۆری نادروست");

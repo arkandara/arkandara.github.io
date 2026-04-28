@@ -363,8 +363,11 @@
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-mouse-pointer"></i> دەستکاری دوگمەکان
-                    <button class="add-btn" onclick="addBtnRow()">
-                        <i class="fas fa-plus"></i> زیادکردن
+                    <button class="add-btn" onclick="addBtnRow('','#2e7d32','','toolbar',false)" style="background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;">
+                        <i class="fas fa-plus"></i> زیادکردنی تووڵبار
+                    </button>
+                    <button class="add-btn" onclick="addBtnRow('','#ff9800','','ticker',false)" style="background:#fff3e0;color:#e65100;border:1px solid #ffe0b2;">
+                        <i class="fas fa-plus"></i> زیادکردنی تیکەر
                     </button>
                 </div>
                 <div class="card-body">
@@ -442,7 +445,10 @@
             <!-- Textarea ئەمرۆ -->
             <div class="card">
                 <div class="card-header">
-                    <i class="fas fa-keyboard"></i> دەقەکانی نووسراوی ئەمرۆ (Textarea)
+                    <i class="fas fa-keyboard"></i> دەقەکانی نووسراوی ئەمرۆ
+                    <button class="add-btn" onclick="deleteAllSnaps()" style="background:#ffebee;color:#e53935;border:1px solid #ffcdd2;margin-right:auto;">
+                        <i class="fas fa-trash"></i> سڕینەوەی هەموو
+                    </button>
                 </div>
                 <div class="card-body">
                     <div id="textareaList">

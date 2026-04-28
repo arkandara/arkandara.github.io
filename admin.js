@@ -467,7 +467,9 @@ function renderKvUsage(usage) {
 }
 
 // ---- Textarea ئامارەکان ----
+var _currentSnaps = [];
 function renderSnapshots(snaps) {
+    _currentSnaps = snaps || [];
     var el = document.getElementById("textareaList");
     if (!el) return;
 

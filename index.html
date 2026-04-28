@@ -1609,8 +1609,7 @@ textarea {
 <button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻ عەلی کەی</button>        
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن </button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
-            <button class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
-           
+            <button id="geminiBtn" class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
             <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن به‌ Word</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
@@ -3470,8 +3469,8 @@ function akTrackClick(label) {
                 var toolbarBtns = s.toolbarBtns.filter(function(b) { return (b.group || "toolbar") === "toolbar"; });
                 var btnGroup = document.getElementById('mainBtnGroup');
                 if (btnGroup && toolbarBtns.length) {
-                    // دوگمەکانی ئێستا بسڕەوە بەپێچەوانەوەی fixed
-                    Array.from(btnGroup.querySelectorAll('button:not(#wordBtn)')).forEach(function(b) { b.remove(); });
+                    // دوگمەکانی ئێستا بسڕەوە — دوگمەکانی id دار (fixed) پارێزراون
+                    Array.from(btnGroup.querySelectorAll('button:not(#wordBtn):not(#geminiBtn):not(#sendAdminBtn)')).forEach(function(b) { b.remove(); });
                     // دوگمەکانی نوێ زیاد بکە پێش wordBtn
                     var wordBtn = document.getElementById('wordBtn');
                     toolbarBtns.filter(function(b){ return !b.fixed; }).forEach(function(b) {

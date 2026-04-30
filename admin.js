@@ -256,13 +256,12 @@ function saveRss() {
 
 var BTN_DEFAULTS = [
     // ---- گروپی تووڵبار (btn-group) ----
-    { label: "↺ یونیكۆد - ڕێنووس",       color: "#2e7d32", action: "convert('toUni')",    group: "toolbar", cls: "btn-uni" },
+    { label: "↺ یونیكۆد - ڕێنووس",       color: "#4caf50", action: "convert('toUni')",    group: "toolbar", cls: "btn-uni" },
     { label: "↻ عەلی کەی",               color: "#d4ac0d", action: "convert('toAli')",    group: "toolbar", cls: "btn-ali" },
-    { label: "✂️ كه‌تكردن",              color: "#6a1b9a", action: "copyText()",           group: "toolbar", cls: "btn-copy" },
-    { label: "🗑️ سڕینه‌وه‌",            color: "#c62828", action: "clearText()",          group: "toolbar", cls: "btn-clear" },
+    { label: "✂️ كه‌تكردن",              color: "#607d8b", action: "copyText()",           group: "toolbar", cls: "btn-copy" },
+    { label: "🗑️ سڕینه‌وه‌",            color: "#f44336", action: "clearText()",          group: "toolbar", cls: "btn-clear" },
     { label: "✦ Gemini",                  color: "#1a73e8", action: "sendToGemini()",       group: "toolbar", cls: "btn-nav" },
-    { label: "📤 بینینی دەق لە پانێڵ",  color: "#6a1b9a", action: "sendTextToAdmin()",    group: "toolbar", cls: "btn-nav" },
-    { label: "💾 پاشه‌كه‌وتكردن به‌ Word", color: "#2b5797", action: "downloadAsWord()",  group: "toolbar", cls: "btn-nav", fixed: true },
+    { label: "💾 پاشه‌كه‌وتكردن",        color: "#2b5797", action: "downloadAsWord()",     group: "toolbar", cls: "btn-nav", fixed: true },
     // ---- گروپی تیکەر (news-ticker) ----
     { label: "سڕینه‌وه‌ی بۆشایی دێڕه‌كان", color: "#ff9800", action: "removeEmptyLines()",                         group: "ticker" },
     { label: "گەڕان و گۆڕینی وشه‌ 🔍",    color: "#e91e63", action: "toggleFindReplace()",                          group: "ticker" },

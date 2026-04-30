@@ -322,7 +322,7 @@ button, .btn-file {
     button:active { transform: scale(0.98); }
 
     .btn-uni { background: linear-gradient(135deg, #4caf50, #43a047); } 
-    .btn-ali { background: linear-gradient(135deg, #2196f3, #1e88e5); } 
+    .btn-ali { background: linear-gradient(135deg, #d4ac0d, #c49b00); } 
     .btn-copy { background: linear-gradient(135deg, #607d8b, #546e7a); } 
     .btn-clear { background: linear-gradient(135deg, #f44336, #e53935); } 
     .btn-file { background: #333; }
@@ -1596,7 +1596,7 @@ textarea {
         </div>
         <div class="btn-group" id="mainBtnGroup">
             <button class="btn-uni" onclick="convert('toUni')">↺ یونیكۆد - ڕێنووس</button>
-            <button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻ عەلی کەی</button>
+            <button class="btn-ali" onclick="convert('toAli')">↻ عەلی کەی</button>
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن</button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button id="geminiBtn" class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
@@ -3465,19 +3465,26 @@ function akTrackClick(label) {
                     var wordBtn = document.getElementById('wordBtn');
                     var geminiBtn = document.getElementById('geminiBtn');
                     toolbarBtns.filter(function(b){ return !b.fixed; }).forEach(function(b) {
-                        // دوگمەی Gemini و Word دەستکاری دەکرێن نەک دووبارە دروست دەبن
+                        // دوگمەی Gemini دەستکاری دەکرێت نەک دووبارە دروست دەبێت
                         if (b.action && b.action.includes('sendToGemini') && geminiBtn) {
                             if (b.color) geminiBtn.style.background = b.color;
                             if (b.label) geminiBtn.textContent = b.label;
                             return;
                         }
                         var el = document.createElement('button');
-                        // CSS class بەپێی cls یان ڕەنگەکەی دەدرێت
-                        var cls = b.cls || 'btn-nav';
+                        // CSS class ئۆتۆماتیک دەدرێت بەپێی action — ئەگەر cls لە KV نەبوو
+                        var cls = b.cls;
+                        if (!cls) {
+                            var act = b.action || '';
+                            if (act.includes('toUni'))     cls = 'btn-uni';
+                            else if (act.includes('toAli')) cls = 'btn-ali';
+                            else if (act.includes('copyText')) cls = 'btn-copy';
+                            else if (act.includes('clearText')) cls = 'btn-clear';
+                            else cls = 'btn-nav';
+                        }
                         el.className = cls;
-                        // ئەگەر ڕەنگ لە CSS class دا نییە، ڕاستەوخۆ style دادەنێت
-                        var needsInlineColor = !['btn-uni','btn-ali','btn-copy','btn-clear'].includes(cls);
-                        if (needsInlineColor && b.color) el.style.background = b.color;
+                        // ئەگەر ڕەنگ inline پێویستە (btn-nav)
+                        if (['btn-nav'].includes(cls) && b.color) el.style.background = b.color;
                         el.setAttribute('onclick', b.action || '');
                         el.textContent = b.label;
                         if (wordBtn) btnGroup.insertBefore(el, wordBtn);

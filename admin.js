@@ -102,7 +102,7 @@ function showTab(id) {
     if (navEl) navEl.classList.add("active");
     var titleEl = document.getElementById("pageTitle");
     if (titleEl) titleEl.textContent = tabTitles[id] || "";
-    if (id === "tab-stats")   loadStats();
+    if (id === "tab-stats")   { loadStats(); loadStatsCharts(); }
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
     if (window.innerWidth <= 700) {
@@ -739,3 +739,96 @@ window.addEventListener("DOMContentLoaded", function() {
         initPanel();
     }
 });
+
+// ===========================
+//  نمودارەکانی رۆژانە / هەفتانە / مانگانە
+// ===========================
+
+var _archiveIndex = null;
+var _weeklyIndex  = null;
+var _monthlyIndex = null;
+var _statsPeriod  = "daily";
+
+function loadStatsCharts() {
+    var wrap = document.getElementById("statsChartsWrap");
+    if (!wrap) return;
+    wrap.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
+
+    var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
+
+    Promise.all([
+        fetch(base + "index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        fetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        fetch(base + "monthly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; })
+    ]).then(function(results) {
+        _archiveIndex = results[0];
+        _weeklyIndex  = results[1];
+        _monthlyIndex = results[2];
+        renderStatsPeriod(_statsPeriod);
+    }).catch(function() {
+        if(wrap) wrap.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردنی ئامارەکان</div>';
+    });
+}
+
+function renderStatsPeriod(period) {
+    _statsPeriod = period;
+    ["btn-daily","btn-weekly","btn-monthly"].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove("stats-period-active");
+    });
+    var activeBtn = document.getElementById("btn-" + period);
+    if (activeBtn) activeBtn.classList.add("stats-period-active");
+
+    var wrap = document.getElementById("statsChartsWrap");
+    if (!wrap) return;
+
+    var data, labelKey, visitKey, clickKey;
+
+    if (period === "daily") {
+        data = (_archiveIndex||[]).slice(0,30).reverse();
+        labelKey="date"; visitKey="totalVisits"; clickKey="totalClicks";
+    } else if (period === "weekly") {
+        data = (_weeklyIndex||[]).slice(0,12).reverse();
+        labelKey="week"; visitKey="totalVisits"; clickKey="totalClicks";
+    } else {
+        data = (_monthlyIndex||[]).slice(0,12).reverse();
+        labelKey="month"; visitKey="totalVisits"; clickKey="totalClicks";
+    }
+
+    if (!data.length) {
+        wrap.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا داتایەک نییە</div>';
+        return;
+    }
+
+    var maxVisits = Math.max.apply(null, data.map(function(d){ return d[visitKey]||0; }))||1;
+    var maxClicks = Math.max.apply(null, data.map(function(d){ return d[clickKey]||0; }))||1;
+
+    var barsHTML = data.map(function(d) {
+        var label  = (d[labelKey]||"").replace(/_/g," → ");
+        var visits = d[visitKey]||0;
+        var clicks = d[clickKey]||0;
+        var vPct   = Math.round((visits/maxVisits)*100);
+        var cPct   = Math.round((clicks/maxClicks)*100);
+        return '<div class="sc-col">' +
+            '<div class="sc-bars">' +
+              '<div class="sc-bar sc-bar-v" style="height:'+vPct+'%" title="سەردان: '+visits+'"><span class="sc-val">'+visits+'</span></div>' +
+              '<div class="sc-bar sc-bar-c" style="height:'+cPct+'%" title="کلیک: '+clicks+'"><span class="sc-val">'+clicks+'</span></div>' +
+            '</div>' +
+            '<div class="sc-label">'+label+'</div>' +
+        '</div>';
+    }).join("");
+
+    var sumVisits = data.reduce(function(s,d){ return s+(d[visitKey]||0); },0);
+    var sumClicks = data.reduce(function(s,d){ return s+(d[clickKey]||0); },0);
+
+    wrap.innerHTML =
+        '<div class="sc-summary">' +
+          '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumVisits+'</strong></span>' +
+          '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumClicks+'</strong></span>' +
+        '</div>' +
+        '<div class="sc-chart">'+barsHTML+'</div>' +
+        '<div class="sc-legend">' +
+          '<span class="sc-leg-v">■ سەردان</span>' +
+          '<span class="sc-leg-c">■ کلیک</span>' +
+        '</div>';
+}

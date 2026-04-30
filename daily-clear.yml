@@ -1,12 +1,11 @@
 # ============================================================
 #  .github/workflows/daily-clear.yml
-#  هەر شەو کاتژمێر ١٢ (UTC+3):
-#  ١. ئامارەکانی ئەمرۆ ئەرشیف دەبن لە GitHub
-#  ٢. تەنها snapshot ەکان (دەقەکان) سڕێنەوە
-#  ٣. ئامارەی کلیک، سەردان — ناسڕێنەوە
+#  هەر شەو کاتژمێر ١٢ (UTC+3 = 21:00 UTC):
+#  ١. ئامارەکانی رۆژ ئەرشیف دەبن لە GitHub (JSON + CSV)
+#  ٢. هەموو ئامارەکانی KV سفر دەبنەوە (کلیک، سەردان، دەق)
 # ============================================================
 
-name: 🌙 ئەرشیفی شەوانەی ئامارەکان
+name: 🌙 ئەرشیفی شەوانە و سفرکردنەوەی ئامارەکان
 
 on:
   schedule:
@@ -23,7 +22,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
 
-      - name: 📡 ئامارەکان لە KV بخوێنەوە و ئەرشیف بکە
+      - name: 📡 خوێندنەوە و ئەرشیفکردنی ئامارەکانی رۆژ
         env:
           CF_ACCOUNT_ID:   ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN:    ${{ secrets.CF_API_TOKEN }}
@@ -52,30 +51,28 @@ jobs:
 
           async function main() {
               const today = isoDate(new Date());
-              const clicksListRaw = await cfGet("meta:clicks_list");
-              const clickLabels   = safeJson(clicksListRaw, []);
+
+              // کلیکەکان
+              const clickLabels = safeJson(await cfGet("meta:clicks_list"), []);
               const clicks = {};
               for (const lbl of clickLabels) {
                   const v = await cfGet("click:" + lbl);
                   if (v && !isNaN(+v)) clicks[lbl] = +v;
               }
+
+              // سەردانەکان و دەقەکانی ئەمرۆ
               const totalVisits   = +(await cfGet("meta:total_visits")   || "0");
               const totalTextarea = +(await cfGet("meta:total_textarea") || "0");
-
-              const sessions = [];
-              const snapshots = [];
-              for (let i = 0; i < 1; i++) {
-                  const d = new Date(); d.setDate(d.getDate()-i);
-                  const ds = isoDate(d);
-                  sessions.push( ...safeJson(await cfGet("visits:"+ds),    []) );
-                  snapshots.push(...safeJson(await cfGet("snapshots:"+ds), []) );
-              }
+              const sessions  = safeJson(await cfGet("visits:"    + today), []);
+              const snapshots = safeJson(await cfGet("snapshots:" + today), []);
 
               const archive = {
-                  date: today, generatedAt: new Date().toISOString(),
+                  date: today,
+                  generatedAt: new Date().toISOString(),
                   totalVisits, totalTextarea, clicks, sessions, snapshots
               };
 
+              // پاشەکەوتکردن
               if (!fs.existsSync("archives")) fs.mkdirSync("archives");
               const fname = `archives/daily_${today}`;
               fs.writeFileSync(`${fname}.json`, JSON.stringify(archive, null, 2), "utf8");
@@ -89,17 +86,24 @@ jobs:
               sessions.forEach(s=>{ csv+=`"${s.time||""}","${s.city||""}","${s.country||""}","${s.device||""}"\n`; });
               fs.writeFileSync(`${fname}.csv`, csv, "utf8");
 
-              // index.json نوێبکەرەوە
+              // نوێکردنەوەی index.json (رۆژانە)
               const idxPath = "archives/index.json";
               let idx = [];
               try { idx = JSON.parse(fs.readFileSync(idxPath,"utf8")); } catch(e){}
-              idx.unshift({ date: today, generatedAt: archive.generatedAt,
-                  totalVisits, totalClicks: Object.values(clicks).reduce((s,v)=>s+v,0),
-                  fileJson: `${fname}.json`, fileCsv: `${fname}.csv` });
-              if (idx.length > 60) idx = idx.slice(0,60);
+              // سڕینەوەی ئەگەر هەمان رۆژ پێشتر هەبوو
+              idx = idx.filter(x => x.date !== today);
+              idx.unshift({
+                  date: today,
+                  generatedAt: archive.generatedAt,
+                  totalVisits,
+                  totalClicks: Object.values(clicks).reduce((s,v)=>s+v,0),
+                  fileJson: `${fname}.json`,
+                  fileCsv:  `${fname}.csv`
+              });
+              if (idx.length > 90) idx = idx.slice(0,90); // ٩٠ رۆژ بپارێزە
               fs.writeFileSync(idxPath, JSON.stringify(idx,null,2),"utf8");
 
-              console.log("✅ ئەرشیف ئامادە کرا:", fname);
+              console.log("✅ ئەرشیفی رۆژانە ئامادە کرا:", fname);
           }
           main().catch(e=>{ console.error(e); process.exit(1); });
           JSEOF
@@ -109,13 +113,13 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add archives/
-          git diff --staged --quiet || git commit -m "🌙 ئەرشیفی شەوانە — $(date -u +'%Y-%m-%d')"
+          git diff --staged --quiet || git commit -m "🌙 ئەرشیفی رۆژانە — $(date -u +'%Y-%m-%d')"
           git push
 
-      - name: 🗑️ Snapshot ەکان بسڕەوە (دەقەکانی نووسراو تەنها)
+      - name: 🗑️ سفرکردنەوەی هەموو ئامارەکانی KV
         run: |
           RESPONSE=$(curl -s -X POST \
             "${{ secrets.SITE_URL }}/track" \
             -H "Content-Type: application/json" \
-            -d '{"type":"snapshots_replace","snaps":[]}')
-          echo "Snapshots cleared: $RESPONSE"
+            -d '{"type":"daily_clear","secret":"${{ secrets.CLEAR_SECRET }}"}')
+          echo "Clear result: $RESPONSE"

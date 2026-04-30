@@ -1,176 +1,115 @@
 # ============================================================
 #  .github/workflows/archive-stats.yml
-#  هەفتانە ئامارەکان لە Cloudflare KV بخوێنەوە و
-#  بیکە JSON + CSV و لە /archives/ پاشەکەوت بکە
+#  هەفتانە (یەکشەممە) و مانگانە (یەکەمی هەر مانگ):
+#  ئامارەکان لە archives/index.json دەخوێنێتەوە و
+#  فایلی هەفتانە/مانگانە دروست دەکات
 # ============================================================
 
-name: 📦 Archive Weekly Stats
+name: 📦 ئەرشیفی هەفتانە و مانگانە
 
 on:
   schedule:
-    # هەر یەکشەممە کاتژمێر ٠٢:٠٠ UTC
-    - cron: "0 2 * * 0"
-  workflow_dispatch: # دەستی ئەجراکردنیش پێوەیەتی
+    # هەر یەکشەممە کاتژمێر 22:00 UTC (١ بەیانی عێراق)
+    - cron: "0 22 * * 0"
+    # یەکەمی هەر مانگێک کاتژمێر 22:30 UTC
+    - cron: "30 22 1 * *"
+  workflow_dispatch:
 
 jobs:
   archive:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ⬇️ Checkout repo
+      - name: ⬇️ Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
 
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: 📡 Fetch stats from Cloudflare KV
-        id: fetch
-        env:
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CF_API_TOKEN:  ${{ secrets.CF_API_TOKEN }}
-          CF_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
+      - name: 📊 دروستکردنی ئەرشیفی هەفتانە و مانگانە
         run: |
-          node - <<'EOF'
-          const https = require("https");
-          const fs    = require("fs");
+          node - << 'JSEOF'
+          const fs = require("fs");
 
-          const ACCOUNT   = process.env.CF_ACCOUNT_ID;
-          const TOKEN     = process.env.CF_API_TOKEN;
-          const NAMESPACE = process.env.CF_NAMESPACE_ID;
+          function isoDate(d) { return d.toISOString().slice(0,10); }
 
-          const BASE = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/storage/kv/namespaces/${NAMESPACE}`;
-
-          // ---- یارمەتیدەر: fetch بەپێی node ----
-          async function cfGet(key) {
-              return new Promise((resolve, reject) => {
-                  const url = `${BASE}/values/${encodeURIComponent(key)}`;
-                  const req = https.request(url, {
-                      headers: { Authorization: `Bearer ${TOKEN}` }
-                  }, (res) => {
-                      let body = "";
-                      res.on("data", d => body += d);
-                      res.on("end", () => resolve(body));
-                  });
-                  req.on("error", reject);
-                  req.end();
-              });
+          // خوێندنەوەی index.json (رۆژانەکان)
+          const idxPath = "archives/index.json";
+          let dailyIdx = [];
+          try { dailyIdx = JSON.parse(fs.readFileSync(idxPath,"utf8")); } catch(e){
+              console.log("هێشتا index.json نییە");
+              process.exit(0);
           }
 
-          async function cfList(prefix) {
-              return new Promise((resolve, reject) => {
-                  const url = `${BASE}/keys?prefix=${encodeURIComponent(prefix)}&limit=100`;
-                  const req = https.request(url, {
-                      headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" }
-                  }, (res) => {
-                      let body = "";
-                      res.on("data", d => body += d);
-                      res.on("end", () => {
-                          try { resolve(JSON.parse(body)); }
-                          catch(e) { reject(e); }
-                      });
-                  });
-                  req.on("error", reject);
-                  req.end();
-              });
-          }
+          const today = new Date();
+          const todayStr = isoDate(today);
 
-          // ---- خوێندنەوەی داتا ----
-          async function main() {
-              // کلیکەکان
-              const clicksListRaw = await cfGet("meta:clicks_list");
-              const clickLabels   = JSON.parse(clicksListRaw || "[]");
-              const clicks = {};
-              for (const label of clickLabels) {
-                  const val = await cfGet("click:" + label);
-                  if (val && !isNaN(parseInt(val))) clicks[label] = parseInt(val);
-              }
+          // ---- هەفتانە ----
+          // ٧ رۆژی ڕابردوو کۆ بکە
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - 6);
+          const weekStartStr = isoDate(weekStart);
 
-              // گشتی سەردانەکان
-              const totalVisits   = parseInt(await cfGet("meta:total_visits")   || "0");
-              const totalTextarea = parseInt(await cfGet("meta:total_textarea") || "0");
-
-              // سەردانەکانی ٧ رۆژی ڕابردوو
-              const sessions = [];
-              for (let i = 0; i < 7; i++) {
-                  const d = new Date();
-                  d.setDate(d.getDate() - i);
-                  const dateStr = d.toISOString().slice(0, 10);
-                  const raw = await cfGet("visits:" + dateStr);
-                  try {
-                      const dayData = JSON.parse(raw || "[]");
-                      sessions.push(...dayData.map(s => ({ ...s, date: dateStr })));
-                  } catch(e) {}
-              }
-
-              // Textarea ئەمرۆ
-              const txRaw = await cfGet("textarea:" + new Date().toISOString().slice(0, 10));
-              let textareaToday = [];
-              try { textareaToday = JSON.parse(txRaw || "[]"); } catch(e) {}
-
-              // ---- داتای ئەرشیف ----
-              const weekEnd   = new Date().toISOString().slice(0, 10);
-              const weekStart = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
-              const archiveData = {
-                  week:        `${weekStart}_${weekEnd}`,
+          const weekDays = dailyIdx.filter(d => d.date >= weekStartStr && d.date <= todayStr);
+          if (weekDays.length > 0) {
+              const weeklyData = {
+                  type: "weekly",
+                  week: `${weekStartStr}_${todayStr}`,
                   generatedAt: new Date().toISOString(),
-                  totalVisits,
-                  totalTextarea,
-                  clicks,
-                  sessions,
-                  textareaToday
+                  totalVisits:  weekDays.reduce((s,d)=>s+(d.totalVisits||0),0),
+                  totalClicks:  weekDays.reduce((s,d)=>s+(d.totalClicks||0),0),
+                  days: weekDays.map(d=>({ date:d.date, visits:d.totalVisits||0, clicks:d.totalClicks||0 }))
               };
 
-              // ---- پاشەکەوتکردن: JSON ----
-              const dir = "archives";
-              if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-              const filename = `${dir}/stats_${weekStart}_${weekEnd}`;
-              fs.writeFileSync(`${filename}.json`, JSON.stringify(archiveData, null, 2), "utf8");
+              const wPath = `archives/weekly_${weekStartStr}_${todayStr}.json`;
+              fs.writeFileSync(wPath, JSON.stringify(weeklyData,null,2),"utf8");
 
-              // ---- پاشەکەوتکردن: CSV (کلیکەکان) ----
-              let csv = "Label,Count\n";
-              Object.entries(clicks)
-                  .sort((a, b) => b[1] - a[1])
-                  .forEach(([label, count]) => {
-                      csv += `"${label.replace(/"/g, '""')}",${count}\n`;
-                  });
-              csv += "\n\nDate,City,Country,Device\n";
-              sessions.forEach(s => {
-                  csv += `"${s.time || ""}","${s.city || ""}","${s.country || ""}","${s.device || ""}"\n`;
-              });
-              fs.writeFileSync(`${filename}.csv`, csv, "utf8");
-
-              // ---- نوێکردنەوەی index.json ----
-              const indexPath = `${dir}/index.json`;
-              let index = [];
-              if (fs.existsSync(indexPath)) {
-                  try { index = JSON.parse(fs.readFileSync(indexPath, "utf8")); } catch(e) {}
-              }
-              index.unshift({
-                  week:        archiveData.week,
-                  generatedAt: archiveData.generatedAt,
-                  totalVisits,
-                  totalClicks: Object.values(clicks).reduce((s,v)=>s+v,0),
-                  fileJson:    `${filename}.json`,
-                  fileCsv:     `${filename}.csv`
-              });
-              // تەنها ١٢ هەفتە بپارێزە
-              if (index.length > 12) index = index.slice(0, 12);
-              fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), "utf8");
-
-              console.log("✅ ئەرشیف ئامادە کرا:", filename);
+              // نوێکردنەوەی weekly index
+              const wIdxPath = "archives/weekly_index.json";
+              let wIdx = [];
+              try { wIdx = JSON.parse(fs.readFileSync(wIdxPath,"utf8")); } catch(e){}
+              wIdx = wIdx.filter(x=>x.week!==weeklyData.week);
+              wIdx.unshift({ week:weeklyData.week, generatedAt:weeklyData.generatedAt,
+                  totalVisits:weeklyData.totalVisits, totalClicks:weeklyData.totalClicks,
+                  days:weeklyData.days, file:wPath });
+              if (wIdx.length>12) wIdx=wIdx.slice(0,12);
+              fs.writeFileSync(wIdxPath, JSON.stringify(wIdx,null,2),"utf8");
+              console.log("✅ ئەرشیفی هەفتانە:", wPath);
           }
 
-          main().catch(e => { console.error(e); process.exit(1); });
-          EOF
+          // ---- مانگانە ----
+          const thisMonth = todayStr.slice(0,7); // "2026-04"
+          const monthDays = dailyIdx.filter(d => d.date.startsWith(thisMonth));
+          if (monthDays.length > 0) {
+              const monthlyData = {
+                  type: "monthly",
+                  month: thisMonth,
+                  generatedAt: new Date().toISOString(),
+                  totalVisits:  monthDays.reduce((s,d)=>s+(d.totalVisits||0),0),
+                  totalClicks:  monthDays.reduce((s,d)=>s+(d.totalClicks||0),0),
+                  days: monthDays.map(d=>({ date:d.date, visits:d.totalVisits||0, clicks:d.totalClicks||0 }))
+              };
 
-      - name: 📤 Commit and push archives
+              const mPath = `archives/monthly_${thisMonth}.json`;
+              fs.writeFileSync(mPath, JSON.stringify(monthlyData,null,2),"utf8");
+
+              // نوێکردنەوەی monthly index
+              const mIdxPath = "archives/monthly_index.json";
+              let mIdx = [];
+              try { mIdx = JSON.parse(fs.readFileSync(mIdxPath,"utf8")); } catch(e){}
+              mIdx = mIdx.filter(x=>x.month!==thisMonth);
+              mIdx.unshift({ month:thisMonth, generatedAt:monthlyData.generatedAt,
+                  totalVisits:monthlyData.totalVisits, totalClicks:monthlyData.totalClicks,
+                  days:monthlyData.days, file:mPath });
+              if (mIdx.length>24) mIdx=mIdx.slice(0,24);
+              fs.writeFileSync(mIdxPath, JSON.stringify(mIdx,null,2),"utf8");
+              console.log("✅ ئەرشیفی مانگانە:", mPath);
+          }
+          JSEOF
+
+      - name: 📤 Commit
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add archives/
-          git diff --staged --quiet || git commit -m "📦 ئەرشیفی هەفتانەی ئامارەکان — $(date -u +'%Y-%m-%d')"
+          git diff --staged --quiet || git commit -m "📦 ئەرشیفی هەفتانە/مانگانە — $(date -u +'%Y-%m-%d')"
           git push

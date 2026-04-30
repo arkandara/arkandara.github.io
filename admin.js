@@ -270,17 +270,32 @@ var BTN_DEFAULTS = [
     { label: "داگرتنی ڤیدیۆ",             color: "#1a73e8", action: "toggleDlModal()",                              group: "ticker" }
 ];
 
+// نقشەی action بۆ cls — بۆ ئەوەی KV کۆنەکە ئۆتۆماتیک درووست بێت
+function getClsFromAction(action) {
+    if (!action) return 'btn-nav';
+    if (action.includes('toUni'))    return 'btn-uni';
+    if (action.includes('toAli'))    return 'btn-ali';
+    if (action.includes('copyText')) return 'btn-copy';
+    if (action.includes('clearText')) return 'btn-clear';
+    return 'btn-nav';
+}
+
 function loadButtons() {
     fetch("/track")
         .then(function(r) { return r.json(); })
         .then(function(d) {
             var btns = (d.settings && d.settings.toolbarBtns) ? d.settings.toolbarBtns : BTN_DEFAULTS;
+            // ئۆتۆماتیک cls زیاد بکە ئەگەر نەبوو (KV کۆن)
+            btns = btns.map(function(b) {
+                if (!b.cls) b.cls = getClsFromAction(b.action);
+                return b;
+            });
             var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed); }); }
+            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls); }); }
         })
         .catch(function() {
             var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed); }); }
+            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls); }); }
         });
 }
 
@@ -323,7 +338,7 @@ function saveButtons() {
         var action = row.querySelector(".btn-action").value.trim();
         var group  = row.querySelector(".btn-group-val")  ? row.querySelector(".btn-group-val").value  : "toolbar";
         var fixed  = row.querySelector(".btn-fixed-val")  ? row.querySelector(".btn-fixed-val").value === "1" : false;
-        if (label) btns.push({ label: label, color: color, action: action, group: group, fixed: fixed });
+        if (label) btns.push({ label: label, color: color, action: action, group: group, fixed: fixed, cls: getClsFromAction(action) });
     });
     fetch("/track", {
         method: "POST",

@@ -300,7 +300,7 @@ textarea:focus { outline: none; }
 
 
     
-    .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 7px; margin-top: 5px; }
+    .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 5px; }
     
 button, .btn-file { 
         padding: 6px 10px; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; 
@@ -317,23 +317,7 @@ button, .btn-file {
 }
 
 /* دوگمەکانی news ticker هاوتا بە دوگمەکانی خوارەوە */
-.news-ticker-btn {
-    padding: 6px 14px !important;
-    font-size: 14px !important;
-    border-radius: 8px !important;
-    font-weight: bold !important;
-    white-space: nowrap;
-    flex-shrink: 0;
-    color: white !important;
-    border: none !important;
-    cursor: pointer !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
-    transition: all 0.3s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 3px !important;
-}
+/* news-ticker-btn styles defined below in the main section */
 
     button:active { transform: scale(0.98); }
 
@@ -420,13 +404,12 @@ button, .btn-file {
         }
     }
 
-    .news-ticker { display: flex; align-items: center; background: #dde4e1; border-radius: 8px; padding: 2px 5px; margin-top: 5px; max-width: 100%; }
+    /* news-ticker styles defined in main section */
 .dark-mode .news-ticker { background: #1e1e1e; }
-.news-badge { background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px; white-space: nowrap; }
 
 #news-text { 
     font-size: 14px; 
-    font-weight: none; 
+    font-weight: normal; 
     color: black; 
     text-decoration: none; 
     white-space: nowrap; 
@@ -617,11 +600,20 @@ button, .btn-file {
 #findReplaceModal {
     display: none;
     position: fixed;
-    bottom: 115px;
-    left: 60px;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 9999;
-    width: 340px;
-    max-width: calc(100vw - 80px);
+    width: 400px;
+    max-width: calc(100vw - 30px);
+}
+
+@media (min-width: 600px) {
+    #findReplaceModal {
+        left: 60px;
+        transform: none;
+        bottom: 120px;
+    }
 }
 
 #findReplaceModal.fr-open {
@@ -1161,8 +1153,8 @@ textarea {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-    padding: 4px 8px;
+    gap: 6px;
+    padding: 5px 8px;
     background: #dde4e1;
     border-radius: 10px;
     margin-top: 2px;
@@ -1179,51 +1171,51 @@ textarea {
 }
 
 #news-text {
-    flex: 1 1 200px; /* ئەمە وا دەکات تێکستەکە شوێنی پێویست بگرێت */
+    flex: 1 1 200px;
     min-width: 150px;
 }
 
-/* ستایلی دوگمەکان بۆ ئەوەی هاوشێوەی دوگمەکانی خوارەوە هەموو بۆشاییەکە بگرن */
+/* ستایلی دوگمەکان */
 .news-ticker-btn {
-    flex: 1 1 110px; /* گەشە دەکات بۆ پڕکردنەوەی بۆشایی و کەمترین پانی 110px بێت */
-    height: 38px;
+    flex: 1 1 120px;
+    height: 36px;
     margin: 0 !important;
     padding: 0 10px !important;
     font-size: 13px !important;
+    font-weight: bold !important;
     border-radius: 8px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     white-space: nowrap;
+    color: white !important;
     border: none !important;
+    cursor: pointer !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
     transition: all 0.3s ease !important;
+}
+
+.news-ticker-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 12px rgba(0,0,0,0.25) !important;
 }
 
 /* ستایل بۆ شاشەی بچووک (مۆبایل) */
 @media (max-width: 600px) {
     .news-ticker {
-        gap: 6px;
+        gap: 5px;
     }
     
-    /* لە مۆبایلدا دوگمەکان دەکەونە دوو ڕیز و پانتاییەکە دابەش دەکەن */
     .news-ticker-btn {
-        flex: 1 1 45%; 
+        flex: 1 1 calc(50% - 5px);
         font-size: 12px !important;
+        height: 34px;
     }
 
-    /* مانشێت و هەواڵەکە لەسەرەوە بە تەنها دەمێننەوە */
     .news-badge, #news-text {
         flex: 1 1 100%;
         text-align: center;
     }
-}
-
-/* ڕێکخستنی فۆنت کۆنتڕۆڵ بۆ ئەوەی تێک نەچێت */
-.font-ctrl {
-    flex: 1 1 auto;
-    justify-content: center;
-    min-width: 150px;
 }
 
 
@@ -1611,7 +1603,7 @@ textarea {
             <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن به‌ Word</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
-           
+        </div><!-- /btn-group -->
 
 <div id="findReplaceModal">
     <div class="fr-card">

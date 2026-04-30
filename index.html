@@ -300,10 +300,10 @@ textarea:focus { outline: none; }
 
 
     
-    .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 5px; }
+    .btn-group { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; margin-top: 5px; }
     
 button, .btn-file { 
-        padding: 6px 10px; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; 
+        padding: 0 10px; height: 36px; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; 
         color: white; font-size: 14px; text-align: center; 
         display: flex; align-items: center; justify-content: center;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -1596,11 +1596,11 @@ textarea {
         </div>
         <div class="btn-group" id="mainBtnGroup">
             <button class="btn-uni" onclick="convert('toUni')">↺ یونیكۆد - ڕێنووس</button>
-<button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻ عەلی کەی</button>        
-            <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن </button>
+            <button class="btn-ali" onclick="convert('toAli')" style="background: #d4ac0d !important;">↻ عەلی کەی</button>
+            <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن</button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button id="geminiBtn" class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
-            <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن به‌ Word</button>
+            <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;">💾 پاشه‌كه‌وتكردن</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
         </div><!-- /btn-group -->

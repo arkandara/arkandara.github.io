@@ -432,6 +432,24 @@
                 </div>
             </div>
 
+            <!-- نمودارەکانی رۆژانە / هەفتانە / مانگانە -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar"></i> ئامارەکانی سەردان و کلیک
+                    <div style="margin-right:auto;display:flex;gap:6px;">
+                        <button id="btn-daily"   class="add-btn stats-period-active" onclick="renderStatsPeriod('daily')">رۆژانە</button>
+                        <button id="btn-weekly"  class="add-btn" onclick="renderStatsPeriod('weekly')">هەفتانە</button>
+                        <button id="btn-monthly" class="add-btn" onclick="renderStatsPeriod('monthly')">مانگانە</button>
+                        <button class="add-btn" onclick="loadStatsCharts()" style="background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="statsChartsWrap" class="sc-wrap">
+                        <div class="no-data"><i class="fas fa-info-circle"></i> کلیک بکە بۆ بارکردن</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Textarea ئەمرۆ -->
             <div class="card">
                 <div class="card-header">

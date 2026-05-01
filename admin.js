@@ -585,11 +585,24 @@ function loadArchiveList() {
     Promise.all([
         fetch(base + "index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-        fetch(base + "monthly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; })
+        fetch(base + "monthly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+        fetch("/track").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var daily   = results[0] || [];
         var weekly  = results[1] || [];
         var monthly = results[2] || [];
+        var liveKV  = results[3] || {};
+
+        // داتای ئەمرۆ لە KV — بە ستارەکەوە لە سەرەوە زیاد دەکرێت
+        var todayStr = new Date().toISOString().slice(0,10);
+        var todayClicks = Object.values(liveKV.clicks||{}).reduce(function(s,v){ return s+v; },0);
+        var todayEntry = {
+            date:        todayStr + " ★",
+            totalVisits: liveKV.totalVisits || 0,
+            totalClicks: todayClicks,
+            isToday:     true
+        };
+        daily = [todayEntry].concat(daily.filter(function(d){ return (d.date||"").replace(" ★","") !== todayStr; }));
 
         if (!daily.length && !weekly.length && !monthly.length) {
             listEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا ئەرشیفێک نییە</div>';
@@ -607,10 +620,14 @@ function loadArchiveList() {
         html += '<div id="arc-daily" class="arc-panel">';
         if (daily.length) {
             daily.forEach(function(a) {
-                var dp = (a.date||"").split("-");
+                var isToday  = !!a.isToday;
+                var rowClass = isToday ? 'archive-row archive-row-today' : 'archive-row';
+                var dateClean = (a.date||"").replace(" ★","");
+                var dp = dateClean.split("-");
                 var dlabel = (dp[2]||"") + "/" + (dp[1]||"") + "/" + (dp[0]||"");
-                html += '<div class="archive-row" onclick="showArchiveChart(\'daily\','+JSON.stringify(a)+')" style="cursor:pointer">' +
-                    '<div class="archive-week"><i class="fas fa-calendar-day"></i> ' + dlabel + '</div>' +
+                var todayBadge = isToday ? '<span class="today-badge">⚡ ئەمرۆ (زیندوو)</span>' : '';
+                html += '<div class="'+rowClass+'" onclick="showArchiveChart('daily','+JSON.stringify(a)+')" style="cursor:pointer">' +
+                    '<div class="archive-week"><i class="fas fa-calendar-day"></i> ' + dlabel + ' ' + todayBadge + '</div>' +
                     '<div class="archive-meta">' +
                         '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
                         '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +

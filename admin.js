@@ -127,17 +127,7 @@ function resetAdminPass() {
 }
 
 function toggleSidebar() {
-    var sidebar = document.getElementById("sidebar");
-    var overlay = document.getElementById("sidebarOverlay");
-    sidebar.classList.toggle("open");
-    if (overlay) overlay.classList.toggle("active", sidebar.classList.contains("open"));
-}
-
-function closeSidebar() {
-    var sidebar = document.getElementById("sidebar");
-    var overlay = document.getElementById("sidebarOverlay");
-    sidebar.classList.remove("open");
-    if (overlay) overlay.classList.remove("active");
+    document.getElementById("sidebar").classList.toggle("open");
 }
 
 // ===========================
@@ -436,36 +426,126 @@ function renderSessions(sessions) {
         return;
     }
 
-    var rows = sessions.slice(0, 20).map(function(s, i) {
-        // شوێنی وردتر
+    // ---- یەکخستنی سەردانەکان بە IP (هەر IP یەک ریز) ----
+    var ipMap = {};
+    sessions.forEach(function(s) {
+        var key = s.ip && s.ip !== "" ? s.ip : ("__no_ip_" + s.time);
+        if (!ipMap[key]) {
+            ipMap[key] = s;
+        } else {
+            // ئەگەر شوێنی زیاتری هەیە، ئەوەی باشتر بگرە
+            var existing = ipMap[key];
+            var hasLoc = s.city && s.city !== "---" && s.country && s.country !== "---";
+            var existLoc = existing.city && existing.city !== "---" && existing.country && existing.country !== "---";
+            if (hasLoc && !existLoc) ipMap[key] = s;
+        }
+    });
+    var uniqueSessions = Object.values(ipMap).sort(function(a, b) {
+        return new Date(b.time || b.start || 0) - new Date(a.time || a.start || 0);
+    });
+
+    var rows = uniqueSessions.slice(0, 20).map(function(s, i) {
+        // شوێنی واقعی
         var locParts = [];
-        if (s.district && s.district !== "") locParts.push(s.district);
-        if (s.city     && s.city     !== "---") locParts.push(s.city);
-        if (s.region   && s.region   !== "") locParts.push(s.region);
-        if (s.country  && s.country  !== "---") locParts.push(s.country);
-        var locText = locParts.join(" ← ") || "نەناسراو";
+        if (s.district && s.district !== "" && s.district !== "---") locParts.push(s.district);
+        if (s.city && s.city !== "---" && s.city !== "") locParts.push(s.city);
+        if (s.region && s.region !== "" && s.region !== "---") {
+            var regionShort = s.region.replace(" Governorate","").replace(" Province","").replace(" Region","");
+            if (regionShort !== s.city) locParts.push(regionShort);
+        }
+        if (s.country && s.country !== "---" && s.country !== "") locParts.push(s.country);
+
+        var locHTML;
+        if (locParts.length === 0) {
+            if (s.ip && s.ip !== "") {
+                locHTML = '<span style="color:#f57c00;font-size:0.9em;"><i class="fas fa-shield-alt"></i> VPN / پڕۆکسی</span>';
+            } else {
+                locHTML = '<span style="color:#bbb;font-size:0.9em;"><i class="fas fa-user-secret"></i> نەناسراو</span>';
+            }
+        } else {
+            locHTML = '<i class="fas fa-map-marker-alt" style="color:#e53935;margin-left:4px;"></i>' + escHtml(locParts.join(" ← "));
+        }
 
         // ISP و کۆڕدینات
         var extra = "";
         if (s.isp) extra += '<div style="font-size:10px;color:#aaa;margin-top:2px;"><i class="fas fa-wifi"></i> ' + escHtml(s.isp) + '</div>';
         if (s.lat && s.lon) extra += '<a href="https://maps.google.com/?q='+s.lat+','+s.lon+'" target="_blank" style="font-size:10px;color:#42a5f5;"><i class="fas fa-map"></i> گووگڵ مەپ</a>';
+        if (s.ip && s.ip !== "") extra += '<div style="font-size:10px;color:#ccc;margin-top:1px;direction:ltr;">IP: ' + escHtml(s.ip) + '</div>';
 
         // کاتی خوێندراوەتر
         var dt = new Date(s.time || s.start || "");
         var timeStr = dt.toLocaleDateString("ar-IQ") + " " + dt.toLocaleTimeString("ar-IQ", {hour:"2-digit",minute:"2-digit"});
 
+        // ئامێر
+        var deviceIcon = (s.device || "").includes("موبایل") ? "📱" : "🖥️";
+        var deviceText = escHtml(s.device || "نەناسراو");
+
         return '<tr>' +
             '<td style="text-align:center;color:#aaa;">' + (i+1) + '</td>' +
             '<td style="font-size:12px;">' + timeStr + '</td>' +
-            '<td><div style="font-size:13px;font-weight:500;"><i class="fas fa-map-marker-alt" style="color:#e53935;margin-left:4px;"></i>' + escHtml(locText) + '</div>' + extra + '</td>' +
-            '<td style="font-size:12px;">' + escHtml(s.device || "") + '</td>' +
+            '<td><div style="font-size:13px;font-weight:500;">' + locHTML + '</div>' + extra + '</td>' +
+            '<td style="font-size:12px;">' + deviceText + '</td>' +
             '</tr>';
     }).join("");
 
-    sesEl.innerHTML = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">' +
+    // ---- ئاماری کۆمپیوتەر و موبایل ----
+    var mobileCount = 0, desktopCount = 0, unknownCount = 0;
+    uniqueSessions.forEach(function(s) {
+        var d = s.device || "";
+        if (d.includes("موبایل") || d.includes("📱")) mobileCount++;
+        else if (d.includes("کۆمپیوتەر") || d.includes("🖥") || d.includes("💻")) desktopCount++;
+        else unknownCount++;
+    });
+    var total = uniqueSessions.length || 1;
+    var mobilePct   = Math.round(mobileCount  / total * 100);
+    var desktopPct  = Math.round(desktopCount / total * 100);
+
+    // ---- ئاماری شوێن ----
+    var locCount = {};
+    uniqueSessions.forEach(function(s) {
+        if (s.city && s.city !== "---" && s.city !== "") {
+            locCount[s.city] = (locCount[s.city] || 0) + 1;
+        } else if (s.country && s.country !== "---") {
+            locCount[s.country] = (locCount[s.country] || 0) + 1;
+        } else {
+            locCount["نەناسراو/VPN"] = (locCount["نەناسراو/VPN"] || 0) + 1;
+        }
+    });
+    var sortedLoc = Object.entries(locCount).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+    var locBars = sortedLoc.map(function(lc) {
+        var pct = Math.round(lc[1] / total * 100);
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">' +
+            '<div style="min-width:90px;font-size:11px;color:#555;text-align:right;">' + escHtml(lc[0]) + '</div>' +
+            '<div style="flex:1;background:#eee;border-radius:4px;height:14px;overflow:hidden;">' +
+            '<div style="width:'+pct+'%;height:100%;background:#42a5f5;border-radius:4px;"></div></div>' +
+            '<div style="font-size:11px;color:#42a5f5;font-weight:bold;min-width:28px;">' + lc[1] + '</div>' +
+            '</div>';
+    }).join("");
+
+    var summaryBar =
+        '<div style="background:#f8faf8;border:1px solid #e0e0e0;border-radius:10px;padding:12px 16px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;">' +
+            // ئامێر
+            '<div style="flex:1;min-width:150px;">' +
+            '<div style="font-size:11px;color:#888;margin-bottom:6px;"><i class="fas fa-mobile-alt"></i> ئامێر</div>' +
+            '<div style="display:flex;gap:10px;">' +
+            '<div style="text-align:center;background:#e8f5e9;border-radius:8px;padding:6px 12px;">' +
+            '<div style="font-size:1.2em;font-weight:bold;color:#2e7d32;">🖥️ '+desktopCount+'</div>' +
+            '<div style="font-size:10px;color:#888;">کۆمپیوتەر ('+desktopPct+'%)</div></div>' +
+            '<div style="text-align:center;background:#e3f2fd;border-radius:8px;padding:6px 12px;">' +
+            '<div style="font-size:1.2em;font-weight:bold;color:#1565c0;">📱 '+mobileCount+'</div>' +
+            '<div style="font-size:10px;color:#888;">موبایل ('+mobilePct+'%)</div></div>' +
+            '</div></div>' +
+            // شوێن
+            '<div style="flex:2;min-width:200px;">' +
+            '<div style="font-size:11px;color:#888;margin-bottom:6px;"><i class="fas fa-map-marker-alt"></i> زیاترین شوێنەکان</div>' +
+            locBars +
+            '</div>' +
+        '</div>';
+
+    sesEl.innerHTML = summaryBar +
         '<table class="stats-table">' +
         '<thead><tr><th>#</th><th>کات</th><th>شوێن</th><th>ئامێر</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table></div>';
+        '<tbody>' + rows + '</tbody></table>';
 }
 
 

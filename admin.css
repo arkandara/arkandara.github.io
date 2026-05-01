@@ -754,3 +754,48 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     border-radius: 2px;
     display: inline-block;
 }
+
+/* ===== تابەکانی ئەرشیف ===== */
+.arc-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+}
+.arc-tab {
+    background: none;
+    border: 1.5px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.arc-tab:hover { border-color: #4caf50; color: #4caf50; }
+.arc-tab-active {
+    background: #4caf50 !important;
+    color: white !important;
+    border-color: #4caf50 !important;
+}
+.arc-panel { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+.archive-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 7px;
+    transition: all 0.2s;
+    background: var(--card-bg);
+}
+.archive-row:hover {
+    border-color: #42a5f5;
+    background: rgba(66,165,245,0.05);
+    transform: translateX(-2px);
+}

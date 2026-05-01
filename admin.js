@@ -141,7 +141,8 @@ var SITE_DEFAULTS = {
     siteDesc:      "گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode)",
     primaryColor:  "#2e7d32",
     bismillahText: "بِسْمِ اللَّهِ",
-    bismillahSub:  "سه‌كۆی ڕۆژنامه‌نووس"
+    bismillahSub:  "سه‌كۆی ڕۆژنامه‌نووس",
+    updateText:    "نوێترین ئه‌بده‌یت  23ـی نیسانی 2026"
 };
 
 function loadSiteInfo() {
@@ -157,11 +158,7 @@ function loadSiteInfo() {
             document.getElementById("primaryHex").textContent = data.primaryColor;
             document.getElementById("bismillahText").value    = data.bismillahText;
             document.getElementById("bismillahSub").value     = data.bismillahSub;
-        })
-        .catch(function() {
-            // fallback بۆ default
-            var data = SITE_DEFAULTS;
-            document.getElementById("siteName").value         = data.siteName;
+            document.getElementById("updateText").value       = data.updateText || "";
             document.getElementById("siteAuthor").value       = data.siteAuthor;
             document.getElementById("siteTitle").value        = data.siteTitle;
             document.getElementById("siteDesc").value         = data.siteDesc;
@@ -169,6 +166,7 @@ function loadSiteInfo() {
             document.getElementById("primaryHex").textContent = data.primaryColor;
             document.getElementById("bismillahText").value    = data.bismillahText;
             document.getElementById("bismillahSub").value     = data.bismillahSub;
+            document.getElementById("updateText").value       = data.updateText || "";
         });
 }
 
@@ -178,6 +176,7 @@ function saveSiteInfo() {
         siteAuthor:    document.getElementById("siteAuthor").value.trim(),
         siteTitle:     document.getElementById("siteTitle").value.trim(),
         siteDesc:      document.getElementById("siteDesc").value.trim(),
+        updateText:    document.getElementById("updateText").value.trim(),
         primaryColor:  document.getElementById("primaryColor").value,
         bismillahText: document.getElementById("bismillahText").value.trim(),
         bismillahSub:  document.getElementById("bismillahSub").value.trim()

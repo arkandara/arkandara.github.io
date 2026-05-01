@@ -3541,17 +3541,15 @@ function akStartSession() {
         body: JSON.stringify(sessionData)
     }).catch(function() {});
 
-    // دووەم: شوێن وەربگرە و دووبارە بنێرە — ip-api.com داتای وردتر دەدات
-    fetch('http://ip-api.com/json/?fields=status,country,regionName,city,district,zip,lat,lon,isp,org,query&lang=en')
+    // دووەم: شوێن وەربگرە — ipwho.is HTTPS پشتیوانی دەکات
+    fetch('https://ipwho.is/')
         .then(function(r) { return r.json(); })
         .then(function(info) {
-            if (info.status !== 'success') return;
+            if (!info.success) return;
 
-            // ئاکامی شوێن: گەڕەک + شار + پارێزگا
-            var district = info.district || '';
-            var cityFull = [district, info.city, info.regionName]
-                            .filter(Boolean)
-                            .join(' — ');
+            var district = info.connection && info.connection.org ? info.connection.org : '';
+            var cityFull = [info.city, info.region, info.country]
+                            .filter(Boolean).join(' ← ');
 
             fetch('/track', {
                 method: 'POST',
@@ -3559,15 +3557,15 @@ function akStartSession() {
                 body: JSON.stringify({
                     type:     'visit',
                     device:   sessionData.device,
-                    city:     cityFull          || '---',
-                    country:  info.country      || '---',
-                    region:   info.regionName   || '',
-                    district: district,
-                    zip:      info.zip          || '',
-                    isp:      info.isp          || '',
-                    lat:      info.lat          || '',
-                    lon:      info.lon          || '',
-                    ip:       info.query        || ''
+                    city:     info.city       || '---',
+                    country:  info.country    || '---',
+                    region:   info.region     || '',
+                    district: info.city       || '',
+                    zip:      info.postal     || '',
+                    isp:      (info.connection && info.connection.isp) || '',
+                    lat:      info.latitude   || '',
+                    lon:      info.longitude  || '',
+                    ip:       info.ip         || ''
                 })
             }).catch(function() {});
         })

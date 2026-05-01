@@ -299,7 +299,7 @@ function loadButtons() {
         });
 }
 
-function addBtnRow(label, color, action, group, fixed) {
+function addBtnRow(label, color, action, group, fixed, cls) {
     label  = label  || "";
     color  = color  || "#2e7d32";
     action = action || "";
@@ -396,4 +396,4 @@ function loadStats() {
         });
 }
 
-function renderClickChart
+function renderClick

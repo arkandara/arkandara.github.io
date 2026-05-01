@@ -799,3 +799,22 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     background: rgba(66,165,245,0.05);
     transform: translateX(-2px);
 }
+
+/* ئەمرۆ — ستایلی تایبەت */
+.archive-row-today {
+    border: 2px solid #4caf50 !important;
+    background: rgba(76,175,80,0.06) !important;
+}
+.archive-row-today:hover {
+    border-color: #2e7d32 !important;
+    background: rgba(76,175,80,0.12) !important;
+}
+.today-badge {
+    font-size: 10px;
+    background: #4caf50;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: bold;
+    flex-shrink: 0;
+}

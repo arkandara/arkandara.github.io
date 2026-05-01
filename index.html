@@ -3377,8 +3377,8 @@ function typeEffect() {
     }
 }
 
-// دەستپێکردن
-setTimeout(typeIntro, 3400);
+// دەستپێکردن — typeIntro لە applySettings دەخوێنرێت دوای بارکردنی داتا لە KV
+// (setTimeout لێرە لادرا بۆ ئەوەی introName لە KV بخوێنرێت پێش دەستپێکردن)
 
 
 // ==============================
@@ -3450,6 +3450,11 @@ function akTrackClick(label) {
             // دەقی دواین ئەبدەیت (placeholder لە ناوچەی نووسین)
             if (s.updateText) {
                 introName = s.updateText;
+            }
+            // typeIntro لێرە دەخوێنرێت دوای وەرگرتنی introName لە KV
+            if (!window._introStarted) {
+                window._introStarted = true;
+                setTimeout(typeIntro, 200);
             }
 
             // RSS سەرچاوەکان — گۆڕینی rssSources گلۆبەل
@@ -3524,7 +3529,12 @@ function akTrackClick(label) {
                 }
             }
         })
-        .catch(function() {});
+        .catch(function() {
+            if (!window._introStarted) {
+                window._introStarted = true;
+                setTimeout(typeIntro, 3400);
+            }
+        });
 })();
 
 // ---- تۆمارکردنی سەردان بۆ KV ----

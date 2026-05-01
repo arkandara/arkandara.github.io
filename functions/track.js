@@ -124,12 +124,17 @@ export async function onRequestPost(context) {
         // ---- سەردان ----
         if (type === "visit") {
             const session = {
-                time:    new Date().toISOString(),
-                city:    body.city    || "---",
-                country: body.country || "---",
-                region:  body.region  || "",
-                ip:      body.ip      || "",
-                device:  body.device  || "نەناسراو"
+                time:     new Date().toISOString(),
+                city:     body.city     || "---",
+                country:  body.country  || "---",
+                region:   body.region   || "",
+                district: body.district || "",
+                zip:      body.zip      || "",
+                isp:      body.isp      || "",
+                lat:      body.lat      || "",
+                lon:      body.lon      || "",
+                ip:       body.ip       || "",
+                device:   body.device   || "نەناسراو"
             };
             const tot = parseInt(await env.STATS_DB.get("meta:total_visits") || "0");
             await env.STATS_DB.put("meta:total_visits", String(tot + 1));

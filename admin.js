@@ -127,7 +127,17 @@ function resetAdminPass() {
 }
 
 function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("open");
+    var sidebar = document.getElementById("sidebar");
+    var overlay = document.getElementById("sidebarOverlay");
+    sidebar.classList.toggle("open");
+    if (overlay) overlay.classList.toggle("active", sidebar.classList.contains("open"));
+}
+
+function closeSidebar() {
+    var sidebar = document.getElementById("sidebar");
+    var overlay = document.getElementById("sidebarOverlay");
+    sidebar.classList.remove("open");
+    if (overlay) overlay.classList.remove("active");
 }
 
 // ===========================

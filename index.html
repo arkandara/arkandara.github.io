@@ -3541,20 +3541,33 @@ function akStartSession() {
         body: JSON.stringify(sessionData)
     }).catch(function() {});
 
-    // دووەم: شوێن وەربگرە و دووبارە بنێرە
-    fetch('https://ipapi.co/json/')
+    // دووەم: شوێن وەربگرە و دووبارە بنێرە — ip-api.com داتای وردتر دەدات
+    fetch('http://ip-api.com/json/?fields=status,country,regionName,city,district,zip,lat,lon,isp,org,query&lang=en')
         .then(function(r) { return r.json(); })
         .then(function(info) {
+            if (info.status !== 'success') return;
+
+            // ئاکامی شوێن: گەڕەک + شار + پارێزگا
+            var district = info.district || '';
+            var cityFull = [district, info.city, info.regionName]
+                            .filter(Boolean)
+                            .join(' — ');
+
             fetch('/track', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    type:    'visit',
-                    device:  sessionData.device,
-                    city:    info.city             || '---',
-                    country: info.country_name || info.country || '---',
-                    region:  info.region           || '',
-                    ip:      info.ip               || ''
+                    type:     'visit',
+                    device:   sessionData.device,
+                    city:     cityFull          || '---',
+                    country:  info.country      || '---',
+                    region:   info.regionName   || '',
+                    district: district,
+                    zip:      info.zip          || '',
+                    isp:      info.isp          || '',
+                    lat:      info.lat          || '',
+                    lon:      info.lon          || '',
+                    ip:       info.query        || ''
                 })
             }).catch(function() {});
         })

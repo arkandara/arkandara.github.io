@@ -935,11 +935,27 @@ function loadStatsCharts() {
     Promise.all([
         fetch(base + "index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
-        fetch(base + "monthly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; })
+        fetch(base + "monthly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        fetch("/track").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
     ]).then(function(results) {
-        _archiveIndex = results[0];
+        var archived = results[0] || [];
         _weeklyIndex  = results[1];
         _monthlyIndex = results[2];
+        var kv        = results[3] || {};
+
+        // داتای ئەمرۆ لە KV — وەک ڕیزی یەکەم زیاد دەکرێت
+        var todayStr = new Date().toISOString().slice(0,10);
+        var todayEntry = {
+            date:        todayStr + " ★",  // ئەمرۆ
+            totalVisits: kv.totalVisits  || 0,
+            totalClicks: Object.values(kv.clicks||{}).reduce(function(s,v){ return s+v; }, 0),
+            _isToday:    true
+        };
+
+        // سڕینەوەی ئەگەر ئەمرۆ پێشتر لە ئەرشیفدا بوو
+        var filtered = archived.filter(function(d){ return d.date !== todayStr; });
+        _archiveIndex = [todayEntry].concat(filtered);
+
         renderStatsPeriod(_statsPeriod);
     }).catch(function() {
         if(wrap) wrap.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردنی ئامارەکان</div>';

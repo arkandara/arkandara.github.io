@@ -3332,7 +3332,7 @@ async function handleOcrImage(e) {
 const textBox = document.getElementById('textBox');
 
 // لێرەدا دەقەکان بە یەکجار وەک لیست ڕێکدەخەین
-const introName = "نوێترین ئه‌بده‌یت  23ـی نیسانی 2026";
+var introName = "نوێترین ئه‌بده‌یت  23ـی نیسانی 2026"; // دەتوانرێت لە پانێڵەوە گۆڕدرێت
 const mainText = "لێره‌ بنووسه‌ یان ده‌قێك دابنێ...";
 
 let index = 0;
@@ -3445,6 +3445,11 @@ function akTrackClick(label) {
             if (s.bismillahSub) {
                 var bsmSub = document.querySelector('.bsm-subtitle');
                 if (bsmSub) bsmSub.textContent = s.bismillahSub;
+            }
+
+            // دەقی دواین ئەبدەیت (placeholder لە ناوچەی نووسین)
+            if (s.updateText) {
+                introName = s.updateText;
             }
 
             // RSS سەرچاوەکان — گۆڕینی rssSources گلۆبەل

@@ -818,3 +818,144 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     font-weight: bold;
     flex-shrink: 0;
 }
+
+
+/* ============================================================
+   ریسپۆنسیڤی موبایل — گشتگیر
+   ============================================================ */
+
+/* ---- موبایل: نیشاندانی overlay کاتی کردنەوەی سایدبار ---- */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 99;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ---- بریکپۆینتی 768px ---- */
+@media (max-width: 768px) {
+
+    /* سایدبار */
+    .sidebar {
+        transform: translateX(100%);
+        width: 260px;
+        z-index: 200;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    /* ناوەرۆکی سەرەکی */
+    .main-content { margin-right: 0; }
+
+    /* تاپ بار */
+    .menu-toggle { display: flex; align-items: center; }
+    .top-bar { padding: 0 12px; gap: 8px; }
+    .top-bar-title { font-size: 0.9em; }
+    .view-site-btn span { display: none; } /* نووسینی دوگمە شاردەوە، تەنها ئایکۆن */
+
+    /* تاب کانتێنت */
+    .tab-content { padding: 14px 10px; }
+
+    /* گریدی ئامارە سەرەوەکان: 4 → 2 ستوون */
+    .stats-top-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-num { font-size: 1.6em; }
+
+    /* گریدی کارتەکان: 2 → 1 ستوون */
+    .card-grid { grid-template-columns: 1fr; }
+
+    /* چارتی کلیک — bar-row */
+    .bar-row { grid-template-columns: 90px 1fr 36px; }
+    .bar-last { display: none; }
+    .bar-label { font-size: 0.78em; }
+
+    /* RSS و دوگمەکانی toolbar */
+    .rss-row, .btn-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .rss-row input, .btn-row input {
+        min-width: 0;
+        flex: 1 1 100%;
+    }
+    .rss-row .del-btn, .btn-row .del-btn {
+        width: 32px; height: 32px;
+        flex-shrink: 0;
+    }
+
+    /* تابەکانی ئەرشیف */
+    .arc-tabs {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .arc-tab {
+        flex: 1 1 auto;
+        font-size: 0.78em;
+        padding: 7px 8px;
+        text-align: center;
+    }
+
+    /* ئەرشیف row */
+    .archive-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .archive-week { font-size: 0.85em; }
+    .archive-meta { flex-wrap: wrap; gap: 4px; font-size: 0.8em; }
+    .archive-btns { width: 100%; justify-content: flex-start; }
+
+    /* جەدوەلەکان — scroll ئەفقی */
+    .stats-table-wrap,
+    .sessions-wrap,
+    .snap-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .stats-table { min-width: 480px; }
+
+    /* کارتی زانیاری سایت */
+    .site-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* دوگمەکانی toolbar ئەدمین */
+    .toolbar-actions {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .toolbar-actions button {
+        flex: 1 1 calc(50% - 6px);
+        font-size: 0.82em;
+    }
+
+    /* کارتی KV usage */
+    .kv-usage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* نمودار */
+    .sc-wrap { overflow-x: auto; }
+    .sc-inner { min-width: 320px; }
+}
+
+/* ---- بریکپۆینتی 480px — موبایلی زۆر بچووک ---- */
+@media (max-width: 480px) {
+
+    /* گریدی ئامار: 2 → 1 ستوون */
+    .stats-top-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card { padding: 12px 10px; }
+    .stat-num { font-size: 1.4em; }
+
+    /* تاپ بار */
+    .top-bar { height: 52px; }
+    .top-bar-title { font-size: 0.82em; }
+
+    /* RSS rows */
+    .rss-row .url-input { font-size: 0.75em; }
+
+    /* تابەکانی ئەرشیف */
+    .arc-tab { font-size: 0.72em; padding: 6px 6px; }
+
+    /* نمودار */
+    .sc-wrap { min-height: 140px; }
+}

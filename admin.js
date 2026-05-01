@@ -626,7 +626,7 @@ function loadArchiveList() {
                 var dp = dateClean.split("-");
                 var dlabel = (dp[2]||"") + "/" + (dp[1]||"") + "/" + (dp[0]||"");
                 var todayBadge = isToday ? '<span class="today-badge">⚡ ئەمرۆ (زیندوو)</span>' : '';
-                html += '<div class="'+rowClass+'" onclick="showArchiveChart('daily','+JSON.stringify(a)+')" style="cursor:pointer">' +
+                html += '<div class="'+rowClass+'" onclick="showArchiveChart(\'daily\','+JSON.stringify(a)+')" style="cursor:pointer">' +
                     '<div class="archive-week"><i class="fas fa-calendar-day"></i> ' + dlabel + ' ' + todayBadge + '</div>' +
                     '<div class="archive-meta">' +
                         '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +

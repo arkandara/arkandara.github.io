@@ -1,0 +1,172 @@
+{
+  "date": "2026-05-01",
+  "generatedAt": "2026-05-01T02:26:07.458Z",
+  "totalVisits": 248,
+  "totalTextarea": 394,
+  "clicks": {
+    "سڕینەوەی دەق": 11,
+    "هەواڵەکان": 9,
+    "گۆڕین بۆ یونیکۆد": 37,
+    "گۆڕین بۆ عەلی کەی": 29,
+    "کەتکردن": 14,
+    "پاشەکەوت Word": 37,
+    "دەربارە": 7,
+    "تەما": 12,
+    "سڕینەوەی بۆشایی": 43,
+    "Gemini": 35,
+    "گەڕان و گۆڕین": 24,
+    "دۆزینەوە": 1,
+    "گۆڕینی هەموو": 1,
+    "هێنانی Word": 1,
+    "داگرتنی ڤیدیۆ": 2
+  },
+  "sessions": [
+    {
+      "time": "2026-05-01T01:50:53.228Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T01:50:53.739Z",
+      "city": "Sulaymaniyah",
+      "country": "Iraq",
+      "region": "Sulaymaniyah Governorate",
+      "ip": "185.95.206.71",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T01:52:16.208Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T01:52:16.470Z",
+      "city": "Sulaymaniyah",
+      "country": "Iraq",
+      "region": "Sulaymaniyah Governorate",
+      "ip": "185.95.206.71",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T01:58:38.800Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T01:58:39.299Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T01:58:39.710Z",
+      "city": "Sulaymaniyah",
+      "country": "Iraq",
+      "region": "Sulaymaniyah Governorate",
+      "ip": "185.95.206.71",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T01:58:44.459Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T01:58:44.789Z",
+      "city": "Sulaymaniyah",
+      "country": "Iraq",
+      "region": "Sulaymaniyah Governorate",
+      "ip": "185.95.206.71",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T02:00:07.196Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T02:00:07.514Z",
+      "city": "Sulaymaniyah",
+      "country": "Iraq",
+      "region": "Sulaymaniyah Governorate",
+      "ip": "185.95.206.71",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T02:00:23.414Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T02:00:23.497Z",
+      "city": "Sulaymaniyah",
+      "country": "Iraq",
+      "region": "Sulaymaniyah Governorate",
+      "ip": "185.95.206.71",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T02:02:21.285Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T02:02:21.636Z",
+      "city": "Sulaymaniyah",
+      "country": "Iraq",
+      "region": "Sulaymaniyah Governorate",
+      "ip": "185.95.206.71",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T02:22:20.461Z",
+      "city": "---",
+      "country": "---",
+      "region": "",
+      "ip": "",
+      "device": "🖥️ کۆمپیوتەر"
+    },
+    {
+      "time": "2026-05-01T02:22:20.938Z",
+      "city": "Sulaymaniyah",
+      "country": "Iraq",
+      "region": "Sulaymaniyah Governorate",
+      "ip": "185.95.206.71",
+      "device": "🖥️ کۆمپیوتەر"
+    }
+  ],
+  "snapshots": {
+    "result": null,
+    "errors": [
+      {
+        "code": 10009,
+        "message": "get: 'key not found'"
+      }
+    ],
+    "messages": [],
+    "success": false
+  }
+}

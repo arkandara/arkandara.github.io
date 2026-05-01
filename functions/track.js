@@ -176,7 +176,7 @@ export async function onRequestPost(context) {
 
         // ---- ڕێکخستنەکانی سایت ----
         if (type === "settings") {
-            const allowed = ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","rssSources","toolbarBtns"];
+            const allowed = ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","updateText","rssSources","toolbarBtns"];
             const settings = {};
             allowed.forEach(k => { if (body[k] !== undefined) settings[k] = body[k]; });
             await env.STATS_DB.put("settings:site", JSON.stringify(settings));
@@ -186,7 +186,7 @@ export async function onRequestPost(context) {
         // ---- settings (ڕێکخستنەکانی سایت لە ئەدمین) ----
         if (type === "settings") {
             const allowed = ["siteName","siteAuthor","siteTitle","siteDesc",
-                             "primaryColor","bismillahText","bismillahSub",
+                             "primaryColor","bismillahText","bismillahSub","updateText",
                              "rssSources","toolbarBtns"];
             const data = {};
             allowed.forEach(k => { if (body[k] !== undefined) data[k] = body[k]; });

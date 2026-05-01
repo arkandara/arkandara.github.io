@@ -462,9 +462,10 @@ function renderSessions(sessions) {
             '</tr>';
     }).join("");
 
-    sesEl.innerHTML = '<table class="stats-table">' +
-        '<thead><tr><th>#</th><th>کات</th><th>شوێن (گەڕەک ← شار ← پارێزگا ← وڵات)</th><th>ئامێر</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table>';
+    sesEl.innerHTML = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">' +
+        '<table class="stats-table">' +
+        '<thead><tr><th>#</th><th>کات</th><th>شوێن</th><th>ئامێر</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table></div>';
 }
 
 

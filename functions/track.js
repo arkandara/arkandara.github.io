@@ -77,6 +77,63 @@ export async function onRequestGet(context) {
     }
 }
 
+// ---- یارمەتیدەری شوێن لە Cloudflare headers ----
+async function getLocationFromCF(request, ip) {
+    // Cloudflare خۆی زانیاری شوێن دەدات لە headers
+    const cfCountry  = request.headers.get("CF-IPCountry")  || "";
+    const cfCity     = request.headers.get("CF-IPCity")     || "";
+    const cfRegion   = request.headers.get("CF-IPRegion")   || "";
+    const cfLat      = request.headers.get("CF-IPLatitude") || "";
+    const cfLon      = request.headers.get("CF-IPLongitude")|| "";
+    const cfPostal   = request.headers.get("CF-IPPostalCode")|| "";
+    const cfTZ       = request.headers.get("CF-Timezone")   || "";
+    const cfASN      = request.headers.get("CF-IPASNOrg")   || "";
+
+    // ئەگەر Cloudflare headers داتا دابوو
+    if (cfCountry && cfCountry !== "XX" && cfCountry !== "T1") {
+        return {
+            success:  true,
+            source:   "cloudflare",
+            ip:       ip,
+            country:  cfCountry,
+            city:     decodeURIComponent(cfCity.replace(/\+/g,' ')),
+            region:   decodeURIComponent(cfRegion.replace(/\+/g,' ')),
+            lat:      cfLat,
+            lon:      cfLon,
+            postal:   cfPostal,
+            timezone: cfTZ,
+            isp:      cfASN,
+        };
+    }
+
+    // ئەگەر Cloudflare headers نەبوو، ip-api.com بەکاربێنە (پشتیوانی)
+    if (ip && ip !== "" && !ip.startsWith("127.") && !ip.startsWith("::1")) {
+        try {
+            const geoRes = await fetch(
+                `http://ip-api.com/json/${ip}?fields=status,country,countryCode,regionName,city,lat,lon,zip,isp,org`,
+                { cf: { cacheTtl: 3600, cacheEverything: true } }
+            );
+            const geo = await geoRes.json();
+            if (geo.status === "success") {
+                return {
+                    success:  true,
+                    source:   "ip-api",
+                    ip:       ip,
+                    country:  geo.country,
+                    city:     geo.city,
+                    region:   geo.regionName,
+                    lat:      geo.lat,
+                    lon:      geo.lon,
+                    postal:   geo.zip,
+                    isp:      geo.isp || geo.org,
+                };
+            }
+        } catch(e) {}
+    }
+
+    return { success: false, ip: ip };
+}
+
 // ---- POST: تۆمارکردن ----
 export async function onRequestPost(context) {
     const { request, env } = context;
@@ -123,27 +180,54 @@ export async function onRequestPost(context) {
 
         // ---- سەردان ----
         if (type === "visit") {
+            // IP ی واقعی لە Cloudflare header وەربگرە
+            const realIP = request.headers.get("CF-Connecting-IP")
+                        || request.headers.get("X-Real-IP")
+                        || body.ip
+                        || "";
+
+            // شوێن لە Cloudflare headers وەربگرە (باشترین ڕێگا)
+            const geo = await getLocationFromCF(request, realIP);
+
+            const isMobile = /Mobi|Android/i.test(body.userAgent || "");
+            const device   = body.device || (isMobile ? "📱 موبایل" : "🖥️ کۆمپیوتەر");
+
             const session = {
                 time:     new Date().toISOString(),
-                city:     body.city     || "---",
-                country:  body.country  || "---",
-                region:   body.region   || "",
+                city:     geo.city     || body.city     || "---",
+                country:  geo.country  || body.country  || "---",
+                region:   geo.region   || body.region   || "",
                 district: body.district || "",
-                zip:      body.zip      || "",
-                isp:      body.isp      || "",
-                lat:      body.lat      || "",
-                lon:      body.lon      || "",
-                ip:       body.ip       || "",
-                device:   body.device   || "نەناسراو"
+                zip:      geo.postal   || body.zip      || "",
+                isp:      geo.isp      || body.isp      || "",
+                lat:      geo.lat      || body.lat      || "",
+                lon:      geo.lon      || body.lon      || "",
+                ip:       realIP,
+                device:   device,
+                geoSrc:   geo.source   || "client",
             };
+
             const tot = parseInt(await env.STATS_DB.get("meta:total_visits") || "0");
             await env.STATS_DB.put("meta:total_visits", String(tot + 1));
             const dayKey = "visits:" + isoDate(new Date());
             const daySes = safeJson(await env.STATS_DB.get(dayKey), []);
-            daySes.push(session);
-            if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
+
+            // ئەگەر IP یەکسانە، نوێکردنەوە لەجیاتی زیادکردن
+            const existIdx = realIP ? daySes.findIndex(s => s.ip === realIP) : -1;
+            if (existIdx >= 0) {
+                // نوێکردنەوەی شوێن ئەگەر باشتری هەیە
+                const ex = daySes[existIdx];
+                const exHasLoc = ex.city && ex.city !== "---";
+                const newHasLoc = session.city && session.city !== "---";
+                if (newHasLoc && !exHasLoc) daySes[existIdx] = session;
+                else if (newHasLoc) Object.assign(daySes[existIdx], session); // نوێکردنەوەی زانیاری
+            } else {
+                daySes.push(session);
+                if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
+            }
+
             await env.STATS_DB.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
-            return ok({ success: true, total: tot + 1 });
+            return ok({ success: true, total: tot + 1, city: session.city, country: session.country });
         }
 
         // ---- Textarea (دوای ٣ چرکەی راوەستان) ----

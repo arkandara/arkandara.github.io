@@ -570,32 +570,208 @@ function loadArchiveList() {
     if (!listEl) return;
     listEl.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
 
-    fetch("/track")
-        .then(r => r.json())
-        .then(function(data) {
-            var archives = data.archiveList || [];
-            if (!archives.length) {
-                listEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا ئەرشیفێک نییە</div>';
-                return;
-            }
+    var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
 
-            listEl.innerHTML = archives.map(function(a) {
-                return '<div class="archive-row">' +
-                    '<div class="archive-week"><i class="fas fa-calendar-week"></i> ' + escHtml(a.week.replace("_", " → ")) + '</div>' +
+    Promise.all([
+        fetch(base + "index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+        fetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+        fetch(base + "monthly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; })
+    ]).then(function(results) {
+        var daily   = results[0] || [];
+        var weekly  = results[1] || [];
+        var monthly = results[2] || [];
+
+        if (!daily.length && !weekly.length && !monthly.length) {
+            listEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا ئەرشیفێک نییە</div>';
+            return;
+        }
+
+        // ---- تابەکانی ئەرشیف ----
+        var html = '<div class="arc-tabs">' +
+            '<button class="arc-tab arc-tab-active" onclick="switchArcTab(this,\'arc-daily\')"><i class="fas fa-calendar-day"></i> رۆژانە ('+daily.length+')</button>' +
+            '<button class="arc-tab" onclick="switchArcTab(this,\'arc-weekly\')"><i class="fas fa-calendar-week"></i> هەفتانە ('+weekly.length+')</button>' +
+            '<button class="arc-tab" onclick="switchArcTab(this,\'arc-monthly\')"><i class="fas fa-calendar-alt"></i> مانگانە ('+monthly.length+')</button>' +
+            '</div>';
+
+        // ---- رۆژانە ----
+        html += '<div id="arc-daily" class="arc-panel">';
+        if (daily.length) {
+            daily.forEach(function(a) {
+                var dp = (a.date||"").split("-");
+                var dlabel = (dp[2]||"") + "/" + (dp[1]||"") + "/" + (dp[0]||"");
+                html += '<div class="archive-row" onclick="showArchiveChart(\'daily\','+JSON.stringify(a)+')" style="cursor:pointer">' +
+                    '<div class="archive-week"><i class="fas fa-calendar-day"></i> ' + dlabel + '</div>' +
                     '<div class="archive-meta">' +
-                        '<span><i class="fas fa-globe"></i> ' + (a.totalVisits || 0) + ' سەردان</span>' +
-                        '<span><i class="fas fa-mouse-pointer"></i> ' + (a.totalClicks || 0) + ' کلیک</span>' +
+                        '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
+                        '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
                     '</div>' +
                     '<div class="archive-btns">' +
-                        '<a href="' + escHtml(a.fileJson) + '" target="_blank" class="archive-dl json">JSON</a>' +
-                        '<a href="' + escHtml(a.fileCsv)  + '" target="_blank" class="archive-dl csv">CSV</a>' +
+                        (a.fileJson ? '<a href="'+base+a.fileJson.replace("archives/","")+'" target="_blank" class="archive-dl json" onclick="event.stopPropagation()">JSON</a>' : '') +
+                        (a.fileCsv  ? '<a href="'+base+a.fileCsv.replace("archives/","")+'"  target="_blank" class="archive-dl csv"  onclick="event.stopPropagation()">CSV</a>'  : '') +
                     '</div>' +
-                    '</div>';
-            }).join("");
-        })
-        .catch(function() {
-            listEl.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردنی ئەرشیفەکان</div>';
-        });
+                '</div>';
+            });
+        } else {
+            html += '<div class="no-data">هێشتا ئەرشیفی رۆژانە نییە</div>';
+        }
+        html += '</div>';
+
+        // ---- هەفتانە ----
+        html += '<div id="arc-weekly" class="arc-panel" style="display:none">';
+        if (weekly.length) {
+            weekly.forEach(function(a) {
+                var parts = (a.week||"").split("_");
+                var ws = parts[0]||""; var we = parts[1]||"";
+                var wsp = ws.split("-"); var wep = we.split("-");
+                var wlabel = (wsp[2]||"")+"/"+(wsp[1]||"") + " → " + (wep[2]||"")+"/"+(wep[1]||"");
+                html += '<div class="archive-row" onclick="showArchiveChart(\'weekly\','+JSON.stringify(a)+')" style="cursor:pointer">' +
+                    '<div class="archive-week"><i class="fas fa-calendar-week"></i> ' + wlabel + '</div>' +
+                    '<div class="archive-meta">' +
+                        '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
+                        '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
+                    '</div>' +
+                '</div>';
+            });
+        } else {
+            html += '<div class="no-data">هێشتا ئەرشیفی هەفتانە نییە</div>';
+        }
+        html += '</div>';
+
+        // ---- مانگانە ----
+        html += '<div id="arc-monthly" class="arc-panel" style="display:none">';
+        if (monthly.length) {
+            monthly.forEach(function(a) {
+                var mp = (a.month||"").split("-");
+                var mNames = ["","کانوونی دووەم","شوبات","ئازار","نیسان","ئایار","حوزەیران","تەممووز","ئاب","ئەیلوول","تشرینی یەکەم","تشرینی دووەم","کانوونی یەکەم"];
+                var mlabel = (mNames[+(mp[1]||0)]||mp[1]) + " " + (mp[0]||"");
+                html += '<div class="archive-row" onclick="showArchiveChart(\'monthly\','+JSON.stringify(a)+')" style="cursor:pointer">' +
+                    '<div class="archive-week"><i class="fas fa-calendar-alt"></i> ' + mlabel + '</div>' +
+                    '<div class="archive-meta">' +
+                        '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
+                        '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
+                        '<span><i class="fas fa-sun"></i> '+(a.days||[]).length+' رۆژ</span>' +
+                    '</div>' +
+                '</div>';
+            });
+        } else {
+            html += '<div class="no-data">هێشتا ئەرشیفی مانگانە نییە</div>';
+        }
+        html += '</div>';
+
+        // ---- نەخشەی هەڵبژێردراو ----
+        html += '<div id="arc-chart-area" style="display:none;margin-top:16px;">' +
+            '<div class="card-header" style="margin-bottom:8px;">' +
+                '<i class="fas fa-chart-bar"></i> <span id="arc-chart-title">نەخشە</span>' +
+                '<button class="add-btn" onclick="document.getElementById(\'arc-chart-area\').style.display=\'none\'" style="margin-right:auto;background:#fce4e4;color:#c62828;">✕ داخستن</button>' +
+            '</div>' +
+            '<div id="arc-chart-inner"></div>' +
+        '</div>';
+
+        listEl.innerHTML = html;
+    }).catch(function() {
+        listEl.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردنی ئەرشیفەکان</div>';
+    });
+}
+
+function switchArcTab(btn, panelId) {
+    document.querySelectorAll(".arc-tab").forEach(function(b){ b.classList.remove("arc-tab-active"); });
+    document.querySelectorAll(".arc-panel").forEach(function(p){ p.style.display="none"; });
+    btn.classList.add("arc-tab-active");
+    var panel = document.getElementById(panelId);
+    if (panel) panel.style.display = "block";
+    document.getElementById("arc-chart-area").style.display = "none";
+}
+
+function showArchiveChart(type, item) {
+    var area  = document.getElementById("arc-chart-area");
+    var inner = document.getElementById("arc-chart-inner");
+    var title = document.getElementById("arc-chart-title");
+    if (!area || !inner) return;
+
+    var days = item.days || [];
+    if (!days.length) {
+        inner.innerHTML = '<div class="no-data">هیچ داتایەکی رۆژانەی ئەم پێریۆدە نییە</div>';
+        area.style.display = "block";
+        return;
+    }
+
+    // بۆ رۆژانە — تەنها یەک ستون
+    if (type === "daily") {
+        var dp = (item.date||"").split("-");
+        title.textContent = (dp[2]||"") + "/" + (dp[1]||"") + "/" + (dp[0]||"");
+        inner.innerHTML =
+            '<div class="sc-summary">' +
+              '<span><i class="fas fa-globe"></i> سەردان: <strong>'+(item.totalVisits||0)+'</strong></span>' +
+              '<span><i class="fas fa-mouse-pointer"></i> کلیک: <strong>'+(item.totalClicks||0)+'</strong></span>' +
+            '</div>';
+        area.style.display = "block";
+        return;
+    }
+
+    // بۆ هەفتانە و مانگانە — نەخشەی ستون بۆ هەر رۆژ
+    if (type === "weekly") {
+        var wp = (item.week||"").split("_");
+        title.textContent = (wp[0]||"") + " → " + (wp[1]||"");
+    } else {
+        var mp = (item.month||"").split("-");
+        var mNames = ["","کانوونی دووەم","شوبات","ئازار","نیسان","ئایار","حوزەیران","تەممووز","ئاب","ئەیلوول","تشرینی یەکەم","تشرینی دووەم","کانوونی یەکەم"];
+        title.textContent = (mNames[+(mp[1]||0)]||mp[1]) + " " + (mp[0]||"");
+    }
+
+    var maxV = Math.max.apply(null, days.map(function(d){ return d.visits||0; })) || 1;
+    var maxC = Math.max.apply(null, days.map(function(d){ return d.clicks||0; })) || 1;
+    var maxVal = Math.max(maxV, maxC);
+
+    function niceMax(v) {
+        if (v<=5) return 5; if (v<=10) return 10; if (v<=20) return 20; if (v<=50) return 50;
+        var mag = Math.pow(10, Math.floor(Math.log10(v)));
+        return Math.ceil(v/mag)*mag;
+    }
+    var chartMax = niceMax(maxVal);
+    var n=days.length, svgW=Math.max(n*44+60,400), svgH=200;
+    var padL=42,padR=12,padT=16,padB=44;
+    var chartH=svgH-padT-padB, chartW=svgW-padL-padR;
+    var barW=Math.min(13,(chartW/n)-5), colW=chartW/n;
+    var isDark=document.body.classList.contains("dark-mode");
+    var gridClr=isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.07)";
+    var axisClr=isDark?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.15)";
+    var numClr=isDark?"#777":"#aaa", lblClr=isDark?"#999":"#777";
+
+    var svg="";
+    for (var g=0;g<=4;g++) {
+        var gVal=Math.round(chartMax*g/4);
+        var gy=padT+chartH-Math.round(chartH*g/4);
+        svg+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(svgW-padR)+'" y2="'+gy+'" stroke="'+gridClr+'" stroke-width="1"/>';
+        svg+='<text x="'+(padL-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+numClr+'">'+gVal+'</text>';
+    }
+    days.forEach(function(d,i) {
+        var visits=d.visits||0, clicks=d.clicks||0;
+        var cx=padL+i*colW+colW/2;
+        var hV=Math.max(2,Math.round(chartH*visits/chartMax));
+        var hC=Math.max(2,Math.round(chartH*clicks/chartMax));
+        var yV=padT+chartH-hV, yC=padT+chartH-hC;
+        svg+='<rect x="'+(cx-barW-1)+'" y="'+yV+'" width="'+barW+'" height="'+hV+'" rx="3" fill="#42a5f5" opacity="0.88"><title>سەردان: '+visits+'</title></rect>';
+        svg+='<rect x="'+(cx+1)+'" y="'+yC+'" width="'+barW+'" height="'+hC+'" rx="3" fill="#4caf50" opacity="0.88"><title>کلیک: '+clicks+'</title></rect>';
+        if (hV>14) svg+='<text x="'+(cx-barW/2-1)+'" y="'+(yV-3)+'" text-anchor="middle" font-size="9" fill="#42a5f5" font-weight="bold">'+visits+'</text>';
+        if (hC>14) svg+='<text x="'+(cx+barW/2+1)+'" y="'+(yC-3)+'" text-anchor="middle" font-size="9" fill="#4caf50" font-weight="bold">'+clicks+'</text>';
+        var dp=(d.date||"").split("-");
+        var lbl=(dp[2]||"")+"/"+(dp[1]||"");
+        svg+='<text x="'+cx+'" y="'+(svgH-padB+14)+'" text-anchor="middle" font-size="10" fill="'+lblClr+'">'+lbl+'</text>';
+    });
+    svg+='<line x1="'+padL+'" y1="'+(padT+chartH)+'" x2="'+(svgW-padR)+'" y2="'+(padT+chartH)+'" stroke="'+axisClr+'" stroke-width="1.5"/>';
+
+    var sumV=days.reduce(function(s,d){return s+(d.visits||0);},0);
+    var sumC=days.reduce(function(s,d){return s+(d.clicks||0);},0);
+    inner.innerHTML =
+        '<div class="sc-summary">' +
+          '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumV+'</strong></span>' +
+          '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumC+'</strong></span>' +
+          '<span><i class="fas fa-sun"></i> رۆژ: <strong>'+n+'</strong></span>' +
+        '</div>' +
+        '<div class="sc-chart-wrap"><svg width="'+svgW+'" height="'+svgH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svg+'</svg></div>' +
+        '<div class="sc-legend"><span class="sc-leg-v"><span class="sc-dot" style="background:#42a5f5"></span>سەردان</span><span class="sc-leg-c"><span class="sc-dot" style="background:#4caf50"></span>کلیک</span></div>';
+    area.style.display = "block";
+    area.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 
 // ===========================

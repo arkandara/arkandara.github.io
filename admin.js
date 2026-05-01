@@ -782,17 +782,16 @@ function renderStatsPeriod(period) {
     var wrap = document.getElementById("statsChartsWrap");
     if (!wrap) return;
 
-    var data, labelKey, visitKey, clickKey;
-
+    var data, labelKey;
     if (period === "daily") {
         data = (_archiveIndex||[]).slice(0,30).reverse();
-        labelKey="date"; visitKey="totalVisits"; clickKey="totalClicks";
+        labelKey = "date";
     } else if (period === "weekly") {
         data = (_weeklyIndex||[]).slice(0,12).reverse();
-        labelKey="week"; visitKey="totalVisits"; clickKey="totalClicks";
+        labelKey = "week";
     } else {
         data = (_monthlyIndex||[]).slice(0,12).reverse();
-        labelKey="month"; visitKey="totalVisits"; clickKey="totalClicks";
+        labelKey = "month";
     }
 
     if (!data.length) {
@@ -800,35 +799,99 @@ function renderStatsPeriod(period) {
         return;
     }
 
-    var maxVisits = Math.max.apply(null, data.map(function(d){ return d[visitKey]||0; }))||1;
-    var maxClicks = Math.max.apply(null, data.map(function(d){ return d[clickKey]||0; }))||1;
+    var sumVisits = data.reduce(function(s,d){ return s+(d.totalVisits||0); },0);
+    var sumClicks = data.reduce(function(s,d){ return s+(d.totalClicks||0); },0);
+    var maxV = Math.max.apply(null, data.map(function(d){ return d.totalVisits||0; })) || 1;
+    var maxC = Math.max.apply(null, data.map(function(d){ return d.totalClicks||0; })) || 1;
+    var maxVal = Math.max(maxV, maxC);
 
-    var barsHTML = data.map(function(d) {
-        var label  = (d[labelKey]||"").replace(/_/g," → ");
-        var visits = d[visitKey]||0;
-        var clicks = d[clickKey]||0;
-        var vPct   = Math.round((visits/maxVisits)*100);
-        var cPct   = Math.round((clicks/maxClicks)*100);
-        return '<div class="sc-col">' +
-            '<div class="sc-bars">' +
-              '<div class="sc-bar sc-bar-v" style="height:'+vPct+'%" title="سەردان: '+visits+'"><span class="sc-val">'+visits+'</span></div>' +
-              '<div class="sc-bar sc-bar-c" style="height:'+cPct+'%" title="کلیک: '+clicks+'"><span class="sc-val">'+clicks+'</span></div>' +
-            '</div>' +
-            '<div class="sc-label">'+label+'</div>' +
-        '</div>';
-    }).join("");
+    function niceMax(v) {
+        if (v <= 5)  return 5;
+        if (v <= 10) return 10;
+        if (v <= 20) return 20;
+        if (v <= 50) return 50;
+        var mag = Math.pow(10, Math.floor(Math.log10(v)));
+        return Math.ceil(v / mag) * mag;
+    }
+    var chartMax = niceMax(maxVal);
 
-    var sumVisits = data.reduce(function(s,d){ return s+(d[visitKey]||0); },0);
-    var sumClicks = data.reduce(function(s,d){ return s+(d[clickKey]||0); },0);
+    var n    = data.length;
+    var svgW = Math.max(n * 44 + 60, 400);
+    var svgH = 200;
+    var padL = 42;
+    var padR = 12;
+    var padT = 16;
+    var padB = 44;
+    var chartH = svgH - padT - padB;
+    var chartW = svgW - padL - padR;
+    var barW   = Math.min(13, (chartW / n) - 5);
+    var colW   = chartW / n;
+    var isDark = document.body.classList.contains("dark-mode");
+    var gridClr = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
+    var axisClr = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)";
+    var numClr  = isDark ? "#777" : "#aaa";
+    var lblClr  = isDark ? "#999" : "#777";
+
+    var svg = "";
+    var GRID = 4;
+
+    // خەتەکانی ئاسۆیی و ژمارەی لای چەپ
+    for (var g = 0; g <= GRID; g++) {
+        var gVal = Math.round(chartMax * g / GRID);
+        var gy   = padT + chartH - Math.round(chartH * g / GRID);
+        svg += '<line x1="'+padL+'" y1="'+gy+'" x2="'+(svgW-padR)+'" y2="'+gy+'" stroke="'+gridClr+'" stroke-width="1"/>';
+        svg += '<text x="'+(padL-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+numClr+'">'+gVal+'</text>';
+    }
+
+    // ستونەکان
+    data.forEach(function(d, i) {
+        var visits = d.totalVisits || 0;
+        var clicks = d.totalClicks || 0;
+        var cx = padL + i * colW + colW / 2;
+
+        var hV = Math.max(2, Math.round(chartH * visits / chartMax));
+        var hC = Math.max(2, Math.round(chartH * clicks / chartMax));
+        var yV = padT + chartH - hV;
+        var yC = padT + chartH - hC;
+
+        svg += '<rect x="'+(cx-barW-1)+'" y="'+yV+'" width="'+barW+'" height="'+hV+'" rx="3" fill="#42a5f5" opacity="0.88"><title>سەردان: '+visits+'</title></rect>';
+        svg += '<rect x="'+(cx+1)+'" y="'+yC+'" width="'+barW+'" height="'+hC+'" rx="3" fill="#4caf50" opacity="0.88"><title>کلیک: '+clicks+'</title></rect>';
+
+        if (hV > 14) svg += '<text x="'+(cx-barW/2-1)+'" y="'+(yV-3)+'" text-anchor="middle" font-size="9" fill="#42a5f5" font-weight="bold">'+visits+'</text>';
+        if (hC > 14) svg += '<text x="'+(cx+barW/2+1)+'" y="'+(yC-3)+'" text-anchor="middle" font-size="9" fill="#4caf50" font-weight="bold">'+clicks+'</text>';
+
+        // بەروار
+        var raw = d[labelKey] || "";
+        var lbl = "";
+        if (period === "daily") {
+            var p = raw.split("-");
+            lbl = (p[2]||"") + "/" + (p[1]||"");
+        } else if (period === "weekly") {
+            var ws = (raw.split("_")[0]||"").split("-");
+            var we = (raw.split("_")[1]||"").split("-");
+            lbl = (ws[2]||"") + "-" + (we[2]||"") + "/" + (we[1]||"");
+        } else {
+            var mp = raw.split("-");
+            var mn = ["","١","٢","٣","٤","٥","٦","٧","٨","٩","١٠","١١","١٢"];
+            lbl = mn[+(mp[1]||0)] + "/" + (mp[0]||"").slice(2);
+        }
+        svg += '<text x="'+cx+'" y="'+(svgH-padB+14)+'" text-anchor="middle" font-size="10" fill="'+lblClr+'">'+lbl+'</text>';
+    });
+
+    // خەتی بنەوە
+    svg += '<line x1="'+padL+'" y1="'+(padT+chartH)+'" x2="'+(svgW-padR)+'" y2="'+(padT+chartH)+'" stroke="'+axisClr+'" stroke-width="1.5"/>';
+
+    var fullSVG = '<svg width="'+svgW+'" height="'+svgH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svg+'</svg>';
 
     wrap.innerHTML =
         '<div class="sc-summary">' +
           '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumVisits+'</strong></span>' +
           '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumClicks+'</strong></span>' +
+          '<span><i class="fas fa-chart-line"></i> تێکرا/رۆژ: <strong>'+Math.round(sumVisits/(n||1))+'</strong></span>' +
         '</div>' +
-        '<div class="sc-chart">'+barsHTML+'</div>' +
+        '<div class="sc-chart-wrap">'+fullSVG+'</div>' +
         '<div class="sc-legend">' +
-          '<span class="sc-leg-v">■ سەردان</span>' +
-          '<span class="sc-leg-c">■ کلیک</span>' +
+          '<span class="sc-leg-v"><span class="sc-dot" style="background:#42a5f5"></span> سەردان</span>' +
+          '<span class="sc-leg-c"><span class="sc-dot" style="background:#4caf50"></span> کلیک</span>' +
         '</div>';
 }

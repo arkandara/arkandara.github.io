@@ -427,23 +427,34 @@ function renderSessions(sessions) {
         return;
     }
 
-    var rows = sessions.slice(0, 15).map(function(s, i) {
-        var loc = "";
-        if (s.city    && s.city    !== "---") loc += s.city;
-        if (s.city    && s.country && s.city !== "---" && s.country !== "---") loc += "، ";
-        if (s.country && s.country !== "---") loc += s.country;
-        if (!loc) loc = "نەناسراو";
-        var region = s.region ? ' <span style="color:#aaa;font-size:0.85em;">(' + escHtml(s.region) + ')</span>' : "";
+    var rows = sessions.slice(0, 20).map(function(s, i) {
+        // شوێنی وردتر
+        var locParts = [];
+        if (s.district && s.district !== "") locParts.push(s.district);
+        if (s.city     && s.city     !== "---") locParts.push(s.city);
+        if (s.region   && s.region   !== "") locParts.push(s.region);
+        if (s.country  && s.country  !== "---") locParts.push(s.country);
+        var locText = locParts.join(" ← ") || "نەناسراو";
+
+        // ISP و کۆڕدینات
+        var extra = "";
+        if (s.isp) extra += '<div style="font-size:10px;color:#aaa;margin-top:2px;"><i class="fas fa-wifi"></i> ' + escHtml(s.isp) + '</div>';
+        if (s.lat && s.lon) extra += '<a href="https://maps.google.com/?q='+s.lat+','+s.lon+'" target="_blank" style="font-size:10px;color:#42a5f5;"><i class="fas fa-map"></i> گووگڵ مەپ</a>';
+
+        // کاتی خوێندراوەتر
+        var dt = new Date(s.time || s.start || "");
+        var timeStr = dt.toLocaleDateString("ar-IQ") + " " + dt.toLocaleTimeString("ar-IQ", {hour:"2-digit",minute:"2-digit"});
+
         return '<tr>' +
-            '<td>' + (i + 1) + '</td>' +
-            '<td>' + new Date(s.time || s.start || "").toLocaleString() + '</td>' +
-            '<td><i class="fas fa-map-marker-alt" style="color:#e53935;margin-left:4px;"></i>' + escHtml(loc) + region + '</td>' +
-            '<td>' + escHtml(s.device || "") + '</td>' +
+            '<td style="text-align:center;color:#aaa;">' + (i+1) + '</td>' +
+            '<td style="font-size:12px;">' + timeStr + '</td>' +
+            '<td><div style="font-size:13px;font-weight:500;"><i class="fas fa-map-marker-alt" style="color:#e53935;margin-left:4px;"></i>' + escHtml(locText) + '</div>' + extra + '</td>' +
+            '<td style="font-size:12px;">' + escHtml(s.device || "") + '</td>' +
             '</tr>';
     }).join("");
 
     sesEl.innerHTML = '<table class="stats-table">' +
-        '<thead><tr><th>#</th><th>کات</th><th>شار و وڵات</th><th>ئامێر</th></tr></thead>' +
+        '<thead><tr><th>#</th><th>کات</th><th>شوێن (گەڕەک ← شار ← پارێزگا ← وڵات)</th><th>ئامێر</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table>';
 }
 

@@ -84,55 +84,6 @@
         }
         @media (max-width: 1100px) { .stats-top-grid-5 { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 700px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); gap:8px; } }
-
-        /* ریسپۆنسیڤی بەشی ئامارەکان */
-        @media (max-width: 700px) {
-            /* جەدوەلی سەردانەکان */
-            .session-list { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .stats-table  { min-width: 520px; font-size: 0.78em; }
-            .stats-table th, .stats-table td { padding: 7px 8px; }
-
-            /* چارتی کلیک */
-            .bar-row { grid-template-columns: 80px 1fr 34px !important; gap: 6px; }
-            .bar-last { display: none !important; }
-            .bar-label { font-size: 0.76em; }
-            .bar-count { font-size: 0.8em; }
-
-            /* دوگمەکانی رۆژانە/هەفتانە/مانگانە */
-            .card-header { flex-wrap: wrap; gap: 6px; }
-            .card-header > div[style*="margin-right:auto"] { 
-                width: 100%; 
-                justify-content: flex-start;
-                flex-wrap: wrap;
-            }
-
-            /* snap header */
-            .snap-header { gap: 6px; padding: 8px 10px; }
-            .snap-label  { font-size: 0.82em; }
-            .snap-time   { font-size: 0.72em; }
-            .snap-len    { font-size: 0.72em; margin-right: 0; }
-            .snap-toggle-btn { padding: 3px 8px; font-size: 0.72em; }
-            .snap-preview, .snap-full { font-size: 0.82em; padding: 8px 10px; }
-
-            /* نمودار */
-            .sc-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .sc-inner { min-width: 300px; }
-
-            /* stat-card */
-            .stat-card  { padding: 12px 8px; }
-            .stat-num   { font-size: 1.4em !important; }
-            .stat-lbl   { font-size: 0.72em; }
-
-            /* دوگمەکانی ئامار */
-            #manualClear { width: 100%; justify-content: center; }
-        }
-
-        @media (max-width: 480px) {
-            .snap-header { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .snap-len    { margin-right: 0; }
-            .bar-row     { grid-template-columns: 70px 1fr 30px !important; }
-        }
 
         /* ===== Snapshot ستایل ===== */
         .snap-list { display: flex; flex-direction: column; gap: 8px; }
@@ -260,9 +211,6 @@
 
 <!-- ===== پانێلی سەرەکی ===== -->
 <div id="adminPanel" style="display:none">
-
-    <!-- overlay بۆ موبایل -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
     <!-- سایدبار -->
     <aside class="sidebar" id="sidebar">
@@ -469,6 +417,16 @@
                 </div>
             </div>
 
+            <!-- دوایین سەردانەکان — شوێن و ئامێر -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-users"></i> دوایین سەردانەکان — شوێن و ئامێر</div>
+                <div class="card-body">
+                    <div id="sessionList" class="session-list">
+                        <div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- دوگمەی سفرکردنەوەی ئامارەکان -->
             <div style="display:flex; gap:10px; margin-bottom:4px; flex-wrap:wrap;">
     <button class="add-btn" onclick="manualClearStats()" style="background:#fff3e0; color:#e65100; border:1px solid #ffe0b2;">
@@ -520,17 +478,8 @@
                     </div>
                 </div>
             </div>
-            </div>
 
-            <!-- دوایین سەردانەکان -->
-            <div class="card">
-                <div class="card-header"><i class="fas fa-clock"></i> دوایین سەردانەکان (٧ رۆژ)</div>
-                <div class="card-body">
-                    <div class="session-list" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><div id="sessionList">
-                        <div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>
-                    </div>
-                </div>
-            </div>
+
         </div>
 
         <!-- ===== تاب ٥: ئەرشیفی هەفتانە ===== -->

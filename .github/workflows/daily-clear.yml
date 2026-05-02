@@ -85,17 +85,37 @@ jobs:
               // ---- ٢. پاشەکەوتکردن لە GitHub ----
               if (!fs.existsSync("archives")) fs.mkdirSync("archives");
               const fname   = `archives/daily_${archiveDate}`;
-              const archive = { date: archiveDate, generatedAt: now.toISOString(),
-                                totalVisits, totalTextarea, clicks, sessions, snapshots };
+              // خلاصەی ئامێر و شوێن — بەبێ داتای وردەکاری
+              const deviceStats = { mobile: 0, desktop: 0, tablet: 0 };
+              const cityStats = {};
+              sessions.forEach(s => {
+                  const d = s.device || '';
+                  if (d.includes('تابلێت') || d.includes('📟')) deviceStats.tablet++;
+                  else if (d.includes('موبایل') || d.includes('📱')) deviceStats.mobile++;
+                  else deviceStats.desktop++;
+                  const city = (s.city && s.city !== '---') ? s.city : ((s.country && s.country !== '---') ? s.country : 'نەناسراو');
+                  cityStats[city] = (cityStats[city] || 0) + 1;
+              });
+
+              const archive = {
+                  date: archiveDate,
+                  generatedAt: now.toISOString(),
+                  totalVisits,
+                  totalTextarea,
+                  clicks,
+                  deviceStats,
+                  cityStats
+              };
               fs.writeFileSync(`${fname}.json`, JSON.stringify(archive, null, 2), "utf8");
 
               let csv = "Label,Count\n";
               Object.entries(clicks).sort((a,b)=>b[1]-a[1])
                     .forEach(([l,c])=>{ csv += `"${l.replace(/"/g,'""')}",${c}\n`; });
-              csv += "\n\nTime,City,Country,Device\n";
-              sessions.forEach(s=>{
-                  csv += `"${s.time||""}","${s.city||""}","${s.country||""}","${s.device||""}"\n`;
-              });
+              csv += "\n\nCity,Count\n";
+              Object.entries(cityStats).sort((a,b)=>b[1]-a[1])
+                    .forEach(([c,n])=>{ csv += `"${c}",${n}\n`; });
+              csv += "\n\nDevice,Count\n";
+              Object.entries(deviceStats).forEach(([d,n])=>{ csv += `"${d}",${n}\n`; });
               fs.writeFileSync(`${fname}.csv`, csv, "utf8");
 
               // نوێکردنەوەی index.json
@@ -105,8 +125,9 @@ jobs:
               idx = idx.filter(x => x.date !== archiveDate);
               idx.unshift({ date: archiveDate, generatedAt: now.toISOString(),
                             totalVisits, totalClicks: Object.values(clicks).reduce((s,v)=>s+v,0),
+                            deviceStats, cityStats,
                             fileJson: `${fname}.json`, fileCsv: `${fname}.csv` });
-              if (idx.length > 90) idx = idx.slice(0,90);
+              // هەمیشەیی — سنووری ژمارە نییە
               fs.writeFileSync(idxPath, JSON.stringify(idx,null,2),"utf8");
               console.log("✅ ئەرشیف ئامادە کرا:", fname);
 
@@ -131,4 +152,3 @@ jobs:
           git add archives/
           git diff --staged --quiet || git commit -m "🌙 ئەرشیفی رۆژانە — $(date -u +'%Y-%m-%d')"
           git push
-

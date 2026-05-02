@@ -1,20 +1,24 @@
 # ============================================================
 #  .github/workflows/archive-stats.yml
 #
-#  هەفتانە : هەر یەکشەممە 21:30 UTC = 12:30 AM عێراق
-#            داتای 7 رۆژی ڕابردوو لە index.json کۆ دەکاتەوە
+#  هەفتانە : هەر یەکشەممە 12:30 AM عێراق = 21:30 UTC شەوی شەممە
+#            (daily-clear کاتی 21:20 کار دەکات، ئەمەش 10 خولەک دواتر)
 #
-#  مانگانە : یەکەمی هەر مانگ 21:40 UTC = 12:40 AM عێراق
-#            داتای **مانگی پێشوو** ئەرشیف دەکات
-#            (چونکە 1ی مانگ = مانگی کۆنەکە تەواو بووە)
+#  مانگانە : یەکەمی هەر مانگ 12:40 AM عێراق = 21:40 UTC
+#            (دوای daily-clear ی ئەو رۆژە)
+#
+#  هەر دوو داتاکەیان لە archives/index.json دەخوێننەوە
+#  (ئەوەی daily-clear هەر شەو دروستی دەکات)
 # ============================================================
 
 name: 📦 ئەرشیفی هەفتانە و مانگانە
 
 on:
   schedule:
-    - cron: "30 21 * * 0"    # یەکشەممە 21:30 UTC = 12:30 AM عێراق
-    - cron: "40 21 1 * *"    # 1ی هەر مانگ 21:40 UTC = 12:40 AM عێراق
+    # یەکشەممە 21:30 UTC = 12:30 AM عێراق (0 = یەکشەممە لە cron)
+    - cron: "30 21 * * 0"
+    # یەکەمی هەر مانگ 21:40 UTC = 12:40 AM عێراق
+    - cron: "40 21 1 * *"
   workflow_dispatch:
 
 jobs:
@@ -27,7 +31,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
 
-      - name: 🔄 Pull
+      - name: 🔄 Pull کردنی کۆتاترین گۆڕانکاری (daily-clear دەیکات)
         run: git pull --rebase
 
       - name: 📊 دروستکردنی ئەرشیفی هەفتانە و مانگانە
@@ -37,104 +41,120 @@ jobs:
 
           function isoDate(d) { return d.toISOString().slice(0,10); }
 
-          // خوێندنەوەی index.json
           const idxPath = "archives/index.json";
           let dailyIdx = [];
           try {
               dailyIdx = JSON.parse(fs.readFileSync(idxPath, "utf8"));
           } catch(e) {
-              console.log("⚠️ archives/index.json نییە");
+              console.log("⚠️ archives/index.json نییە — پێویستە daily-clear پێشتر کار بکات");
               process.exit(0);
           }
-          if (!dailyIdx.length) { console.log("⚠️ داتا نییە"); process.exit(0); }
+
+          if (!dailyIdx.length) {
+              console.log("⚠️ داتایەک تێدا نییە");
+              process.exit(0);
+          }
 
           const now      = new Date();
           const todayStr = isoDate(now);
-          console.log("📅 ئێستا:", todayStr, "| رۆژ:", dailyIdx.length);
+          console.log("📅 ئێستا:", todayStr, "| کۆی رۆژەکان:", dailyIdx.length);
 
-          // =====================================================
-          // هەفتانە: 7 رۆژی ڕابردوو (هەر یەکشەممە کار دەکات)
-          // =====================================================
-          const GITHUB_EVENT = process.env.GITHUB_EVENT_NAME || "";
-          const isManual     = GITHUB_EVENT === "workflow_dispatch";
-          const dayOfMonth   = now.getUTCDate();
-          const dayOfWeek    = now.getUTCDay(); // 0=یەکشەممە
+          // ================================
+          // هەفتانە — ٧ رۆژی ڕابردوو
+          // ================================
+          const weekEnd   = todayStr;
+          const wStart    = new Date(now.getTime() - 6 * 86400000);
+          const weekStart = isoDate(wStart);
+          const weekDays  = dailyIdx.filter(d => d.date >= weekStart && d.date <= weekEnd);
 
-          // هەفتانە ئەگەر یەکشەممە بێت یان دەستی بکرێتەوە
-          if (dayOfWeek === 0 || isManual) {
-              const weekEnd   = todayStr;
-              const weekStart = isoDate(new Date(now.getTime() - 6 * 86400000));
-              const weekDays  = dailyIdx.filter(d => d.date >= weekStart && d.date <= weekEnd);
+          if (weekDays.length > 0) {
+              const mergeDevice = (days) => {
+                  const t = { mobile:0, desktop:0, tablet:0 };
+                  days.forEach(d => { const s = d.deviceStats||{}; t.mobile+=s.mobile||0; t.desktop+=s.desktop||0; t.tablet+=s.tablet||0; });
+                  return t;
+              };
+              const mergeCity = (days) => {
+                  const t = {};
+                  days.forEach(d => { Object.entries(d.cityStats||{}).forEach(([c,n])=>{ t[c]=(t[c]||0)+n; }); });
+                  return t;
+              };
+              const wData = {
+                  type:        "weekly",
+                  week:        `${weekStart}_${weekEnd}`,
+                  generatedAt: now.toISOString(),
+                  totalVisits: weekDays.reduce((s,d) => s + (d.totalVisits||0), 0),
+                  totalClicks: weekDays.reduce((s,d) => s + (d.totalClicks||0), 0),
+                  deviceStats: mergeDevice(weekDays),
+                  cityStats:   mergeCity(weekDays),
+                  days: weekDays.map(d => ({
+                      date:   d.date,
+                      visits: d.totalVisits || 0,
+                      clicks: d.totalClicks || 0
+                  }))
+              };
+              const wPath = `archives/weekly_${weekStart}_${weekEnd}.json`;
+              fs.writeFileSync(wPath, JSON.stringify(wData, null, 2), "utf8");
 
-              if (weekDays.length > 0) {
-                  const wData = {
-                      type:        "weekly",
-                      week:        weekStart + "_" + weekEnd,
-                      generatedAt: now.toISOString(),
-                      totalVisits: weekDays.reduce((s,d) => s + (d.totalVisits||0), 0),
-                      totalClicks: weekDays.reduce((s,d) => s + (d.totalClicks||0), 0),
-                      days: weekDays.map(d => ({ date: d.date, visits: d.totalVisits||0, clicks: d.totalClicks||0 }))
-                  };
-                  const wPath = "archives/weekly_" + weekStart + "_" + weekEnd + ".json";
-                  fs.writeFileSync(wPath, JSON.stringify(wData, null, 2), "utf8");
-
-                  // ئەندێکسی هەفتانە
-                  const wIdxPath = "archives/weekly_index.json";
-                  let wIdx = [];
-                  try { wIdx = JSON.parse(fs.readFileSync(wIdxPath, "utf8")); } catch(e) {}
-                  wIdx = wIdx.filter(x => x.week !== wData.week);
-                  wIdx.unshift({
-                      week: wData.week, generatedAt: wData.generatedAt,
-                      totalVisits: wData.totalVisits, totalClicks: wData.totalClicks,
-                      days: wData.days, file: wPath
-                  });
-                  if (wIdx.length > 12) wIdx = wIdx.slice(0, 12);
-                  fs.writeFileSync(wIdxPath, JSON.stringify(wIdx, null, 2), "utf8"); // ← wIdx نەک wData
-                  console.log("✅ هەفتانە:", weekStart, "→", weekEnd, "("+weekDays.length+" رۆژ)");
-              } else {
-                  console.log("⚠️ هیچ داتایەکی هەفتانە نەدۆزراوەتەوە");
-              }
+              const wIdxPath = "archives/weekly_index.json";
+              let wIdx = [];
+              try { wIdx = JSON.parse(fs.readFileSync(wIdxPath, "utf8")); } catch(e) {}
+              wIdx = wIdx.filter(x => x.week !== wData.week);
+              wIdx.unshift({
+                  week:        wData.week,
+                  generatedAt: wData.generatedAt,
+                  totalVisits: wData.totalVisits,
+                  totalClicks: wData.totalClicks,
+                  days:        wData.days,
+                  file:        wPath
+              });
+              // هەمیشەیی — سنووری ژمارەی هەفتانە نییە
+              fs.writeFileSync(wIdxPath, JSON.stringify(wIdx, null, 2), "utf8");
+              console.log(`✅ هەفتانە: ${weekStart} → ${weekEnd} (${weekDays.length} رۆژ، ${wData.totalVisits} سەردان)`);
+          } else {
+              console.log("⚠️ هیچ داتایەکی هەفتانە نەدۆزراوەتەوە بۆ:", weekStart, "→", weekEnd);
           }
 
-          // =====================================================
-          // مانگانە: 1ی مانگ = مانگی پێشوو تەواو بووە
-          // =====================================================
-          if (dayOfMonth === 1 || isManual) {
-              // مانگی پێشوو
-              const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-              const prevMonth     = isoDate(prevMonthDate).slice(0, 7); // "2026-04"
+          // ================================
+          // مانگانە — هەموو رۆژەکانی ئەم مانگە
+          // ================================
+          const thisMonth = todayStr.slice(0, 7);
+          const monthDays = dailyIdx.filter(d => d.date.startsWith(thisMonth));
 
-              const monthDays = dailyIdx.filter(d => d.date.startsWith(prevMonth));
+          if (monthDays.length > 0) {
+              const mData = {
+                  type:        "monthly",
+                  month:       thisMonth,
+                  generatedAt: now.toISOString(),
+                  totalVisits: monthDays.reduce((s,d) => s + (d.totalVisits||0), 0),
+                  totalClicks: monthDays.reduce((s,d) => s + (d.totalClicks||0), 0),
+                  deviceStats: mergeDevice(monthDays),
+                  cityStats:   mergeCity(monthDays),
+                  days: monthDays.map(d => ({
+                      date:   d.date,
+                      visits: d.totalVisits || 0,
+                      clicks: d.totalClicks || 0
+                  }))
+              };
+              const mPath = `archives/monthly_${thisMonth}.json`;
+              fs.writeFileSync(mPath, JSON.stringify(mData, null, 2), "utf8");
 
-              if (monthDays.length > 0) {
-                  const mData = {
-                      type:        "monthly",
-                      month:       prevMonth,
-                      generatedAt: now.toISOString(),
-                      totalVisits: monthDays.reduce((s,d) => s + (d.totalVisits||0), 0),
-                      totalClicks: monthDays.reduce((s,d) => s + (d.totalClicks||0), 0),
-                      days: monthDays.map(d => ({ date: d.date, visits: d.totalVisits||0, clicks: d.totalClicks||0 }))
-                  };
-                  const mPath = "archives/monthly_" + prevMonth + ".json";
-                  fs.writeFileSync(mPath, JSON.stringify(mData, null, 2), "utf8");
-
-                  // ئەندێکسی مانگانە
-                  const mIdxPath = "archives/monthly_index.json";
-                  let mIdx = [];
-                  try { mIdx = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); } catch(e) {}
-                  mIdx = mIdx.filter(x => x.month !== prevMonth);
-                  mIdx.unshift({
-                      month: prevMonth, generatedAt: mData.generatedAt,
-                      totalVisits: mData.totalVisits, totalClicks: mData.totalClicks,
-                      days: mData.days, file: mPath
-                  });
-                  if (mIdx.length > 24) mIdx = mIdx.slice(0, 24);
-                  fs.writeFileSync(mIdxPath, JSON.stringify(mIdx, null, 2), "utf8"); // ← mIdx نەک mData
-                  console.log("✅ مانگانە:", prevMonth, "("+monthDays.length+" رۆژ،", mData.totalVisits, "سەردان)");
-              } else {
-                  console.log("⚠️ هیچ داتایەکی مانگانە نەدۆزراوەتەوە بۆ:", prevMonth);
-                  console.log("   ئەو رۆژانەی هەن:", dailyIdx.slice(0,5).map(d=>d.date).join(", "));
-              }
+              const mIdxPath = "archives/monthly_index.json";
+              let mIdx = [];
+              try { mIdx = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); } catch(e) {}
+              mIdx = mIdx.filter(x => x.month !== thisMonth);
+              mIdx.unshift({
+                  month:       thisMonth,
+                  generatedAt: mData.generatedAt,
+                  totalVisits: mData.totalVisits,
+                  totalClicks: mData.totalClicks,
+                  days:        mData.days,
+                  file:        mPath
+              });
+              // هەمیشەیی — سنووری ژمارەی مانگانە نییە
+              fs.writeFileSync(mIdxPath, JSON.stringify(mData, null, 2), "utf8");
+              console.log(`✅ مانگانە: ${thisMonth} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان)`);
+          } else {
+              console.log("⚠️ هیچ داتایەکی مانگانە نەدۆزراوەتەوە بۆ:", thisMonth);
           }
           JSEOF
 

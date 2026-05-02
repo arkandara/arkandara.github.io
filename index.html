@@ -3525,76 +3525,54 @@ function akTrackClick(label) {
 
 // ---- تۆمارکردنی سەردان بۆ KV ----
 function akStartSession() {
-    var isMobile = /Mobi|Android/i.test(navigator.userAgent);
-    var sessionData = {
-        type:      'visit',
-        device:    isMobile ? '📱 موبایل' : '🖥️ کۆمپیوتەر',
-        userAgent: navigator.userAgent,
-        // شوێن لە سه‌ری Cloudflare تۆمار ده‌کرێت (track.js)
-        // client-side geo تەنیا بۆ پشتیوانی
-        city:    '---',
-        country: '---',
-        region:  '',
-        ip:      ''
-    };
+    // ناسینی ئامێر بە شێوەی دیاریکراو
+    var ua = navigator.userAgent;
+    var deviceLabel;
+    if (/iPad|Tablet|PlayBook/i.test(ua) || (/Mobi/i.test(ua) && /iPad/i.test(ua))) {
+        deviceLabel = '📟 تابلێت';
+    } else if (/Mobi|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+        deviceLabel = '📱 موبایل';
+    } else {
+        deviceLabel = '🖥️ کۆمپیوتەر';
+    }
 
-    // یەک جار بنێرە — track.js خۆی شوێن لە Cloudflare headers وەردەگرێت
-    fetch('/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sessionData)
-    }).then(function(r){ return r.json(); })
-    .then(function(resp){
-        // ئەگەر server شوێنی نەناسی، ipwho.is بەکاربێنە بۆ پشتیوانی
-        if (!resp.city || resp.city === '---') {
-            fetch('https://ipwho.is/')
-                .then(function(r) { return r.json(); })
-                .then(function(info) {
-                    if (!info || !info.success) return;
-                    fetch('/track', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type:     'visit',
-                            device:   sessionData.device,
-                            city:     info.city       || '---',
-                            country:  info.country    || '---',
-                            region:   info.region     || '',
-                            district: info.city       || '',
-                            zip:      info.postal     || '',
-                            isp:      (info.connection && info.connection.isp) || '',
-                            lat:      info.latitude   || '',
-                            lon:      info.longitude  || '',
-                            ip:       info.ip         || ''
-                        })
-                    }).catch(function() {});
-                }).catch(function() {});
-        }
-    }).catch(function() {
-        // ئەگەر هه‌ر هه‌ڵەیەک بوو، ipwho.is بەکاربێنە
-        fetch('https://ipwho.is/')
-            .then(function(r) { return r.json(); })
-            .then(function(info) {
-                if (!info || !info.success) return;
-                fetch('/track', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type:     'visit',
-                        device:   sessionData.device,
-                        city:     info.city       || '---',
-                        country:  info.country    || '---',
-                        region:   info.region     || '',
-                        district: info.city       || '',
-                        zip:      info.postal     || '',
-                        isp:      (info.connection && info.connection.isp) || '',
-                        lat:      info.latitude   || '',
-                        lon:      info.longitude  || '',
-                        ip:       info.ip         || ''
-                    })
-                }).catch(function() {});
+    // تەنها یەک جار دەنێرێت — بعد لە وەرگرتنی شوێن
+    fetch('https://ipwho.is/')
+        .then(function(r) { return r.json(); })
+        .then(function(info) {
+            var city    = (info.success && info.city)    ? info.city    : '---';
+            var country = (info.success && info.country) ? info.country : '---';
+            fetch('/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type:     'visit',
+                    device:   deviceLabel,
+                    city:     city,
+                    country:  country,
+                    region:   (info.success && info.region)   ? info.region   : '',
+                    district: (info.success && info.city)     ? info.city     : '',
+                    zip:      (info.success && info.postal)   ? info.postal   : '',
+                    isp:      (info.success && info.connection && info.connection.isp) ? info.connection.isp : '',
+                    lat:      (info.success && info.latitude)  ? info.latitude  : '',
+                    lon:      (info.success && info.longitude) ? info.longitude : '',
+                    ip:       (info.success && info.ip)        ? info.ip        : ''
+                })
             }).catch(function() {});
-    });
+        })
+        .catch(function() {
+            // ئەگەر ipwho.is کار نەکرد، بەبێ شوێن تۆمار بکە
+            fetch('/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type:    'visit',
+                    device:  deviceLabel,
+                    city:    '---',
+                    country: '---'
+                })
+            }).catch(function() {});
+        });
 }
 
 // ---- تۆمارکردنی Textarea (دەق نووسراو) بۆ KV ----

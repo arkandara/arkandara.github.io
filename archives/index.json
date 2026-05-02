@@ -1,5 +1,22 @@
 [
   {
+    "date": "2026-05-02",
+    "generatedAt": "2026-05-02T22:01:24.962Z",
+    "totalVisits": 11,
+    "totalClicks": 27,
+    "deviceStats": {
+      "mobile": 0,
+      "desktop": 4,
+      "tablet": 0
+    },
+    "cityStats": {
+      "IQ": 3,
+      "نەناسراو": 1
+    },
+    "fileJson": "archives/daily_2026-05-02.json",
+    "fileCsv": "archives/daily_2026-05-02.csv"
+  },
+  {
     "date": "2026-05-01",
     "generatedAt": "2026-05-01T22:08:26.525Z",
     "totalVisits": 55,

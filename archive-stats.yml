@@ -95,7 +95,7 @@ jobs:
                   days:        wData.days,
                   file:        wPath
               });
-              if (wIdx.length > 12) wIdx = wIdx.slice(0, 12);
+              // هەمیشەیی — سنووری ژمارەی هەفتانە نییە
               fs.writeFileSync(wIdxPath, JSON.stringify(wIdx, null, 2), "utf8");
               console.log(`✅ هەفتانە: ${weekStart} → ${weekEnd} (${weekDays.length} رۆژ، ${wData.totalVisits} سەردان)`);
           } else {
@@ -136,7 +136,7 @@ jobs:
                   days:        mData.days,
                   file:        mPath
               });
-              if (mIdx.length > 24) mIdx = mIdx.slice(0, 24);
+              // هەمیشەیی — سنووری ژمارەی مانگانە نییە
               fs.writeFileSync(mIdxPath, JSON.stringify(mData, null, 2), "utf8");
               console.log(`✅ مانگانە: ${thisMonth} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان)`);
           } else {

@@ -426,25 +426,12 @@ function renderSessions(sessions) {
         return;
     }
 
-    // ---- یەکخستنی سەردانەکان بە IP (هەر IP یەک ریز) ----
-    var ipMap = {};
-    sessions.forEach(function(s) {
-        var key = s.ip && s.ip !== "" ? s.ip : ("__no_ip_" + s.time);
-        if (!ipMap[key]) {
-            ipMap[key] = s;
-        } else {
-            // ئەگەر شوێنی زیاتری هەیە، ئەوەی باشتر بگرە
-            var existing = ipMap[key];
-            var hasLoc = s.city && s.city !== "---" && s.country && s.country !== "---";
-            var existLoc = existing.city && existing.city !== "---" && existing.country && existing.country !== "---";
-            if (hasLoc && !existLoc) ipMap[key] = s;
-        }
-    });
-    var uniqueSessions = Object.values(ipMap).sort(function(a, b) {
+    // ---- هەموو سەردانەکان نیشان بدە — هەر reload جیاواز ----
+    var uniqueSessions = sessions.slice().sort(function(a, b) {
         return new Date(b.time || b.start || 0) - new Date(a.time || a.start || 0);
     });
 
-    var rows = uniqueSessions.slice(0, 20).map(function(s, i) {
+    var rows = uniqueSessions.slice(0, 50).map(function(s, i) {
         // شوێنی واقعی
         var locParts = [];
         if (s.district && s.district !== "" && s.district !== "---") locParts.push(s.district);

@@ -106,7 +106,7 @@ jobs:
               idx.unshift({ date: archiveDate, generatedAt: now.toISOString(),
                             totalVisits, totalClicks: Object.values(clicks).reduce((s,v)=>s+v,0),
                             fileJson: `${fname}.json`, fileCsv: `${fname}.csv` });
-              if (idx.length > 90) idx = idx.slice(0,90);
+              // هەمیشەیی — سنووری ژمارە نییە
               fs.writeFileSync(idxPath, JSON.stringify(idx,null,2),"utf8");
               console.log("✅ ئەرشیف ئامادە کرا:", fname);
 

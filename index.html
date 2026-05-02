@@ -3537,42 +3537,54 @@ function akStartSession() {
     }
 
     // تەنها یەک جار دەنێرێت — بعد لە وەرگرتنی شوێن
-    fetch('https://ipwho.is/')
+    // ip-api.com: باشترین API بۆ شارەکانی عێراق
+    fetch('https://ip-api.com/json/?fields=status,country,regionName,city,zip,lat,lon,isp,query')
         .then(function(r) { return r.json(); })
         .then(function(info) {
-            var city    = (info.success && info.city)    ? info.city    : '---';
-            var country = (info.success && info.country) ? info.country : '---';
-            fetch('/track', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type:     'visit',
-                    device:   deviceLabel,
-                    city:     city,
-                    country:  country,
-                    region:   (info.success && info.region)   ? info.region   : '',
-                    district: (info.success && info.city)     ? info.city     : '',
-                    zip:      (info.success && info.postal)   ? info.postal   : '',
-                    isp:      (info.success && info.connection && info.connection.isp) ? info.connection.isp : '',
-                    lat:      (info.success && info.latitude)  ? info.latitude  : '',
-                    lon:      (info.success && info.longitude) ? info.longitude : '',
-                    ip:       (info.success && info.ip)        ? info.ip        : ''
-                })
-            }).catch(function() {});
+            if (info.status === 'success' && info.city) {
+                // ip-api.com شار پێداوە
+                akSendVisit(deviceLabel, info.city, info.country, info.regionName||'', info.zip||'', info.isp||'', info.lat||'', info.lon||'', info.query||'');
+            } else {
+                // fallback: ipwho.is
+                return fetch('https://ipwho.is/')
+                    .then(function(r2) { return r2.json(); })
+                    .then(function(info2) {
+                        var city    = (info2.success && info2.city)    ? info2.city    : '---';
+                        var country = (info2.success && info2.country) ? info2.country : (info.country||'---');
+                        akSendVisit(deviceLabel, city, country,
+                            (info2.success && info2.region)              ? info2.region              : '',
+                            (info2.success && info2.postal)              ? info2.postal              : '',
+                            (info2.success && info2.connection && info2.connection.isp) ? info2.connection.isp : '',
+                            (info2.success && info2.latitude)            ? info2.latitude            : '',
+                            (info2.success && info2.longitude)           ? info2.longitude           : '',
+                            (info2.success && info2.ip)                  ? info2.ip                  : ''
+                        );
+                    });
+            }
         })
         .catch(function() {
-            // ئەگەر ipwho.is کار نەکرد، بەبێ شوێن تۆمار بکە
-            fetch('/track', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type:    'visit',
-                    device:  deviceLabel,
-                    city:    '---',
-                    country: '---'
-                })
-            }).catch(function() {});
+            akSendVisit(deviceLabel, '---', '---', '', '', '', '', '', '');
         });
+}
+
+function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
+    fetch('/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type:     'visit',
+            device:   device,
+            city:     city,
+            country:  country,
+            region:   region,
+            district: city,
+            zip:      zip,
+            isp:      isp,
+            lat:      lat,
+            lon:      lon,
+            ip:       ip
+        })
+    }).catch(function() {});
 }
 
 // ---- تۆمارکردنی Textarea (دەق نووسراو) بۆ KV ----

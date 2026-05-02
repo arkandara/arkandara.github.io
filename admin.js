@@ -489,12 +489,12 @@ function renderSessions(sessions) {
     }).join("");
 
     // ---- ئاماری کۆمپیوتەر و موبایل ----
-    var mobileCount = 0, desktopCount = 0, unknownCount = 0;
+    var mobileCount = 0, desktopCount = 0, tabletCount = 0;
     uniqueSessions.forEach(function(s) {
         var d = s.device || "";
-        if (d.includes("موبایل") || d.includes("📱")) mobileCount++;
-        else if (d.includes("کۆمپیوتەر") || d.includes("🖥") || d.includes("💻")) desktopCount++;
-        else unknownCount++;
+        if (d.includes("تابلێت") || d.includes("📟")) tabletCount++;
+        else if (d.includes("موبایل") || d.includes("📱")) mobileCount++;
+        else desktopCount++; // کۆمپیوتەر یان نەناسراو
     });
     var total = uniqueSessions.length || 1;
     var mobilePct   = Math.round(mobileCount  / total * 100);
@@ -534,6 +534,10 @@ function renderSessions(sessions) {
             '<div style="text-align:center;background:#e3f2fd;border-radius:8px;padding:6px 12px;">' +
             '<div style="font-size:1.2em;font-weight:bold;color:#1565c0;">📱 '+mobileCount+'</div>' +
             '<div style="font-size:10px;color:#888;">موبایل ('+mobilePct+'%)</div></div>' +
+            (tabletCount > 0 ?
+            '<div style="text-align:center;background:#fff3e0;border-radius:8px;padding:6px 12px;">' +
+            '<div style="font-size:1.2em;font-weight:bold;color:#e65100;">📟 '+tabletCount+'</div>' +
+            '<div style="font-size:10px;color:#888;">تابلێت ('+Math.round(tabletCount/total*100)+'%)</div></div>' : '') +
             '</div></div>' +
             // شوێن
             '<div style="flex:2;min-width:200px;">' +

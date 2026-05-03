@@ -138,14 +138,6 @@ body {
     transform: translateX(0);
 }
 
-/* لە دێسکتۆپ سایدبار هەمیشە دەردەکەوێت */
-@media (min-width: 769px) {
-    .sidebar { transform: translateX(0) !important; }
-    .main-content { margin-right: var(--sidebar-w); }
-    .menu-toggle { display: none !important; }
-}
-
-/* لە موبایل سایدبار داخراوە بە دیفۆڵت */
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(110%);
@@ -157,10 +149,6 @@ body {
     }
     .main-content {
         margin-right: 0 !important;
-    }
-    .menu-toggle {
-        display: flex !important;
-        align-items: center;
     }
     .top-bar { padding: 0 12px; gap: 8px; }
     .top-bar-title { font-size: 0.9em; }
@@ -260,7 +248,6 @@ body {
 /* ناوەرۆکی سەرەکی */
 .main-content {
     flex: 1;
-    margin-right: var(--sidebar-w);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -284,7 +271,8 @@ body {
 .menu-toggle {
     background: none; border: none; cursor: pointer;
     color: var(--text-muted); font-size: 18px;
-    display: none;
+    display: flex;
+    align-items: center;
 }
 
 .top-bar-title {

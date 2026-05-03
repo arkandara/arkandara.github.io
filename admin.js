@@ -453,49 +453,62 @@ function renderSessions(sessions) {
         return new Date(b.time || b.start || 0) - new Date(a.time || a.start || 0);
     });
 
-    var rows = uniqueSessions.slice(0, 50).map(function(s, i) {
-        // شوێنی واقعی
-        var locParts = [];
-        if (s.district && s.district !== "" && s.district !== "---") locParts.push(s.district);
-        if (s.city && s.city !== "---" && s.city !== "") locParts.push(s.city);
-        if (s.region && s.region !== "" && s.region !== "---") {
-            var regionShort = s.region.replace(" Governorate","").replace(" Province","").replace(" Region","");
-            if (regionShort !== s.city) locParts.push(regionShort);
-        }
-        if (s.country && s.country !== "---" && s.country !== "") locParts.push(s.country);
+    var _sesPage = 0;
+    var PAGE = 10;
 
-        var locHTML;
-        if (locParts.length === 0) {
-            if (s.ip && s.ip !== "") {
-                locHTML = '<span style="color:#f57c00;font-size:0.9em;"><i class="fas fa-shield-alt"></i> VPN / پڕۆکسی</span>';
-            } else {
-                locHTML = '<span style="color:#bbb;font-size:0.9em;"><i class="fas fa-user-secret"></i> نەناسراو</span>';
+    function buildSessionRows(list, offset) {
+        return list.map(function(s, i) {
+            var locParts = [];
+            if (s.district && s.district !== "" && s.district !== "---") locParts.push(s.district);
+            if (s.city && s.city !== "---" && s.city !== "") locParts.push(s.city);
+            if (s.region && s.region !== "" && s.region !== "---") {
+                var regionShort = s.region.replace(" Governorate","").replace(" Province","").replace(" Region","");
+                if (regionShort !== s.city) locParts.push(regionShort);
             }
-        } else {
-            locHTML = '<i class="fas fa-map-marker-alt" style="color:#e53935;margin-left:4px;"></i>' + escHtml(locParts.join(" ← "));
+            if (s.country && s.country !== "---" && s.country !== "") locParts.push(s.country);
+
+            var locHTML;
+            if (locParts.length === 0) {
+                if (s.ip && s.ip !== "") {
+                    locHTML = '<span style="color:#f57c00;font-size:0.9em;"><i class="fas fa-shield-alt"></i> VPN / پڕۆکسی</span>';
+                } else {
+                    locHTML = '<span style="color:#bbb;font-size:0.9em;"><i class="fas fa-user-secret"></i> نەناسراو</span>';
+                }
+            } else {
+                locHTML = '<i class="fas fa-map-marker-alt" style="color:#e53935;margin-left:4px;"></i>' + escHtml(locParts.join(" ← "));
+            }
+            var extra = "";
+            if (s.isp) extra += '<div style="font-size:10px;color:#aaa;margin-top:2px;"><i class="fas fa-wifi"></i> ' + escHtml(s.isp) + '</div>';
+            if (s.lat && s.lon) extra += '<a href="https://maps.google.com/?q='+s.lat+','+s.lon+'" target="_blank" style="font-size:10px;color:#42a5f5;"><i class="fas fa-map"></i> گووگڵ مەپ</a>';
+            if (s.ip && s.ip !== "") extra += '<div style="font-size:10px;color:#ccc;margin-top:1px;direction:ltr;">IP: ' + escHtml(s.ip) + '</div>';
+            var dt = new Date(s.time || s.start || "");
+            var timeStr = dt.toLocaleDateString("ar-IQ") + " " + dt.toLocaleTimeString("ar-IQ", {hour:"2-digit",minute:"2-digit"});
+            var deviceText = escHtml(s.device || "نەناسراو");
+            return '<tr>' +
+                '<td style="text-align:center;color:#aaa;">' + (offset + i + 1) + '</td>' +
+                '<td style="font-size:12px;">' + timeStr + '</td>' +
+                '<td><div style="font-size:13px;font-weight:500;">' + locHTML + '</div>' + extra + '</td>' +
+                '<td style="font-size:12px;">' + deviceText + '</td>' +
+                '</tr>';
+        }).join("");
+    }
+
+    function renderSesPaged() {
+        var shown = Math.min((_sesPage + 1) * PAGE, uniqueSessions.length);
+        var tbody = document.getElementById("ses-tbody");
+        if (tbody) tbody.innerHTML = buildSessionRows(uniqueSessions.slice(0, shown), 0);
+        var moreBtn = document.getElementById("ses-more-btn");
+        if (moreBtn) {
+            if (shown < uniqueSessions.length) {
+                moreBtn.style.display = "block";
+                moreBtn.textContent = "نیشانی بدە (" + Math.min(PAGE, uniqueSessions.length - shown) + " ی تر)";
+            } else {
+                moreBtn.style.display = "none";
+            }
         }
+    }
 
-        // ISP و کۆڕدینات
-        var extra = "";
-        if (s.isp) extra += '<div style="font-size:10px;color:#aaa;margin-top:2px;"><i class="fas fa-wifi"></i> ' + escHtml(s.isp) + '</div>';
-        if (s.lat && s.lon) extra += '<a href="https://maps.google.com/?q='+s.lat+','+s.lon+'" target="_blank" style="font-size:10px;color:#42a5f5;"><i class="fas fa-map"></i> گووگڵ مەپ</a>';
-        if (s.ip && s.ip !== "") extra += '<div style="font-size:10px;color:#ccc;margin-top:1px;direction:ltr;">IP: ' + escHtml(s.ip) + '</div>';
-
-        // کاتی خوێندراوەتر
-        var dt = new Date(s.time || s.start || "");
-        var timeStr = dt.toLocaleDateString("ar-IQ") + " " + dt.toLocaleTimeString("ar-IQ", {hour:"2-digit",minute:"2-digit"});
-
-        // ئامێر
-        var deviceIcon = (s.device || "").includes("موبایل") ? "📱" : "🖥️";
-        var deviceText = escHtml(s.device || "نەناسراو");
-
-        return '<tr>' +
-            '<td style="text-align:center;color:#aaa;">' + (i+1) + '</td>' +
-            '<td style="font-size:12px;">' + timeStr + '</td>' +
-            '<td><div style="font-size:13px;font-weight:500;">' + locHTML + '</div>' + extra + '</td>' +
-            '<td style="font-size:12px;">' + deviceText + '</td>' +
-            '</tr>';
-    }).join("");
+    var rows = buildSessionRows(uniqueSessions.slice(0, PAGE), 0);
 
     // ---- ئاماری کۆمپیوتەر و موبایل ----
     var mobileCount = 0, desktopCount = 0, tabletCount = 0;
@@ -553,7 +566,20 @@ function renderSessions(sessions) {
     sesEl.innerHTML = summaryBar +
         '<table class="stats-table">' +
         '<thead><tr><th>#</th><th>کات</th><th>شوێن</th><th>ئامێر</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table>';
+        '<tbody id="ses-tbody">' + rows + '</tbody></table>' +
+        (uniqueSessions.length > PAGE
+            ? '<div style="text-align:center;margin-top:10px;">' +
+              '<button id="ses-more-btn" class="add-btn" style="background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;">' +
+              'نیشانی بدە (' + Math.min(PAGE, uniqueSessions.length - PAGE) + ' ی تر)</button></div>'
+            : '');
+
+    var moreBtn = document.getElementById("ses-more-btn");
+    if (moreBtn) {
+        moreBtn.addEventListener("click", function() {
+            _sesPage++;
+            renderSesPaged();
+        });
+    }
 }
 
 
@@ -585,33 +611,69 @@ function renderSnapshots(snaps) {
         return;
     }
 
-    var html = '<div class="snap-list">';
-    snaps.slice(0, 200).forEach(function(s, i) {
-        var uid     = "snap_" + i;
-        var timeStr = "";
-        try { timeStr = new Date(s.time).toLocaleTimeString(); } catch(e) {}
-        var txt     = s.text || s.preview || "";
-        var shortTxt = txt.length > 80 ? txt.substring(0, 80) + "…" : txt;
+    var _snapPage = 0;
+    var SNAP_PAGE = 10;
+    var _allSnaps = snaps || [];
 
-        html += '<div class="snap-row" id="' + uid + '_row">' +
-            '<div class="snap-header">' +
-                '<span class="snap-label"><i class="fas fa-mouse-pointer"></i> ' + escHtml(s.label || "—") + '</span>' +
-                '<span class="snap-time"><i class="fas fa-clock"></i> ' + timeStr + '</span>' +
-                '<span class="snap-len">' + (s.length || txt.length) + ' پیت</span>' +
+    function buildSnapHtml(list) {
+        var html = '<div class="snap-list">';
+        list.forEach(function(s, i) {
+            var uid     = "snap_" + i;
+            var timeStr = "";
+            try { timeStr = new Date(s.time).toLocaleTimeString(); } catch(e) {}
+            var txt      = s.text || s.preview || "";
+            var shortTxt = txt.length > 80 ? txt.substring(0, 80) + "…" : txt;
+
+            html += '<div class="snap-row" id="' + uid + '_row">' +
+                '<div class="snap-header">' +
+                    '<span class="snap-label"><i class="fas fa-mouse-pointer"></i> ' + escHtml(s.label || "—") + '</span>' +
+                    '<span class="snap-time"><i class="fas fa-clock"></i> ' + timeStr + '</span>' +
+                    '<span class="snap-len">' + (s.length || txt.length) + ' پیت</span>' +
+                    (txt.length > 0
+                        ? '<button class="snap-toggle-btn" onclick="toggleSnap(\'' + uid + '\')">' +
+                          '<i class="fas fa-chevron-down" id="' + uid + '_icon"></i> خوێندنەوە</button>'
+                        : '<span style="color:#aaa;font-size:0.8em">— بۆشا —</span>') +
+                '</div>' +
                 (txt.length > 0
-                    ? '<button class="snap-toggle-btn" onclick="toggleSnap(\'' + uid + '\')">' +
-                      '<i class="fas fa-chevron-down" id="' + uid + '_icon"></i> خوێندنەوە</button>'
-                    : '<span style="color:#aaa;font-size:0.8em">— بۆشا —</span>') +
-            '</div>' +
-            (txt.length > 0
-                ? '<div class="snap-preview" id="' + uid + '_prev">' + escHtml(shortTxt) + '</div>' +
-                  '<div class="snap-full" id="' + uid + '_full" style="display:none">' + escHtml(txt) + '</div>'
-                : '') +
-        '</div>';
-    });
-    html += '</div>';
+                    ? '<div class="snap-preview" id="' + uid + '_prev">' + escHtml(shortTxt) + '</div>' +
+                      '<div class="snap-full" id="' + uid + '_full" style="display:none">' + escHtml(txt) + '</div>'
+                    : '') +
+            '</div>';
+        });
+        html += '</div>';
+        return html;
+    }
 
-    el.innerHTML = html;
+    function renderSnapPaged() {
+        var shown = Math.min((_snapPage + 1) * SNAP_PAGE, _allSnaps.length);
+        var wrap  = document.getElementById("snap-list-wrap");
+        if (wrap) wrap.innerHTML = buildSnapHtml(_allSnaps.slice(0, shown));
+        var btn = document.getElementById("snap-more-btn");
+        if (btn) {
+            if (shown < _allSnaps.length) {
+                btn.style.display = "block";
+                btn.textContent = "نیشانی بدە (" + Math.min(SNAP_PAGE, _allSnaps.length - shown) + " ی تر)";
+            } else {
+                btn.style.display = "none";
+            }
+        }
+    }
+
+    el.innerHTML =
+        '<div id="snap-list-wrap">' + buildSnapHtml(_allSnaps.slice(0, SNAP_PAGE)) + '</div>' +
+        (_allSnaps.length > SNAP_PAGE
+            ? '<div style="text-align:center;margin-top:10px;">' +
+              '<button id="snap-more-btn" class="add-btn" style="background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;">' +
+              'نیشانی بدە (' + Math.min(SNAP_PAGE, _allSnaps.length - SNAP_PAGE) + ' ی تر)</button></div>'
+            : '');
+
+    var snapMoreBtn = document.getElementById("snap-more-btn");
+    if (snapMoreBtn) {
+        snapMoreBtn.addEventListener("click", function() {
+            _snapPage++;
+            renderSnapPaged();
+        });
+    }
 }
 
 

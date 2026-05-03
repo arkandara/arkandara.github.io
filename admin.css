@@ -959,3 +959,140 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     /* نمودار */
     .sc-wrap { min-height: 140px; }
 }
+
+
+/* ===================================================
+   ریسپۆنسیڤی زیادە — گۆڕانکاری 2025
+   =================================================== */
+
+/* session-list wrapper */
+.session-list {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* جەدوەلی سەردانەکان */
+.session-list table,
+#sessionList table {
+    min-width: 520px;
+    width: 100%;
+}
+
+/* stats charts overflow */
+#statsChartsWrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* archive-meta و archive-btns */
+.archive-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0.82em;
+    color: var(--text-muted);
+}
+.archive-btns {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* sc-inner min-width */
+.sc-inner {
+    min-width: 300px;
+}
+
+/* ---- بریکپۆینتی 600px — ئارایی ناوەند ---- */
+@media (max-width: 600px) {
+
+    /* ئامارەکانی سەرەوە: ٢ ستوون بمێنێت، بچووکتر ببێت */
+    .stats-top-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .stat-card { padding: 14px 10px; }
+    .stat-num { font-size: 1.5em; }
+    .stat-lbl { font-size: 0.75em; }
+
+    /* bar-row: لەیبڵ شاردەوە، تەنها بار و ژمارە */
+    .bar-row {
+        grid-template-columns: 1fr 44px;
+        gap: 8px;
+    }
+    .bar-label { display: none; }
+    .bar-last  { display: none; }
+    .bar-count { font-size: 0.82em; }
+
+    /* کارتی ناوەرۆک */
+    .card-body { padding: 14px 12px; }
+    .card-header { padding: 12px 14px; font-size: 0.88em; }
+
+    /* تابەکانی ئەرشیف */
+    .arc-tabs { gap: 5px; }
+    .arc-tab {
+        flex: 1 1 auto;
+        font-size: 0.75em;
+        padding: 7px 6px;
+        text-align: center;
+    }
+
+    /* ئەرشیف row — ستاکی تەواو */
+    .archive-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px;
+    }
+    .archive-week { font-size: 0.88em; font-weight: 700; }
+    .archive-meta { width: 100%; }
+    .archive-btns {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+    .archive-dl {
+        flex: 1;
+        text-align: center;
+        font-size: 0.8em;
+        padding: 6px 0;
+    }
+
+    /* لۆگین */
+    .login-card { padding: 28px 18px 22px; }
+    .login-title { font-size: 1.2em; }
+
+    /* save-btn */
+    .save-btn { width: 100%; justify-content: center; }
+
+    /* پاشەکەوتکردنی فۆرم — input-ەکان */
+    .color-row { flex-wrap: wrap; }
+    .form-input { font-size: 0.88em; }
+
+    /* toast */
+    .toast {
+        bottom: 14px;
+        max-width: calc(100vw - 24px);
+        font-size: 0.85em;
+        padding: 10px 16px;
+    }
+
+    /* top-bar */
+    .top-bar { height: 50px; gap: 6px; }
+    .top-bar-title { font-size: 0.82em; }
+
+    /* tab-content padding */
+    .tab-content { padding: 12px 10px; gap: 14px; }
+}
+
+/* ---- بریکپۆینتی 380px — موبایلی زۆر بچووک ---- */
+@media (max-width: 380px) {
+    .stats-top-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+    .stat-num { font-size: 1.3em; }
+    .arc-tab { font-size: 0.68em; padding: 6px 4px; }
+    .sidebar { width: 240px; }
+    .tab-content { padding: 10px 8px; }
+}

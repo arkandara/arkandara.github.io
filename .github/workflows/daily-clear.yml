@@ -82,10 +82,9 @@ jobs:
               const sessions      = safeJson(await cfGet("visits:"    + archiveDate), []);
               const snapshots     = safeJson(await cfGet("snapshots:" + archiveDate), []);
 
-              // ---- ٢. پاشەکەوتکردن لە GitHub ----
+              // ---- ٢. پاشەکەوتکردن لە GitHub (تەنها index.json — بەبێ فایلی جیاوازی رۆژانە) ----
               if (!fs.existsSync("archives")) fs.mkdirSync("archives");
-              const fname   = `archives/daily_${archiveDate}`;
-              // خلاصەی ئامێر و شوێن — بەبێ داتای وردەکاری
+              // خلاصەی ئامێر و شوێن
               const deviceStats = { mobile: 0, desktop: 0, tablet: 0 };
               const cityStats = {};
               sessions.forEach(s => {
@@ -97,39 +96,24 @@ jobs:
                   cityStats[city] = (cityStats[city] || 0) + 1;
               });
 
-              const archive = {
-                  date: archiveDate,
-                  generatedAt: now.toISOString(),
-                  totalVisits,
-                  totalTextarea,
-                  clicks,
-                  deviceStats,
-                  cityStats
-              };
-              fs.writeFileSync(`${fname}.json`, JSON.stringify(archive, null, 2), "utf8");
-
-              let csv = "Label,Count\n";
-              Object.entries(clicks).sort((a,b)=>b[1]-a[1])
-                    .forEach(([l,c])=>{ csv += `"${l.replace(/"/g,'""')}",${c}\n`; });
-              csv += "\n\nCity,Count\n";
-              Object.entries(cityStats).sort((a,b)=>b[1]-a[1])
-                    .forEach(([c,n])=>{ csv += `"${c}",${n}\n`; });
-              csv += "\n\nDevice,Count\n";
-              Object.entries(deviceStats).forEach(([d,n])=>{ csv += `"${d}",${n}\n`; });
-              fs.writeFileSync(`${fname}.csv`, csv, "utf8");
-
-              // نوێکردنەوەی index.json
+              // نوێکردنەوەی index.json — کلیکەکانیش تیادان (بەبێ فایلی جیاواز)
               const idxPath = "archives/index.json";
               let idx = [];
               try { idx = JSON.parse(fs.readFileSync(idxPath,"utf8")); } catch(e){}
               idx = idx.filter(x => x.date !== archiveDate);
-              idx.unshift({ date: archiveDate, generatedAt: now.toISOString(),
-                            totalVisits, totalClicks: Object.values(clicks).reduce((s,v)=>s+v,0),
-                            deviceStats, cityStats,
-                            fileJson: `${fname}.json`, fileCsv: `${fname}.csv` });
+              idx.unshift({
+                  date:        archiveDate,
+                  generatedAt: now.toISOString(),
+                  totalVisits,
+                  totalClicks: Object.values(clicks).reduce((s,v)=>s+v,0),
+                  totalTextarea,
+                  clicks,
+                  deviceStats,
+                  cityStats
+              });
               // هەمیشەیی — سنووری ژمارە نییە
               fs.writeFileSync(idxPath, JSON.stringify(idx,null,2),"utf8");
-              console.log("✅ ئەرشیف ئامادە کرا:", fname);
+              console.log("✅ ئەرشیف ئامادە کرا لە index.json:", archiveDate);
 
               // ---- ٣. سفرکردنەوەی KV ----
               console.log("🗑️ سفرکردنەوەی KV...");

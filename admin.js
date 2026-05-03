@@ -105,12 +105,7 @@ function showTab(id) {
     if (navEl) navEl.classList.add("active");
     var titleEl = document.getElementById("pageTitle");
     if (titleEl) titleEl.textContent = tabTitles[id] || "";
-    if (window.innerWidth <= 768) {
-        var sb = document.getElementById("sidebar");
-        if (sb) sb.classList.remove("open");
-        var ov = document.getElementById("sidebarOverlay");
-        if (ov) ov.classList.remove("active");
-    }
+    closeSidebar();
     if (id === "tab-stats")   { loadStats(); loadStatsCharts(); }
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
@@ -136,6 +131,13 @@ function toggleSidebar() {
     var ov = document.getElementById("sidebarOverlay");
     var isOpen = sb.classList.toggle("open");
     if (ov) ov.classList.toggle("active", isOpen);
+}
+
+function closeSidebar() {
+    var sb = document.getElementById("sidebar");
+    var ov = document.getElementById("sidebarOverlay");
+    if (sb) sb.classList.remove("open");
+    if (ov) ov.classList.remove("active");
 }
 
 // ===========================

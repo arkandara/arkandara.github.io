@@ -759,7 +759,6 @@ function loadArchiveList() {
         // ---- تابەکانی ئەرشیف ----
         var html = '<div class="arc-tabs">' +
             '<button class="arc-tab arc-tab-active" onclick="switchArcTab(this,\'arc-daily\')"><i class="fas fa-calendar-day"></i> رۆژانە ('+daily.length+')</button>' +
-            '<button class="arc-tab" onclick="switchArcTab(this,\'arc-weekly\')"><i class="fas fa-calendar-week"></i> هەفتانە ('+weekly.length+')</button>' +
             '<button class="arc-tab" onclick="switchArcTab(this,\'arc-monthly\')"><i class="fas fa-calendar-alt"></i> مانگانە ('+monthly.length+')</button>' +
             '</div>';
 
@@ -791,28 +790,7 @@ function loadArchiveList() {
         }
         html += '</div>';
 
-        // ---- هەفتانە ----
-        html += '<div id="arc-weekly" class="arc-panel" style="display:none">';
-        if (weekly.length) {
-            weekly.forEach(function(a) {
-                var parts = (a.week||"").split("_");
-                var ws = parts[0]||""; var we = parts[1]||"";
-                var wsp = ws.split("-"); var wep = we.split("-");
-                var wlabel = (wsp[2]||"")+"/"+(wsp[1]||"") + " → " + (wep[2]||"")+"/"+(wep[1]||"");
-                html += '<div class="archive-row" onclick="showArchiveChart(\'weekly\','+JSON.stringify(a)+')" style="cursor:pointer">' +
-                    '<div class="archive-week"><i class="fas fa-calendar-week"></i> ' + wlabel + '</div>' +
-                    '<div class="archive-meta">' +
-                        '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
-                        '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
-                        renderDeviceCityMeta(a) +
-                    '</div>' +
-                '</div>';
-            });
-        } else {
-            html += '<div class="no-data">هێشتا ئەرشیفی هەفتانە نییە</div>';
-        }
-        html += '</div>';
-
+   
         // ---- مانگانە ----
         html += '<div id="arc-monthly" class="arc-panel" style="display:none">';
         if (monthly.length) {

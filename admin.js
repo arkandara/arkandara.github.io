@@ -102,13 +102,15 @@ function showTab(id) {
     if (navEl) navEl.classList.add("active");
     var titleEl = document.getElementById("pageTitle");
     if (titleEl) titleEl.textContent = tabTitles[id] || "";
-    if (id === "tab-stats")   { loadStats(); loadStatsCharts(); }
-    if (id === "tab-archive") loadArchiveList();
-    if (id === "tab-preview") loadPreviewText();
     if (window.innerWidth <= 700) {
         var sb = document.getElementById("sidebar");
         if (sb) sb.classList.remove("open");
+        var ov = document.getElementById("sidebarOverlay");
+        if (ov) ov.classList.remove("active");
     }
+    if (id === "tab-stats")   { loadStats(); loadStatsCharts(); }
+    if (id === "tab-archive") loadArchiveList();
+    if (id === "tab-preview") loadPreviewText();
 }
 
 

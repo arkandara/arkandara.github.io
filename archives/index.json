@@ -1,5 +1,29 @@
 [
   {
+    "date": "2026-05-03",
+    "generatedAt": "2026-05-03T11:15:51.140Z",
+    "totalVisits": 9,
+    "totalClicks": 31,
+    "totalTextarea": 69,
+    "clicks": {
+      "Gemini": 6,
+      "گۆڕین بۆ یونیکۆد": 8,
+      "کەتکردن": 8,
+      "گۆڕین بۆ عەلی کەی": 1,
+      "پاشەکەوت Word": 1,
+      "سڕینەوەی بۆشایی": 7
+    },
+    "deviceStats": {
+      "mobile": 2,
+      "desktop": 7,
+      "tablet": 0
+    },
+    "cityStats": {
+      "نەناسراو": 9
+    },
+    "fileJson": "archives/daily_2026-05-03.json"
+  },
+  {
     "date": "2026-05-02",
     "generatedAt": "2026-05-02T22:01:24.962Z",
     "totalVisits": 11,

@@ -3,8 +3,8 @@
     "month": "2026-04",
     "period": "2026-04-04_2026-05-03",
     "generatedAt": "2026-05-03T12:02:49.870Z",
-    "totalVisits": 75,
-    "totalClicks": 111,
+    "totalVisits": 555,
+    "totalClicks": 743,
     "days": [
       { "date": "2026-05-03", "visits": 9, "clicks": 31 },
       { "date": "2026-05-02", "visits": 11, "clicks": 27 },

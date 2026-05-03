@@ -1,14 +1,27 @@
-{
-  "type": "monthly",
-  "month": "2026-05",
-  "generatedAt": "2026-05-01T02:28:27.388Z",
-  "totalVisits": 248,
-  "totalClicks": 263,
-  "days": [
-    {
-      "date": "2026-05-01",
-      "visits": 248,
-      "clicks": 263
-    }
-  ]
-}
+[
+  {
+    "month": "2026-04",
+    "period": "2026-04-04_2026-05-03",
+    "generatedAt": "2026-05-03T12:02:49.870Z",
+    "totalVisits": 75,
+    "totalClicks": 111,
+    "days": [
+      {
+        "date": "2026-05-03",
+        "visits": 9,
+        "clicks": 31
+      },
+      {
+        "date": "2026-05-02",
+        "visits": 11,
+        "clicks": 27
+      },
+      {
+        "date": "2026-05-01",
+        "visits": 55,
+        "clicks": 53
+      }
+    ],
+    "file": "archives/monthly_2026-04-04_2026-05-03.json"
+  }
+]

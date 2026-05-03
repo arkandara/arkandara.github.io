@@ -403,18 +403,6 @@ function loadStats() {
         });
 }
 
-// ===========================
-//  پشکنینی کات — دوای 12:20 AM عێراق (UTC+3) وردەکاری بشارەوە
-// ===========================
-function isDetailHidden() {
-    var now  = new Date();
-    var iraq = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Baghdad" }));
-    var h    = iraq.getHours();
-    var m    = iraq.getMinutes();
-    // 0:20 AM تا 23:59 — وردەکاری بشاردەوە (daily-clear ئەرشیف دەکات و سفر دەکاتەوە)
-    return (h === 0 && m >= 20) || (h >= 1);
-}
-
 function renderClickChart(clicks) {
     var chartEl = document.getElementById("clickChart");
     if (!chartEl) return;
@@ -461,11 +449,6 @@ function renderSessions(sessions) {
     var sesEl = document.getElementById("sessionList");
     if (!sesEl) return;
 
-    // دوای 12:20 AM عێراق — وردەکاری بشاردەوە
-    if (isDetailHidden()) {
-        sesEl.innerHTML = '<div class="no-data"><i class="fas fa-moon"></i> وردەکاری سەردانەکان تا ئەرشیف و سفرکردنەوەی شەوانە بشاردراوە (12:20 AM).<br>داتای نوێ لە رۆژی داهاتوو دەستپێدەکات.</div>';
-        return;
-    }
 
     if (!sessions || !sessions.length) {
         sesEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە</div>';
@@ -604,12 +587,6 @@ function renderSnapshots(snaps) {
     var el = document.getElementById("textareaList");
     if (!el) return;
 
-    // دوای 12:20 AM عێراق — وردەکاری بشاردەوە
-    if (isDetailHidden()) {
-        el.innerHTML = '<div class="no-data"><i class="fas fa-moon"></i> وردەکاری دەقەکان تا ئەرشیف و سفرکردنەوەی شەوانە بشاردراوە (12:20 AM).<br>داتای نوێ لە رۆژی داهاتوو دەستپێدەکات.</div>';
-        return;
-    }
-
     if (!snaps || !snaps.length) {
         el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک تۆمار نەکراوە ئەمرۆ</div>';
         return;
@@ -710,10 +687,23 @@ function loadArchiveList() {
         var todayStr = new Date().toISOString().slice(0,10);
         var todayClicks = Object.values(liveKV.clicks||{}).reduce(function(s,v){ return s+v; },0);
         var todayEntry = {
-            date:        todayStr + " ★",
-            totalVisits: liveKV.totalVisits || 0,
-            totalClicks: todayClicks,
-            isToday:     true
+            date:         todayStr + " ★",
+            totalVisits:  liveKV.totalVisits  || 0,
+            totalClicks:  todayClicks,
+            totalTextarea: liveKV.totalTextarea || 0,
+            clicks:       liveKV.clicks       || {},
+            deviceStats:  (liveKV.recentSessions||[]).reduce(function(ds,s){
+                var d = s.device||"";
+                if(d.includes("تابلێت")||d.includes("📟")) ds.tablet++;
+                else if(d.includes("موبایل")||d.includes("📱")) ds.mobile++;
+                else ds.desktop++;
+                return ds;
+            }, {mobile:0,desktop:0,tablet:0}),
+            cityStats:    (liveKV.recentSessions||[]).reduce(function(cs,s){
+                var c=(s.city&&s.city!=="---")?s.city:((s.country&&s.country!=="---")?s.country:"نەناسراو");
+                cs[c]=(cs[c]||0)+1; return cs;
+            }, {}),
+            isToday:      true
         };
         daily = [todayEntry].concat(daily.filter(function(d){ return (d.date||"").replace(" ★","") !== todayStr; }));
 
@@ -745,10 +735,6 @@ function loadArchiveList() {
                         '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
                         '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
                         renderDeviceCityMeta(a) +
-                    '</div>' +
-                    '<div class="archive-btns">' +
-                        (a.fileJson ? '<a href="'+base+a.fileJson.replace("archives/","")+'" target="_blank" class="archive-dl json" onclick="event.stopPropagation()">JSON</a>' : '') +
-                        (a.fileCsv  ? '<a href="'+base+a.fileCsv.replace("archives/","")+'"  target="_blank" class="archive-dl csv"  onclick="event.stopPropagation()">CSV</a>'  : '') +
                     '</div>' +
                 '</div>';
             });
@@ -830,53 +816,37 @@ function showArchiveChart(type, item) {
     var title = document.getElementById("arc-chart-title");
     if (!area || !inner) return;
 
-    // بۆ رۆژانە — فایلی تەواوەکە بخوێنەوە بۆ کلیکەکان
+    // بۆ رۆژانە — کلیکەکان ڕاستەوخۆ لە item خوێندراون (بەبێ فایلی جیاواز)
     if (type === "daily") {
         var dp = (item.date||"").replace(" ★","").split("-");
         title.textContent = (dp[2]||"") + "/" + (dp[1]||"") + "/" + (dp[0]||"");
         area.style.display = "block";
 
-        // ئەگەر fileJson هەیە، فایلەکە بخوێنەوە
-        var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
-        var jsonFile = item.fileJson ? item.fileJson.replace("archives/","") : ("daily_" + (item.date||"").replace(" ★","") + ".json");
+        var clicks = item.clicks || {};
+        var sorted = Object.entries(clicks).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
+        var maxC   = sorted.length ? sorted[0][1] : 1;
 
-        inner.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> بارکردن...</div>';
+        var barsHTML = sorted.length ? sorted.map(function(kv){
+            var pct = Math.round((kv[1]/maxC)*100);
+            return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+                '<div style="min-width:110px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+kv[0]+'">'+kv[0]+'</div>' +
+                '<div style="flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;">' +
+                    '<div style="width:'+pct+'%;height:100%;background:#42a5f5;border-radius:4px;transition:width 0.4s;"></div>' +
+                '</div>' +
+                '<div style="min-width:28px;font-size:12px;font-weight:bold;color:#42a5f5;">'+kv[1]+'</div>' +
+            '</div>';
+        }).join("") : '<div class="no-data">هیچ کلیکێک تۆمار نەکراوە</div>';
 
-        fetch(base + jsonFile)
-            .then(function(r){ return r.ok ? r.json() : null; })
-            .then(function(data) {
-                if (!data) {
-                    inner.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> فایلی ئەرشیف نییە</div>';
-                    return;
-                }
-                var clicks = data.clicks || {};
-                var sorted = Object.entries(clicks).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
-                var maxC   = sorted.length ? sorted[0][1] : 1;
+        inner.innerHTML =
+            '<div class="sc-summary">' +
+                '<span><i class="fas fa-globe"></i> سەردان: <strong>'+(item.totalVisits||0)+'</strong></span>' +
+                '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+(item.totalClicks||0)+'</strong></span>' +
+                '<span><i class="fas fa-keyboard"></i> دەق: <strong>'+(item.totalTextarea||0)+'</strong></span>' +
+            '</div>' +
+            renderDeviceCityMeta(item) +
+            (sorted.length ? '<div style="margin-top:10px;font-size:12px;color:var(--text-muted);margin-bottom:6px;">زۆرترین کلیکەکان:</div>' : '') +
+            barsHTML;
 
-                var barsHTML = sorted.length ? sorted.map(function(kv){
-                    var pct = Math.round((kv[1]/maxC)*100);
-                    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-                        '<div style="min-width:110px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+kv[0]+'">'+kv[0]+'</div>' +
-                        '<div style="flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;">' +
-                            '<div style="width:'+pct+'%;height:100%;background:#42a5f5;border-radius:4px;transition:width 0.4s;"></div>' +
-                        '</div>' +
-                        '<div style="min-width:28px;font-size:12px;font-weight:bold;color:#42a5f5;">'+kv[1]+'</div>' +
-                    '</div>';
-                }).join("") : '<div class="no-data">هیچ کلیکێک تۆمار نەکراوە</div>';
-
-                inner.innerHTML =
-                    '<div class="sc-summary">' +
-                        '<span><i class="fas fa-globe"></i> سەردان: <strong>'+(data.totalVisits||0)+'</strong></span>' +
-                        '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+(Object.values(clicks).reduce(function(s,v){return s+v;},0))+'</strong></span>' +
-                        '<span><i class="fas fa-keyboard"></i> دەق: <strong>'+(data.totalTextarea||0)+'</strong></span>' +
-                    '</div>' +
-                    renderDeviceCityMeta(data) +
-                    (sorted.length ? '<div style="margin-top:10px;font-size:12px;color:var(--text-muted);margin-bottom:6px;">زۆرترین کلیکەکان:</div>' : '') +
-                    barsHTML;
-            })
-            .catch(function(){
-                inner.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردن</div>';
-            });
         area.scrollIntoView({behavior:"smooth",block:"nearest"});
         return;
     }

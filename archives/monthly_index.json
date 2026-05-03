@@ -16,8 +16,8 @@
     "month": "2026-03",
     "period": "2026-03-04_2026-04-03",
     "generatedAt": "2026-04-03T18:15:20.120Z",
-    "totalVisits": 142,
-    "totalClicks": 210,
+    "totalVisits": 242,
+    "totalClicks": 410,
     "days": [
       { "date": "2026-04-03", "visits": 15, "clicks": 45 },
       { "date": "2026-04-02", "visits": 22, "clicks": 38 },
@@ -29,13 +29,26 @@
     "month": "2026-02",
     "period": "2026-02-04_2026-03-03",
     "generatedAt": "2026-03-03T20:45:10.550Z",
-    "totalVisits": 98,
-    "totalClicks": 156,
+    "totalVisits": 298,
+    "totalClicks": 456,
     "days": [
       { "date": "2026-03-03", "visits": 12, "clicks": 25 },
       { "date": "2026-03-02", "visits": 8, "clicks": 19 },
       { "date": "2026-03-01", "visits": 24, "clicks": 42 }
     ],
     "file": "archives/monthly_2026-02-04_2026-03-03.json"
+  },
+  {
+    "month": "2026-01",
+    "period": "2026-01-04_2026-02-03",
+    "generatedAt": "2026-02-03T21:10:05.300Z",
+    "totalVisits": 215,
+    "totalClicks": 480,
+    "days": [
+      { "date": "2026-02-03", "visits": 20, "clicks": 40 },
+      { "date": "2026-02-02", "visits": 14, "clicks": 22 },
+      { "date": "2026-02-01", "visits": 30, "clicks": 55 }
+    ],
+    "file": "archives/monthly_2026-01-04_2026-02-03.json"
   }
 ]

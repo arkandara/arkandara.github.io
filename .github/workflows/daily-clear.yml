@@ -63,6 +63,7 @@ jobs:
           const cfPut    = (key, val)  => cfRequest("PUT",    key, val);
 
           function safeJson(raw, def) { try { return JSON.parse(raw); } catch(e) { return def; } }
+          function safeArray(raw) { try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch(e) { return []; } }
           function isoDate(d) { return d.toISOString().slice(0,10); }
 
           async function main() {
@@ -71,7 +72,7 @@ jobs:
               console.log("📅 رۆژی ئەرشیف:", archiveDate);
 
               // ---- ١. خوێندنەوەی داتا ----
-              const clickLabels = safeJson(await cfGet("meta:clicks_list"), []);
+              const clickLabels = safeArray(await cfGet("meta:clicks_list"));
               const clicks = {};
               for (const lbl of clickLabels) {
                   const v = await cfGet("click:" + lbl);
@@ -79,8 +80,8 @@ jobs:
               }
               const totalVisits   = +(await cfGet("meta:total_visits")   || "0");
               const totalTextarea = +(await cfGet("meta:total_textarea") || "0");
-              const sessions      = safeJson(await cfGet("visits:"    + archiveDate), []);
-              const snapshots     = safeJson(await cfGet("snapshots:" + archiveDate), []);
+              const sessions      = safeArray(await cfGet("visits:"    + archiveDate));
+              const snapshots     = safeArray(await cfGet("snapshots:" + archiveDate));
 
               // ---- ٢. حیسابکردنی deviceStats و cityStats ----
               const deviceStats = { mobile: 0, desktop: 0, tablet: 0 };

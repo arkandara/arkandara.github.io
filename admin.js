@@ -25,6 +25,9 @@ function doLogin() {
         sessionStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
+        if (window.innerWidth > 768) {
+            document.getElementById("sidebar").classList.add("open");
+        }
         initPanel();
     } else {
         errEl.style.display = "flex";
@@ -1048,6 +1051,9 @@ window.addEventListener("DOMContentLoaded", function() {
     if (sessionStorage.getItem("adminAuth") === "1") {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
+        if (window.innerWidth > 768) {
+            document.getElementById("sidebar").classList.add("open");
+        }
         initPanel();
     }
 });

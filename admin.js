@@ -129,7 +129,10 @@ function resetAdminPass() {
 }
 
 function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("open");
+    var sb = document.getElementById("sidebar");
+    var ov = document.getElementById("sidebarOverlay");
+    var isOpen = sb.classList.toggle("open");
+    if (ov) ov.classList.toggle("active", isOpen);
 }
 
 // ===========================

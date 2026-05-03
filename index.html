@@ -3525,7 +3525,7 @@ function akTrackClick(label) {
 
 // ---- تۆمارکردنی سەردان بۆ KV ----
 function akStartSession() {
-    // ناسینی ئامێر بە شێوەی دیاریکراو
+    // ناسینی ئامێر
     var ua = navigator.userAgent;
     var deviceLabel;
     if (/iPad|Tablet|PlayBook/i.test(ua) || (/Mobi/i.test(ua) && /iPad/i.test(ua))) {
@@ -3536,43 +3536,49 @@ function akStartSession() {
         deviceLabel = '🖥️ کۆمپیوتەر';
     }
 
-    // تەنها یەک جار دەنێرێت — بعد لە وەرگرتنی شوێن
-    // ip-api.com: باشترین API بۆ شارەکانی عێراق
-    // یەکەم: ipwho.is (HTTPS پشتیوانی دەکات)
-    fetch('https://ipwho.is/')
+    // یەکەم: ip-api.com (HTTPS) — باشترین بۆ شارەکانی عێراق
+    fetch('https://ip-api.com/json/?fields=status,country,regionName,city,zip,lat,lon,isp,query')
         .then(function(r) { return r.json(); })
-        .then(function(info) {
-            if (info.success && info.city) {
+        .then(function(d) {
+            if (d.status === 'success' && d.city) {
                 akSendVisit(deviceLabel,
-                    info.city,
-                    info.country    || '---',
-                    info.region     || '',
-                    info.postal     || '',
-                    (info.connection && info.connection.isp) ? info.connection.isp : '',
-                    info.latitude   || '',
-                    info.longitude  || '',
-                    info.ip         || ''
+                    d.city, d.country || '---', d.regionName || '',
+                    d.zip || '', d.isp || '', d.lat || '', d.lon || '', d.query || ''
                 );
             } else {
-                // fallback: ip-api.com بە HTTP (free plan)
-                return fetch('https://ip-api.com/json/?fields=status,country,regionName,city,zip,lat,lon,isp,query')
-                    .then(function(r2) { return r2.json(); })
-                    .then(function(i2) {
-                        akSendVisit(deviceLabel,
-                            (i2.status === 'success' && i2.city)        ? i2.city        : '---',
-                            (i2.status === 'success' && i2.country)     ? i2.country     : (info.country || '---'),
-                            (i2.status === 'success' && i2.regionName)  ? i2.regionName  : '',
-                            (i2.status === 'success' && i2.zip)         ? i2.zip         : '',
-                            (i2.status === 'success' && i2.isp)         ? i2.isp         : '',
-                            (i2.status === 'success' && i2.lat)         ? i2.lat         : '',
-                            (i2.status === 'success' && i2.lon)         ? i2.lon         : '',
-                            (i2.status === 'success' && i2.query)       ? i2.query       : ''
-                        );
-                    });
+                throw new Error('no city');
             }
         })
         .catch(function() {
-            akSendVisit(deviceLabel, '---', '---', '', '', '', '', '', '');
+            // دووەم: ipwho.is
+            fetch('https://ipwho.is/')
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.success && d.city) {
+                        akSendVisit(deviceLabel,
+                            d.city, d.country || '---', d.region || '',
+                            d.postal || '',
+                            (d.connection && d.connection.isp) ? d.connection.isp : '',
+                            d.latitude || '', d.longitude || '', d.ip || ''
+                        );
+                    } else {
+                        throw new Error('no city');
+                    }
+                })
+                .catch(function() {
+                    // سێیەم: ipapi.co
+                    fetch('https://ipapi.co/json/')
+                        .then(function(r) { return r.json(); })
+                        .then(function(d) {
+                            akSendVisit(deviceLabel,
+                                d.city || '---', d.country_name || '---', d.region || '',
+                                d.postal || '', d.org || '', d.latitude || '', d.longitude || '', d.ip || ''
+                            );
+                        })
+                        .catch(function() {
+                            akSendVisit(deviceLabel, '---', '---', '', '', '', '', '', '');
+                        });
+                });
         });
 }
 

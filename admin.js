@@ -102,7 +102,7 @@ function showTab(id) {
     if (navEl) navEl.classList.add("active");
     var titleEl = document.getElementById("pageTitle");
     if (titleEl) titleEl.textContent = tabTitles[id] || "";
-    if (window.innerWidth <= 700) {
+    if (window.innerWidth <= 768) {
         var sb = document.getElementById("sidebar");
         if (sb) sb.classList.remove("open");
         var ov = document.getElementById("sidebarOverlay");

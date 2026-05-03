@@ -51,7 +51,8 @@ jobs:
           const idxPath = "archives/index.json";
           let dailyIdx = [];
           try {
-              dailyIdx = JSON.parse(fs.readFileSync(idxPath, "utf8"));
+              const _d = JSON.parse(fs.readFileSync(idxPath, "utf8"));
+              dailyIdx = Array.isArray(_d) ? _d : [];
           } catch(e) {
               console.log("⚠️ archives/index.json نییە");
               process.exit(0);
@@ -126,7 +127,7 @@ jobs:
               // نوێکردنەوەی monthly_index.json
               const mIdxPath = "archives/monthly_index.json";
               let mIdx = [];
-              try { mIdx = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); } catch(e) {}
+              try { const _m = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); mIdx = Array.isArray(_m) ? _m : []; } catch(e) {}
               mIdx = mIdx.filter(x => x.period !== mData.period);
               mIdx.unshift({
                   month:       mData.month,
@@ -157,7 +158,7 @@ jobs:
           // خوێندنەوەی monthly_index.json
           const mIdxPath = "archives/monthly_index.json";
           let mIdx = [];
-          try { mIdx = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); } catch(e) {}
+          try { const _m = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); mIdx = Array.isArray(_m) ? _m : []; } catch(e) {}
 
           // فیلتەرکردنی فایلەکانی مانگانەی ساڵی ڕابردوو
           const yearMonths = mIdx.filter(x => {
@@ -217,7 +218,7 @@ jobs:
           // نوێکردنەوەی yearly_index.json
           const yIdxPath = "archives/yearly_index.json";
           let yIdx = [];
-          try { yIdx = JSON.parse(fs.readFileSync(yIdxPath, "utf8")); } catch(e) {}
+          try { const _y = JSON.parse(fs.readFileSync(yIdxPath, "utf8")); yIdx = Array.isArray(_y) ? _y : []; } catch(e) {}
           yIdx = yIdx.filter(x => x.year !== yData.year);
           yIdx.unshift({
               year:        yData.year,

@@ -3555,7 +3555,7 @@ function akStartSession() {
                 );
             } else {
                 // fallback: ip-api.com بە HTTP (free plan)
-                return fetch('http://ip-api.com/json/?fields=status,country,regionName,city,zip,lat,lon,isp,query')
+                return fetch('https://ip-api.com/json/?fields=status,country,regionName,city,zip,lat,lon,isp,query')
                     .then(function(r2) { return r2.json(); })
                     .then(function(i2) {
                         akSendVisit(deviceLabel,

@@ -13,8 +13,11 @@ const CORS = {
 
 // ---- GET: خوێندنەوەی ئامارەکان ----
 export async function onRequestGet(context) {
-    const { env } = context;
+    const { env, request } = context;
     try {
+        const url  = new URL(request.url);
+        const full = url.searchParams.get("full") === "1";
+
         // کلیکەکان
         const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
         const clickLabels   = safeJson(clicksListRaw, []);
@@ -28,31 +31,11 @@ export async function onRequestGet(context) {
         const totalVisits   = parseInt(await env.STATS_DB.get("meta:total_visits")   || "0");
         const totalTextarea = parseInt(await env.STATS_DB.get("meta:total_textarea") || "0");
 
-        // سەردانەکانی ٧ رۆژ
-        const sessions = [];
-        for (let i = 0; i < 7; i++) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const raw = await env.STATS_DB.get("visits:" + isoDate(d));
-            sessions.push(...safeJson(raw, []));
-        }
-        const recentSessions = sessions
-            .sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0))
-            .slice(0, 200);
-
-        // snapshot ەکانی ئەمرۆ (تێکست لەگەڵ کلیک)
-        const snapshotRaw   = await env.STATS_DB.get("snapshots:" + isoDate(new Date()));
-        const snapshots     = safeJson(snapshotRaw, []);
-
-        // Textarea ئەمرۆ
-        const txRaw         = await env.STATS_DB.get("textarea:" + isoDate(new Date()));
-        const textareaToday = safeJson(txRaw, []);
-
         // ئەرشیفەکان
         const archiveListRaw = await env.STATS_DB.get("meta:archive_list");
         const archiveList    = safeJson(archiveListRaw, []);
 
-        // preview (دەقی نێردراو لە دوگمەی "بینینی دەق")
+        // preview
         const previewRaw = await env.STATS_DB.get("preview:latest");
         const preview    = safeJson(previewRaw, null);
 
@@ -60,15 +43,41 @@ export async function onRequestGet(context) {
         const settingsRaw = await env.STATS_DB.get("settings:site");
         const settings    = safeJson(settingsRaw, null);
 
-        // پری KV (تەخمینی — Cloudflare API ڕاستەوخۆ نادات)
-        const kvKeys = await env.STATS_DB.list({ limit: 1000 });
+        // قەبارەی ڕاستی KV — هەر کی دەخوێنێتەوە و بایتەکانی دەژمێرێت
+        const kvKeys   = await env.STATS_DB.list({ limit: 1000 });
         const keyCount = kvKeys.keys.length;
-        const estimatedBytes = keyCount * 512; // تەخمینی ٥١٢ بایت بۆ هەر کی
-        const maxBytes  = 1024 * 1024 * 1024; // 1 GB (Cloudflare Free: 1GB)
-        const usedMB    = (estimatedBytes / (1024 * 1024)).toFixed(2);
-        const maxMB     = (maxBytes / (1024 * 1024)).toFixed(0);
-        const percent   = Math.round((estimatedBytes / maxBytes) * 100);
-        const kvUsage   = { keyCount, usedMB, maxMB, percent };
+        const enc      = new TextEncoder();
+        let totalBytes = 0;
+        for (const k of kvKeys.keys) {
+            const val = await env.STATS_DB.get(k.name);
+            if (val) totalBytes += enc.encode(val).length;
+        }
+        const maxBytes = 1024 * 1024 * 1024; // 1 GB
+        const usedMB   = (totalBytes / (1024 * 1024)).toFixed(3);
+        const maxMB    = (maxBytes   / (1024 * 1024)).toFixed(0);
+        const percent  = ((totalBytes / maxBytes) * 100).toFixed(2);
+        const kvUsage  = { keyCount, usedMB, maxMB, percent };
+
+        // ---- داتای قەبارەدار — تەنها کاتی ?full=1 ----
+        let recentSessions = [], snapshots = [], textareaToday = [];
+        if (full) {
+            const sessions = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const raw = await env.STATS_DB.get("visits:" + isoDate(d));
+                sessions.push(...safeJson(raw, []));
+            }
+            recentSessions = sessions
+                .sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0))
+                .slice(0, 200);
+
+            const snapshotRaw = await env.STATS_DB.get("snapshots:" + isoDate(new Date()));
+            snapshots         = safeJson(snapshotRaw, []);
+
+            const txRaw   = await env.STATS_DB.get("textarea:" + isoDate(new Date()));
+            textareaToday = safeJson(txRaw, []);
+        }
 
         return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings, kvUsage });
 

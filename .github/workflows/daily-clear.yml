@@ -67,7 +67,7 @@ jobs:
 
           async function main() {
               const now         = new Date();
-              const archiveDate = isoDate(now); // 21:20 UTC = هێشتا هەمان رۆژ
+              const archiveDate = isoDate(now);
               console.log("📅 رۆژی ئەرشیف:", archiveDate);
 
               // ---- ١. خوێندنەوەی داتا ----
@@ -82,9 +82,7 @@ jobs:
               const sessions      = safeJson(await cfGet("visits:"    + archiveDate), []);
               const snapshots     = safeJson(await cfGet("snapshots:" + archiveDate), []);
 
-              // ---- ٢. پاشەکەوتکردن لە GitHub (تەنها index.json — بەبێ فایلی جیاوازی رۆژانە) ----
-              if (!fs.existsSync("archives")) fs.mkdirSync("archives");
-              // خلاصەی ئامێر و شوێن
+              // ---- ٢. حیسابکردنی deviceStats و cityStats ----
               const deviceStats = { mobile: 0, desktop: 0, tablet: 0 };
               const cityStats = {};
               sessions.forEach(s => {
@@ -96,7 +94,34 @@ jobs:
                   cityStats[city] = (cityStats[city] || 0) + 1;
               });
 
-              // نوێکردنەوەی index.json — کلیکەکانیش تیادان (بەبێ فایلی جیاواز)
+              const totalClicks = Object.values(clicks).reduce((s,v)=>s+v,0);
+
+              if (!fs.existsSync("archives")) fs.mkdirSync("archives");
+
+              // ---- ٣. فایلی جیاوازی رۆژانە — دروستکردن یان نوێکردنەوە ----
+              // ئەم فایلە نەسرێتەوە، بەردەوام داتای ئەو رۆژە تیادا دەمێنێت
+              const dailyFilePath = `archives/daily_${archiveDate}.json`;
+              const dailyData = {
+                  type:        "daily",
+                  date:        archiveDate,
+                  generatedAt: now.toISOString(),
+                  totalVisits,
+                  totalClicks,
+                  totalTextarea,
+                  clicks,
+                  deviceStats,
+                  cityStats,
+                  sessions:    sessions.map(s => ({
+                      time:    s.time    || '',
+                      device:  s.device  || '',
+                      city:    s.city    || '',
+                      country: s.country || ''
+                  }))
+              };
+              fs.writeFileSync(dailyFilePath, JSON.stringify(dailyData, null, 2), "utf8");
+              console.log("✅ فایلی رۆژانە پاشەکەوت کرا:", dailyFilePath);
+
+              // ---- ٤. نوێکردنەوەی index.json (خلاصە — بەبێ sessions) ----
               const idxPath = "archives/index.json";
               let idx = [];
               try { idx = JSON.parse(fs.readFileSync(idxPath,"utf8")); } catch(e){}
@@ -105,17 +130,18 @@ jobs:
                   date:        archiveDate,
                   generatedAt: now.toISOString(),
                   totalVisits,
-                  totalClicks: Object.values(clicks).reduce((s,v)=>s+v,0),
+                  totalClicks,
                   totalTextarea,
                   clicks,
                   deviceStats,
-                  cityStats
+                  cityStats,
+                  fileJson:    dailyFilePath
               });
               // هەمیشەیی — سنووری ژمارە نییە
               fs.writeFileSync(idxPath, JSON.stringify(idx,null,2),"utf8");
-              console.log("✅ ئەرشیف ئامادە کرا لە index.json:", archiveDate);
+              console.log("✅ index.json نوێکرایەوە:", archiveDate);
 
-              // ---- ٣. سفرکردنەوەی KV ----
+              // ---- ٥. سفرکردنەوەی KV ----
               console.log("🗑️ سفرکردنەوەی KV...");
               await cfDelete("visits:"    + archiveDate);
               await cfDelete("snapshots:" + archiveDate);

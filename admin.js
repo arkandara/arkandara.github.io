@@ -530,28 +530,23 @@ function renderSessions(sessions) {
     }).join("");
 
     var summaryBar =
-        '<div style="background:#f8faf8;border:1px solid #e0e0e0;border-radius:10px;padding:12px 16px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;">' +
-            // ئامێر
-            '<div style="flex:1;min-width:150px;">' +
-            '<div style="font-size:11px;color:#888;margin-bottom:6px;"><i class="fas fa-mobile-alt"></i> ئامێر</div>' +
-            '<div style="display:flex;gap:10px;">' +
-            '<div style="text-align:center;background:#e8f5e9;border-radius:8px;padding:6px 12px;">' +
-            '<div style="font-size:1.2em;font-weight:bold;color:#2e7d32;">🖥️ '+desktopCount+'</div>' +
-            '<div style="font-size:10px;color:#888;">کۆمپیوتەر ('+desktopPct+'%)</div></div>' +
-            '<div style="text-align:center;background:#e3f2fd;border-radius:8px;padding:6px 12px;">' +
-            '<div style="font-size:1.2em;font-weight:bold;color:#1565c0;">📱 '+mobileCount+'</div>' +
-            '<div style="font-size:10px;color:#888;">موبایل ('+mobilePct+'%)</div></div>' +
+        '<div style="background:#f8faf8;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px;margin-bottom:12px;">' +
+            '<div style="font-size:11px;color:#888;margin-bottom:8px;"><i class="fas fa-mobile-alt"></i> ئامێر</div>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">' +
+            '<div style="text-align:center;background:#e8f5e9;border-radius:8px;padding:8px 14px;flex:1;min-width:80px;">' +
+            '<div style="font-size:1.1em;font-weight:bold;color:#2e7d32;">🖥️ '+desktopCount+'</div>' +
+            '<div style="font-size:10px;color:#888;">کۆمپیوتەر '+desktopPct+'%</div></div>' +
+            '<div style="text-align:center;background:#e3f2fd;border-radius:8px;padding:8px 14px;flex:1;min-width:80px;">' +
+            '<div style="font-size:1.1em;font-weight:bold;color:#1565c0;">📱 '+mobileCount+'</div>' +
+            '<div style="font-size:10px;color:#888;">موبایل '+mobilePct+'%</div></div>' +
             (tabletCount > 0 ?
-            '<div style="text-align:center;background:#fff3e0;border-radius:8px;padding:6px 12px;">' +
-            '<div style="font-size:1.2em;font-weight:bold;color:#e65100;">📟 '+tabletCount+'</div>' +
-            '<div style="font-size:10px;color:#888;">تابلێت ('+Math.round(tabletCount/total*100)+'%)</div></div>' : '') +
-            '</div></div>' +
-            // شوێن
-            '<div style="flex:2;min-width:200px;">' +
-            '<div style="font-size:11px;color:#888;margin-bottom:6px;"><i class="fas fa-map-marker-alt"></i> زیاترین شوێنەکان</div>' +
-            locBars +
+            '<div style="text-align:center;background:#fff3e0;border-radius:8px;padding:8px 14px;flex:1;min-width:80px;">' +
+            '<div style="font-size:1.1em;font-weight:bold;color:#e65100;">📟 '+tabletCount+'</div>' +
+            '<div style="font-size:10px;color:#888;">تابلێت '+Math.round(tabletCount/total*100)+'%</div></div>' : '') +
             '</div>' +
-        '</div>';
+            '<div style="font-size:11px;color:#888;margin-bottom:8px;"><i class="fas fa-map-marker-alt"></i> زیاترین شوێنەکان</div>' +
+            locBars +
+        '</div>'
 
     sesEl.innerHTML = summaryBar +
         '<table class="stats-table">' +

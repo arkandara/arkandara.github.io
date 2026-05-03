@@ -1,17 +1,29 @@
 [
   {
     "date": "2026-05-03",
-    "generatedAt": "2026-05-03T12:11:41.689Z",
-    "totalVisits": 0,
-    "totalClicks": 0,
-    "totalTextarea": 0,
-    "clicks": {},
+    "generatedAt": "2026-05-03T22:01:50.545Z",
+    "totalVisits": 22,
+    "totalClicks": 56,
+    "totalTextarea": 9,
+    "clicks": {
+      "سڕینەوەی دەق": 6,
+      "گۆڕین بۆ یونیکۆد": 15,
+      "گۆڕین بۆ عەلی کەی": 4,
+      "کەتکردن": 2,
+      "گەڕان و گۆڕین": 22,
+      "دەربارە": 4,
+      "تەما": 2,
+      "تێکستی ناو وێنه": 1
+    },
     "deviceStats": {
-      "mobile": 0,
-      "desktop": 0,
+      "mobile": 3,
+      "desktop": 19,
       "tablet": 0
     },
-    "cityStats": {},
+    "cityStats": {
+      "نەناسراو": 8,
+      "Sulaymaniyah": 14
+    },
     "fileJson": "archives/daily_2026-05-03.json"
   },
   {

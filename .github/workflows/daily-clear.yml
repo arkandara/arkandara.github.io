@@ -1,0 +1,164 @@
+# ============================================================
+#  .github/workflows/daily-clear.yml
+#  هەر شەو 12:20 AM عێراق (UTC+3) = 21:20 UTC:
+#  ١. داتای رۆژ لە KV دەخوێنێتەوە و ئەرشیف دەکات لە GitHub
+#  ٢. هەموو ئامارەکانی KV سفر دەبنەوە بۆ ئەوەی داتای نوێ دەست بکات
+# ============================================================
+
+name: 🌙 ئەرشیفی شەوانە و سفرکردنەوەی ئامارەکان
+
+on:
+  schedule:
+    - cron: "20 21 * * *"   # 21:20 UTC = 12:20 AM عێراق (UTC+3)
+  workflow_dispatch:
+
+jobs:
+  archive-and-clear:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: 📡 ئەرشیفکردن و سفرکردنەوەی KV
+        env:
+          CF_ACCOUNT_ID:   ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN:    ${{ secrets.CF_API_TOKEN }}
+          CF_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
+        run: |
+          node - << 'JSEOF'
+          const https = require("https");
+          const fs    = require("fs");
+
+          const ACCOUNT   = process.env.CF_ACCOUNT_ID;
+          const TOKEN     = process.env.CF_API_TOKEN;
+          const NAMESPACE = process.env.CF_NAMESPACE_ID;
+          const BASE      = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/storage/kv/namespaces/${NAMESPACE}`;
+
+          function cfRequest(method, key, body) {
+              return new Promise((res, rej) => {
+                  const opts = {
+                      method: method || "GET",
+                      headers: { Authorization: `Bearer ${TOKEN}` }
+                  };
+                  if (body !== undefined) {
+                      const buf = Buffer.from(String(body));
+                      opts.headers["Content-Type"]   = "text/plain";
+                      opts.headers["Content-Length"] = buf.length;
+                  }
+                  const req = https.request(
+                      `${BASE}/values/${encodeURIComponent(key)}`, opts,
+                      (r) => { let b=""; r.on("data",d=>b+=d); r.on("end",()=>res(b)); }
+                  );
+                  req.on("error", rej);
+                  if (body !== undefined) req.write(Buffer.from(String(body)));
+                  req.end();
+              });
+          }
+
+          const cfGet    = (key)       => cfRequest("GET",    key);
+          const cfDelete = (key)       => cfRequest("DELETE", key);
+          const cfPut    = (key, val)  => cfRequest("PUT",    key, val);
+
+          function safeJson(raw, def) { try { return JSON.parse(raw); } catch(e) { return def; } }
+          function isoDate(d) { return d.toISOString().slice(0,10); }
+
+          async function main() {
+              const now         = new Date();
+              const archiveDate = isoDate(now);
+              console.log("📅 رۆژی ئەرشیف:", archiveDate);
+
+              // ---- ١. خوێندنەوەی داتا ----
+              const clickLabels = safeJson(await cfGet("meta:clicks_list"), []);
+              const clicks = {};
+              for (const lbl of clickLabels) {
+                  const v = await cfGet("click:" + lbl);
+                  if (v && !isNaN(+v)) clicks[lbl] = +v;
+              }
+              const totalVisits   = +(await cfGet("meta:total_visits")   || "0");
+              const totalTextarea = +(await cfGet("meta:total_textarea") || "0");
+              const sessions      = safeJson(await cfGet("visits:"    + archiveDate), []);
+              const snapshots     = safeJson(await cfGet("snapshots:" + archiveDate), []);
+
+              // ---- ٢. حیسابکردنی deviceStats و cityStats ----
+              const deviceStats = { mobile: 0, desktop: 0, tablet: 0 };
+              const cityStats = {};
+              sessions.forEach(s => {
+                  const d = s.device || '';
+                  if (d.includes('تابلێت') || d.includes('📟')) deviceStats.tablet++;
+                  else if (d.includes('موبایل') || d.includes('📱')) deviceStats.mobile++;
+                  else deviceStats.desktop++;
+                  const city = (s.city && s.city !== '---') ? s.city : ((s.country && s.country !== '---') ? s.country : 'نەناسراو');
+                  cityStats[city] = (cityStats[city] || 0) + 1;
+              });
+
+              const totalClicks = Object.values(clicks).reduce((s,v)=>s+v,0);
+
+              if (!fs.existsSync("archives")) fs.mkdirSync("archives");
+
+              // ---- ٣. فایلی جیاوازی رۆژانە — دروستکردن یان نوێکردنەوە ----
+              // ئەم فایلە نەسرێتەوە، بەردەوام داتای ئەو رۆژە تیادا دەمێنێت
+              const dailyFilePath = `archives/daily_${archiveDate}.json`;
+              const dailyData = {
+                  type:        "daily",
+                  date:        archiveDate,
+                  generatedAt: now.toISOString(),
+                  totalVisits,
+                  totalClicks,
+                  totalTextarea,
+                  clicks,
+                  deviceStats,
+                  cityStats,
+                  sessions:    sessions.map(s => ({
+                      time:    s.time    || '',
+                      device:  s.device  || '',
+                      city:    s.city    || '',
+                      country: s.country || ''
+                  }))
+              };
+              fs.writeFileSync(dailyFilePath, JSON.stringify(dailyData, null, 2), "utf8");
+              console.log("✅ فایلی رۆژانە پاشەکەوت کرا:", dailyFilePath);
+
+              // ---- ٤. نوێکردنەوەی index.json (خلاصە — بەبێ sessions) ----
+              const idxPath = "archives/index.json";
+              let idx = [];
+              try { idx = JSON.parse(fs.readFileSync(idxPath,"utf8")); } catch(e){}
+              idx = idx.filter(x => x.date !== archiveDate);
+              idx.unshift({
+                  date:        archiveDate,
+                  generatedAt: now.toISOString(),
+                  totalVisits,
+                  totalClicks,
+                  totalTextarea,
+                  clicks,
+                  deviceStats,
+                  cityStats,
+                  fileJson:    dailyFilePath
+              });
+              // هەمیشەیی — سنووری ژمارە نییە
+              fs.writeFileSync(idxPath, JSON.stringify(idx,null,2),"utf8");
+              console.log("✅ index.json نوێکرایەوە:", archiveDate);
+
+              // ---- ٥. سفرکردنەوەی KV ----
+              console.log("🗑️ سفرکردنەوەی KV...");
+              await cfDelete("visits:"    + archiveDate);
+              await cfDelete("snapshots:" + archiveDate);
+              await cfDelete("textarea:"  + archiveDate);
+              await cfPut("meta:total_visits",   "0");
+              await cfPut("meta:total_textarea", "0");
+              for (const lbl of clickLabels) await cfDelete("click:" + lbl);
+              await cfDelete("meta:clicks_list");
+              console.log("✅ KV سفر بووەوە — ئامادەی رۆژی نوێ");
+          }
+          main().catch(e=>{ console.error(e); process.exit(1); });
+          JSEOF
+
+      - name: 📤 Commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add archives/
+          git diff --staged --quiet || git commit -m "🌙 ئەرشیفی رۆژانە — $(date -u +'%Y-%m-%d')"
+          git push

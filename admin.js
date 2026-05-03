@@ -586,7 +586,7 @@ function renderSnapshots(snaps) {
     }
 
     var html = '<div class="snap-list">';
-    snaps.slice(0, 50).forEach(function(s, i) {
+    snaps.slice(0, 200).forEach(function(s, i) {
         var uid     = "snap_" + i;
         var timeStr = "";
         try { timeStr = new Date(s.time).toLocaleTimeString(); } catch(e) {}

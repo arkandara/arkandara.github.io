@@ -417,6 +417,26 @@ function renderClickChart(clicks) {
     }).join("");
 }
 
+
+function renderDeviceCityMeta(a) {
+    var ds = a.deviceStats || {};
+    var cs = a.cityStats   || {};
+    var dTotal = (ds.mobile||0) + (ds.desktop||0) + (ds.tablet||0);
+    var deviceHtml = '';
+    if (dTotal > 0) {
+        deviceHtml = '<span style="font-size:10px;color:#888;margin-right:6px;">' +
+            (ds.desktop ? '🖥️ ' + ds.desktop + ' ' : '') +
+            (ds.mobile  ? '📱 ' + ds.mobile  + ' ' : '') +
+            (ds.tablet  ? '📟 ' + ds.tablet  + ' ' : '') +
+            '</span>';
+    }
+    var topCities = Object.entries(cs).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+    var cityHtml = topCities.length ?
+        '<span style="font-size:10px;color:#888;">' +
+        topCities.map(function(x){ return x[0]+' ('+x[1]+')'; }).join(' · ') +
+        '</span>' : '';
+    return deviceHtml + cityHtml;
+}
 function renderSessions(sessions) {
     var sesEl = document.getElementById("sessionList");
     if (!sesEl) return;
@@ -713,6 +733,7 @@ function loadArchiveList() {
                     '<div class="archive-meta">' +
                         '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
                         '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
+                        renderDeviceCityMeta(a) +
                     '</div>' +
                     '<div class="archive-btns">' +
                         (a.fileJson ? '<a href="'+base+a.fileJson.replace("archives/","")+'" target="_blank" class="archive-dl json" onclick="event.stopPropagation()">JSON</a>' : '') +
@@ -738,6 +759,7 @@ function loadArchiveList() {
                     '<div class="archive-meta">' +
                         '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
                         '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
+                        renderDeviceCityMeta(a) +
                     '</div>' +
                 '</div>';
             });
@@ -837,6 +859,7 @@ function showArchiveChart(type, item) {
                         '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+(Object.values(clicks).reduce(function(s,v){return s+v;},0))+'</strong></span>' +
                         '<span><i class="fas fa-keyboard"></i> دەق: <strong>'+(data.totalTextarea||0)+'</strong></span>' +
                     '</div>' +
+                    renderDeviceCityMeta(data) +
                     (sorted.length ? '<div style="margin-top:10px;font-size:12px;color:var(--text-muted);margin-bottom:6px;">زۆرترین کلیکەکان:</div>' : '') +
                     barsHTML;
             })

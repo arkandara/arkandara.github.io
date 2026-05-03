@@ -720,8 +720,10 @@ function loadArchiveList() {
         var html = '<div class="arc-tabs">' +
             '<button class="arc-tab arc-tab-active" onclick="switchArcTab(this,\'arc-daily\')"><i class="fas fa-calendar-day"></i> رۆژانە ('+daily.length+')</button>' +
             '<button class="arc-tab" onclick="switchArcTab(this,\'arc-weekly\')"><i class="fas fa-calendar-week"></i> هەفتانە ('+weekly.length+')</button>' +
-            '<button class="arc-tab" onclick="switchArcTab(this,\'arc-monthly\')"><i class="fas fa-calendar-alt"></i> مانگانە ('+monthly.length+')</button>' +
-            '</div>';
+            \'<button class="arc-tab" onclick="switchArcTab(this,\\\'arc-monthly\\\')"><i class="fas fa-calendar-alt"></i> مانگانە (\'+monthly.length+\')</button>\' +
+            \'<button class="arc-tab" onclick="switchArcTab(this,\\\'arc-yearly\\\')"><i class="fas fa-calendar"></i> ساڕانە (\'+yearly.length+\')</button>\' +
+            \'</div>\';
+
 
         // ---- رۆژانە ----
         html += '<div id="arc-daily" class="arc-panel">';
@@ -954,6 +956,8 @@ function showArchiveChart(type, item) {
         area.scrollIntoView({behavior:"smooth",block:"nearest"});
         return;
     }
+
+    var days = item.days || [];
 
     if (type === "weekly") {
         var wp = (item.week||"").split("_");

@@ -124,7 +124,7 @@ jobs:
               // ---- ٤. نوێکردنەوەی index.json (خلاصە — بەبێ sessions) ----
               const idxPath = "archives/index.json";
               let idx = [];
-              try { idx = JSON.parse(fs.readFileSync(idxPath,"utf8")); } catch(e){}
+              try { const _i = JSON.parse(fs.readFileSync(idxPath,"utf8")); idx = Array.isArray(_i) ? _i : []; } catch(e){}
               idx = idx.filter(x => x.date !== archiveDate);
               idx.unshift({
                   date:        archiveDate,

@@ -90,7 +90,7 @@ const tabTitles = {
     "tab-news":     "سەرچاوەی هەواڵ",
     "tab-buttons":  "دوگمەکانی تووڵبار",
     "tab-stats":    "ئامارەکان",
-    "tab-archive":  "ئەرشیف",
+    "tab-archive":  "ئەرشیفی هەفتانە",
     "tab-password": "گۆڕینی پاسوۆرد",
     "tab-preview":  "بینینی دەقی سایت"
 };
@@ -361,7 +361,7 @@ function loadStats() {
     setEl("stat-total-textarea","⏳");
     setEl("stat-kv-usage",      "⏳");
 
-    fetch("/track")
+    fetch("/track?full=1")
         .then(function(r) {
             if (!r.ok) throw new Error("هەڵەی " + r.status);
             return r.json();
@@ -717,7 +717,7 @@ function clearStats() {
 }
 
 // ===========================
-//  تاب ٥ — ئەرشیف
+//  تاب ٥ — ئەرشیفی هەفتانە
 // ===========================
 
 function loadArchiveList() {
@@ -729,14 +729,16 @@ function loadArchiveList() {
 
     Promise.all([
         fetch(base + "index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+        fetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch(base + "monthly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch(base + "yearly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch("/track").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var daily   = results[0] || [];
-        var monthly = results[1] || [];
-        var yearly  = results[2] || [];
-        var liveKV  = results[3] || {};
+        var weekly  = results[1] || [];
+        var monthly = results[2] || [];
+        var yearly  = results[3] || [];
+        var liveKV  = results[4] || {};
 
         // داتای ئەمرۆ لە KV — بە ستارەکەوە لە سەرەوە زیاد دەکرێت
         var todayStr = new Date().toISOString().slice(0,10);
@@ -749,7 +751,7 @@ function loadArchiveList() {
         };
         daily = [todayEntry].concat(daily.filter(function(d){ return (d.date||"").replace(" ★","") !== todayStr; }));
 
-        if (!daily.length && !monthly.length && !yearly.length) {
+        if (!daily.length && !weekly.length && !monthly.length && !yearly.length) {
             listEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا ئەرشیفێک نییە</div>';
             return;
         }
@@ -757,6 +759,7 @@ function loadArchiveList() {
         // ---- تابەکانی ئەرشیف ----
         var html = '<div class="arc-tabs">' +
             '<button class="arc-tab arc-tab-active" onclick="switchArcTab(this,\'arc-daily\')"><i class="fas fa-calendar-day"></i> رۆژانە ('+daily.length+')</button>' +
+            '<button class="arc-tab" onclick="switchArcTab(this,\'arc-weekly\')"><i class="fas fa-calendar-week"></i> هەفتانە ('+weekly.length+')</button>' +
             '<button class="arc-tab" onclick="switchArcTab(this,\'arc-monthly\')"><i class="fas fa-calendar-alt"></i> مانگانە ('+monthly.length+')</button>' +
             '</div>';
 
@@ -785,6 +788,28 @@ function loadArchiveList() {
             });
         } else {
             html += '<div class="no-data">هێشتا ئەرشیفی رۆژانە نییە</div>';
+        }
+        html += '</div>';
+
+        // ---- هەفتانە ----
+        html += '<div id="arc-weekly" class="arc-panel" style="display:none">';
+        if (weekly.length) {
+            weekly.forEach(function(a) {
+                var parts = (a.week||"").split("_");
+                var ws = parts[0]||""; var we = parts[1]||"";
+                var wsp = ws.split("-"); var wep = we.split("-");
+                var wlabel = (wsp[2]||"")+"/"+(wsp[1]||"") + " → " + (wep[2]||"")+"/"+(wep[1]||"");
+                html += '<div class="archive-row" onclick="showArchiveChart(\'weekly\','+JSON.stringify(a)+')" style="cursor:pointer">' +
+                    '<div class="archive-week"><i class="fas fa-calendar-week"></i> ' + wlabel + '</div>' +
+                    '<div class="archive-meta">' +
+                        '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
+                        '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
+                        renderDeviceCityMeta(a) +
+                    '</div>' +
+                '</div>';
+            });
+        } else {
+            html += '<div class="no-data">هێشتا ئەرشیفی هەفتانە نییە</div>';
         }
         html += '</div>';
 
@@ -909,7 +934,7 @@ function showArchiveChart(type, item) {
         return;
     }
 
-    // بۆ مانگانە — نەخشەی ستون بۆ هەر رۆژ
+    // بۆ هەفتانە و مانگانە — نەخشەی ستون بۆ هەر رۆژ
     // ---- ساڕانۀ — نەخشەی ستون بۆ هەر مانگ ----
     if (type === "yearly") {
         title.textContent = 'ساڕی ' + (item.year||"");
@@ -970,7 +995,10 @@ function showArchiveChart(type, item) {
         return;
     }
 
-    {
+    if (type === "weekly") {
+        var wp = (item.week||"").split("_");
+        title.textContent = (wp[0]||"") + " → " + (wp[1]||"");
+    } else {
         var mp = (item.month||"").split("-");
         var mNames = ["","کانوونی دووەم","شوبات","ئازار","نیسان","ئایار","حوزەیران","تەممووز","ئاب","ئەیلوول","تشرینی یەکەم","تشرینی دووەم","کانوونی یەکەم"];
         title.textContent = (mNames[+(mp[1]||0)]||mp[1]) + " " + (mp[0]||"");
@@ -1152,10 +1180,11 @@ window.addEventListener("DOMContentLoaded", function() {
 });
 
 // ===========================
-//  نمودارەکانی رۆژانە / مانگانە
+//  نمودارەکانی رۆژانە / هەفتانە / مانگانە
 // ===========================
 
 var _archiveIndex = null;
+var _weeklyIndex  = null;
 var _monthlyIndex = null;
 var _yearlyIndex  = null;
 var _statsPeriod  = "daily";
@@ -1169,14 +1198,16 @@ function loadStatsCharts() {
 
     Promise.all([
         fetch(base + "index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        fetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch(base + "monthly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch(base + "yearly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch("/track").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var archived = results[0] || [];
-        _monthlyIndex = results[1];
-        _yearlyIndex  = results[2];
-        var kv        = results[3] || {};
+        _weeklyIndex  = results[1];
+        _monthlyIndex = results[2];
+        _yearlyIndex  = results[3];
+        var kv        = results[4] || {};
 
         // داتای ئەمرۆ لە KV — وەک ڕیزی یەکەم زیاد دەکرێت
         var todayStr = new Date().toISOString().slice(0,10);
@@ -1199,7 +1230,7 @@ function loadStatsCharts() {
 
 function renderStatsPeriod(period) {
     _statsPeriod = period;
-    ["btn-daily","btn-monthly","btn-yearly"].forEach(function(id) {
+    ["btn-daily","btn-weekly","btn-monthly","btn-yearly"].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.classList.remove("stats-period-active");
     });
@@ -1213,6 +1244,9 @@ function renderStatsPeriod(period) {
     if (period === "daily") {
         data = (_archiveIndex||[]).slice(0,30).reverse();
         labelKey = "date";
+    } else if (period === "weekly") {
+        data = (_weeklyIndex||[]).slice(0,12).reverse();
+        labelKey = "week";
     } else if (period === "yearly") {
         data = (_yearlyIndex||[]).slice(0,10).reverse();
         labelKey = "year";
@@ -1293,6 +1327,10 @@ function renderStatsPeriod(period) {
         if (period === "daily") {
             var p = raw.split("-");
             lbl = (p[2]||"") + "/" + (p[1]||"");
+        } else if (period === "weekly") {
+            var ws = (raw.split("_")[0]||"").split("-");
+            var we = (raw.split("_")[1]||"").split("-");
+            lbl = (ws[2]||"") + "-" + (we[2]||"") + "/" + (we[1]||"");
         } else {
             var mp = raw.split("-");
             var mn = ["","١","٢","٣","٤","٥","٦","٧","٨","٩","١٠","١١","١٢"];

@@ -403,6 +403,18 @@ function loadStats() {
         });
 }
 
+// ===========================
+//  پشکنینی کات — دوای 12:20 AM عێراق (UTC+3) وردەکاری بشارەوە
+// ===========================
+function isDetailHidden() {
+    var now  = new Date();
+    var iraq = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Baghdad" }));
+    var h    = iraq.getHours();
+    var m    = iraq.getMinutes();
+    // 0:20 AM تا 23:59 — وردەکاری بشاردەوە (daily-clear ئەرشیف دەکات و سفر دەکاتەوە)
+    return (h === 0 && m >= 20) || (h >= 1);
+}
+
 function renderClickChart(clicks) {
     var chartEl = document.getElementById("clickChart");
     if (!chartEl) return;
@@ -448,6 +460,12 @@ function renderDeviceCityMeta(a) {
 function renderSessions(sessions) {
     var sesEl = document.getElementById("sessionList");
     if (!sesEl) return;
+
+    // دوای 12:20 AM عێراق — وردەکاری بشاردەوە
+    if (isDetailHidden()) {
+        sesEl.innerHTML = '<div class="no-data"><i class="fas fa-moon"></i> وردەکاری سەردانەکان تا ئەرشیف و سفرکردنەوەی شەوانە بشاردراوە (12:20 AM).<br>داتای نوێ لە رۆژی داهاتوو دەستپێدەکات.</div>';
+        return;
+    }
 
     if (!sessions || !sessions.length) {
         sesEl.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا سەردانێک تۆمار نەکراوە</div>';
@@ -567,22 +585,6 @@ function renderSessions(sessions) {
 function renderKvUsage(usage) {
     var el = document.getElementById("stat-kv-usage");
     if (!el) return;
-    if (!usage) { el.textContent = "—"; return; }
-    var pct  = usage.percent || 0;
-    var used = usage.usedMB  || "?";
-    var max  = usage.maxMB   || "?";
-    el.textContent = used + " / " + max + " MB";
-    var bar = document.getElementById("kv-usage-bar");
-    if (bar) {
-        bar.style.width = Math.min(pct, 100) + "%";
-        bar.style.background = pct > 80 ? "#e53935" : pct > 50 ? "#fb8c00" : "var(--accent)";
-    }
-}
-
-
-function renderKvUsage(usage) {
-    var el = document.getElementById("stat-kv-usage");
-    if (!el) return;
     if (!usage) { el.textContent = "نادیاره"; return; }
     var pct  = usage.percent || 0;
     var used = usage.usedMB  || "?";
@@ -601,6 +603,12 @@ function renderSnapshots(snaps) {
     _currentSnaps = snaps || [];
     var el = document.getElementById("textareaList");
     if (!el) return;
+
+    // دوای 12:20 AM عێراق — وردەکاری بشاردەوە
+    if (isDetailHidden()) {
+        el.innerHTML = '<div class="no-data"><i class="fas fa-moon"></i> وردەکاری دەقەکان تا ئەرشیف و سفرکردنەوەی شەوانە بشاردراوە (12:20 AM).<br>داتای نوێ لە رۆژی داهاتوو دەستپێدەکات.</div>';
+        return;
+    }
 
     if (!snaps || !snaps.length) {
         el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک تۆمار نەکراوە ئەمرۆ</div>';

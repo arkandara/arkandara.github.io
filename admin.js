@@ -167,14 +167,6 @@ function loadSiteInfo() {
             document.getElementById("bismillahText").value    = data.bismillahText;
             document.getElementById("bismillahSub").value     = data.bismillahSub;
             document.getElementById("updateText").value       = data.updateText || "";
-            document.getElementById("siteAuthor").value       = data.siteAuthor;
-            document.getElementById("siteTitle").value        = data.siteTitle;
-            document.getElementById("siteDesc").value         = data.siteDesc;
-            document.getElementById("primaryColor").value     = data.primaryColor;
-            document.getElementById("primaryHex").textContent = data.primaryColor;
-            document.getElementById("bismillahText").value    = data.bismillahText;
-            document.getElementById("bismillahSub").value     = data.bismillahSub;
-            document.getElementById("updateText").value       = data.updateText || "";
         });
 }
 
@@ -567,22 +559,6 @@ function renderSessions(sessions) {
 function renderKvUsage(usage) {
     var el = document.getElementById("stat-kv-usage");
     if (!el) return;
-    if (!usage) { el.textContent = "—"; return; }
-    var pct  = usage.percent || 0;
-    var used = usage.usedMB  || "?";
-    var max  = usage.maxMB   || "?";
-    el.textContent = used + " / " + max + " MB";
-    var bar = document.getElementById("kv-usage-bar");
-    if (bar) {
-        bar.style.width = Math.min(pct, 100) + "%";
-        bar.style.background = pct > 80 ? "#e53935" : pct > 50 ? "#fb8c00" : "var(--accent)";
-    }
-}
-
-
-function renderKvUsage(usage) {
-    var el = document.getElementById("stat-kv-usage");
-    if (!el) return;
     if (!usage) { el.textContent = "نادیاره"; return; }
     var pct  = usage.percent || 0;
     var used = usage.usedMB  || "?";
@@ -720,10 +696,8 @@ function loadArchiveList() {
         var html = '<div class="arc-tabs">' +
             '<button class="arc-tab arc-tab-active" onclick="switchArcTab(this,\'arc-daily\')"><i class="fas fa-calendar-day"></i> رۆژانە ('+daily.length+')</button>' +
             '<button class="arc-tab" onclick="switchArcTab(this,\'arc-weekly\')"><i class="fas fa-calendar-week"></i> هەفتانە ('+weekly.length+')</button>' +
-            \'<button class="arc-tab" onclick="switchArcTab(this,\\\'arc-monthly\\\')"><i class="fas fa-calendar-alt"></i> مانگانە (\'+monthly.length+\')</button>\' +
-            \'<button class="arc-tab" onclick="switchArcTab(this,\\\'arc-yearly\\\')"><i class="fas fa-calendar"></i> ساڕانە (\'+yearly.length+\')</button>\' +
-            \'</div>\';
-
+            '<button class="arc-tab" onclick="switchArcTab(this,\'arc-monthly\')"><i class="fas fa-calendar-alt"></i> مانگانە ('+monthly.length+')</button>' +
+            '</div>';
 
         // ---- رۆژانە ----
         html += '<div id="arc-daily" class="arc-panel">';
@@ -956,8 +930,6 @@ function showArchiveChart(type, item) {
         area.scrollIntoView({behavior:"smooth",block:"nearest"});
         return;
     }
-
-    var days = item.days || [];
 
     if (type === "weekly") {
         var wp = (item.week||"").split("_");

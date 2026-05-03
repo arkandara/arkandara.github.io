@@ -25,6 +25,9 @@ function doLogin() {
         sessionStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
+        if (window.innerWidth > 768) {
+            document.getElementById("sidebar").classList.add("open");
+        }
         initPanel();
     } else {
         errEl.style.display = "flex";
@@ -102,10 +105,12 @@ function showTab(id) {
     if (navEl) navEl.classList.add("active");
     var titleEl = document.getElementById("pageTitle");
     if (titleEl) titleEl.textContent = tabTitles[id] || "";
-    var sb = document.getElementById("sidebar");
-    if (sb) sb.classList.remove("open");
-    var ov = document.getElementById("sidebarOverlay");
-    if (ov) ov.classList.remove("active");
+    if (window.innerWidth <= 768) {
+        var sb = document.getElementById("sidebar");
+        if (sb) sb.classList.remove("open");
+        var ov = document.getElementById("sidebarOverlay");
+        if (ov) ov.classList.remove("active");
+    }
     if (id === "tab-stats")   { loadStats(); loadStatsCharts(); }
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
@@ -154,14 +159,6 @@ function loadSiteInfo() {
         .then(function(d) {
             var data = Object.assign({}, SITE_DEFAULTS, d.settings || {});
             document.getElementById("siteName").value         = data.siteName;
-            document.getElementById("siteAuthor").value       = data.siteAuthor;
-            document.getElementById("siteTitle").value        = data.siteTitle;
-            document.getElementById("siteDesc").value         = data.siteDesc;
-            document.getElementById("primaryColor").value     = data.primaryColor;
-            document.getElementById("primaryHex").textContent = data.primaryColor;
-            document.getElementById("bismillahText").value    = data.bismillahText;
-            document.getElementById("bismillahSub").value     = data.bismillahSub;
-            document.getElementById("updateText").value       = data.updateText || "";
             document.getElementById("siteAuthor").value       = data.siteAuthor;
             document.getElementById("siteTitle").value        = data.siteTitle;
             document.getElementById("siteDesc").value         = data.siteDesc;
@@ -1024,6 +1021,9 @@ window.addEventListener("DOMContentLoaded", function() {
     if (sessionStorage.getItem("adminAuth") === "1") {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
+        if (window.innerWidth > 768) {
+            document.getElementById("sidebar").classList.add("open");
+        }
         initPanel();
     }
 });
@@ -1035,6 +1035,7 @@ window.addEventListener("DOMContentLoaded", function() {
 var _archiveIndex = null;
 var _weeklyIndex  = null;
 var _monthlyIndex = null;
+var _yearlyIndex  = null;
 var _statsPeriod  = "daily";
 
 function loadStatsCharts() {
@@ -1048,12 +1049,14 @@ function loadStatsCharts() {
         fetch(base + "index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch(base + "monthly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        fetch(base + "yearly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch("/track").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var archived = results[0] || [];
         _weeklyIndex  = results[1];
         _monthlyIndex = results[2];
-        var kv        = results[3] || {};
+        _yearlyIndex  = results[3];
+        var kv        = results[4] || {};
 
         // داتای ئەمرۆ لە KV — وەک ڕیزی یەکەم زیاد دەکرێت
         var todayStr = new Date().toISOString().slice(0,10);
@@ -1076,7 +1079,7 @@ function loadStatsCharts() {
 
 function renderStatsPeriod(period) {
     _statsPeriod = period;
-    ["btn-daily","btn-weekly","btn-monthly"].forEach(function(id) {
+    ["btn-daily","btn-weekly","btn-monthly","btn-yearly"].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.classList.remove("stats-period-active");
     });
@@ -1093,6 +1096,9 @@ function renderStatsPeriod(period) {
     } else if (period === "weekly") {
         data = (_weeklyIndex||[]).slice(0,12).reverse();
         labelKey = "week";
+    } else if (period === "yearly") {
+        data = (_yearlyIndex||[]).slice(0,10).reverse();
+        labelKey = "year";
     } else {
         data = (_monthlyIndex||[]).slice(0,12).reverse();
         labelKey = "month";

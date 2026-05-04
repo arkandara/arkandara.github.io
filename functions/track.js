@@ -239,6 +239,26 @@ export async function onRequestPost(context) {
             return ok({ success: true, cleared: today });
         }
 
+        // ---- خوێندنەوەی hash ی پاسۆرد ----
+        if (type === "admin_pass_get") {
+            const hash = await env.STATS_DB.get("settings:admin_pass_hash");
+            return ok({ hash: hash || null });
+        }
+
+        // ---- گۆڕینی hash ی پاسۆرد ----
+        if (type === "admin_pass_set") {
+            const oldHash = body.oldHash || "";
+            const newHash = body.newHash || "";
+            if (!newHash || newHash.length !== 64) return bad("hash نادروستە");
+            // پشکنینی hash ی کۆن
+            const savedHash = await env.STATS_DB.get("settings:admin_pass_hash");
+            const DEFAULT_HASH = "95a5d03a1cbc38f0a1cf2dd9d60faa4ac996524b27cfec444e1172107df32bfb";
+            const expected = savedHash || DEFAULT_HASH;
+            if (oldHash !== expected) return bad("پاسۆردی ئێستا هەڵەیە");
+            await env.STATS_DB.put("settings:admin_pass_hash", newHash);
+            return ok({ success: true });
+        }
+
         return bad("جۆری نادروست");
 
     } catch (err) {

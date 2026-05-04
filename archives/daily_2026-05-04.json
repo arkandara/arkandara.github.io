@@ -1,0 +1,94 @@
+{
+  "type": "daily",
+  "date": "2026-05-04",
+  "generatedAt": "2026-05-04T22:15:29.517Z",
+  "totalVisits": 10,
+  "totalClicks": 137,
+  "totalTextarea": 215,
+  "clicks": {
+    "گۆڕین بۆ یونیکۆد": 32,
+    "سڕینەوەی بۆشایی": 14,
+    "کەتکردن": 9,
+    "Gemini": 9,
+    "گۆڕین بۆ عەلی کەی": 29,
+    "پاشەکەوت Word": 19,
+    "سڕینەوەی دەق": 10,
+    "هێنانی Word": 4,
+    "گەڕان و گۆڕین": 4,
+    "دۆزینەوە": 1,
+    "تەما": 2,
+    "دەربارە": 2,
+    "هەواڵەکان": 2
+  },
+  "deviceStats": {
+    "mobile": 0,
+    "desktop": 10,
+    "tablet": 0
+  },
+  "cityStats": {
+    "Sulaymaniyah": 7,
+    "Baghdad": 3
+  },
+  "sessions": [
+    {
+      "time": "2026-05-04T05:35:37.870Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T06:55:19.447Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T06:55:27.099Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T12:57:02.293Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T13:51:40.673Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T14:46:17.883Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T16:51:14.611Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T18:10:30.612Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T18:46:15.919Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-04T18:51:20.254Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    }
+  ]
+}

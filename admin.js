@@ -812,11 +812,11 @@ function loadArchiveList() {
         }
         html += '</div>';
 
-        // ---- ساڕانۀ ----
+        // ---- ساڵانه‌ ----
         html += '<div id="arc-yearly" class="arc-panel" style="display:none">';
         if (yearly.length) {
             yearly.forEach(function(a) {
-                var ylabel = 'ساڕی ' + (a.year||"");
+                var ylabel = 'ساڵی ' + (a.year||"");
                 html += '<div class="archive-row" onclick="showArchiveChart(\'yearly\',' + JSON.stringify(a) + ')" style="cursor:pointer">' +
                     '<div class="archive-week"><i class="fas fa-calendar"></i> ' + ylabel + '</div>' +
                     '<div class="archive-meta">' +
@@ -827,7 +827,7 @@ function loadArchiveList() {
                 '</div>';
             });
         } else {
-            html += '<div class="no-data">ەستا ئەرشیفی ساڕانۀ نیێ</div>';
+            html += '<div class="no-data">ئه‌رشیفی ساڵانه‌ نیه‌</div>';
         }
         html += '</div>';
 
@@ -915,11 +915,11 @@ function showArchiveChart(type, item) {
     // بۆ هەفتانە و مانگانە — نەخشەی ستون بۆ هەر رۆژ
     // ---- ساڕانۀ — نەخشەی ستون بۆ هەر مانگ ----
     if (type === "yearly") {
-        title.textContent = 'ساڕی ' + (item.year||"");
+        title.textContent = 'ساڵی ' + (item.year||"");
         area.style.display = "block";
         var months = item.months || [];
         if (!months.length) {
-            inner.innerHTML = '<div class="no-data">هیچ داتایەكی مانگانۀ تێدا</div>';
+            inner.innerHTML = '<div class="no-data">هیچ داتایەكی مانگانه‌ نیه‌</div>';
             area.scrollIntoView({behavior:"smooth",block:"nearest"});
             return;
         }

@@ -5,13 +5,36 @@
 // ===========================
 
 const ADMIN_USERNAME = "admin";
-const ADMIN_PASS = "arkandara2024";
+// پاسۆردی پێش‌نیازی: SHA-256 ی "arkandara2024"
+const DEFAULT_PASS_HASH = "95a5d03a1cbc38f0a1cf2dd9d60faa4ac996524b27cfec444e1172107df32bfb";
+
+async function hashPassword(pass) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(pass);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function getSavedPassHash() {
+    try {
+        const res = await fetch("/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "admin_pass_get" })
+        });
+        const data = await res.json();
+        return data.hash || DEFAULT_PASS_HASH;
+    } catch(e) {
+        return DEFAULT_PASS_HASH;
+    }
+}
 
 // ===========================
 //  لۆگین / دەرچوون
 // ===========================
 
-function doLogin() {
+async function doLogin() {
     const user  = document.getElementById("loginUser").value.trim();
     const pass  = document.getElementById("loginPass").value;
     const errEl = document.getElementById("loginError");
@@ -21,7 +44,8 @@ function doLogin() {
         errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> تکایە هەموو خانەکان پڕ بکەرەوە';
         return;
     }
-    if (user === ADMIN_USERNAME && pass === ADMIN_PASS) {
+    const passHash = await hashPassword(pass);
+    if (user === ADMIN_USERNAME && passHash === await getSavedPassHash()) {
         sessionStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
@@ -1042,11 +1066,62 @@ function showArchiveChart(type, item) {
 //  تاب ٦ — گۆڕینی پاسوۆرد
 // ===========================
 
-function changePassword() {
+async function changePassword() {
     var msgEl = document.getElementById("passMsg");
-    msgEl.className = "pass-error";
-    msgEl.innerHTML = '<i class="fas fa-info-circle"></i> گۆڕینی پاسوۆرد ئێستا بەردەست نییە — پاسوۆردەکە: arkandara2024';
-    msgEl.style.display = "block";
+    var oldPass = document.getElementById("oldPass").value;
+    var newPass = document.getElementById("newPass").value;
+    var confirmPass = document.getElementById("confirmPass").value;
+
+    function showMsg(text, isError) {
+        msgEl.className = isError ? "pass-error" : "pass-success";
+        msgEl.innerHTML = (isError ? '<i class="fas fa-times-circle"></i> ' : '<i class="fas fa-check-circle"></i> ') + text;
+        msgEl.style.display = "block";
+    }
+
+    if (!oldPass || !newPass || !confirmPass) {
+        showMsg("تکایە هەموو خانەکان پڕ بکەرەوە", true);
+        return;
+    }
+    if (newPass !== confirmPass) {
+        showMsg("پاسوۆردی نوێ و دووبارەکردنەوەکەی یەک ناگرنەوە", true);
+        return;
+    }
+    if (newPass.length < 8) {
+        showMsg("پاسوۆردی نوێ دەبێت کەمترین ٨ پیت بێت", true);
+        return;
+    }
+    var hasUpper = /[A-Z]/.test(newPass);
+    var hasLower = /[a-z]/.test(newPass);
+    var hasDigit = /[0-9]/.test(newPass);
+    var hasSpecial = /[^A-Za-z0-9]/.test(newPass);
+    var strength = [hasUpper, hasLower, hasDigit, hasSpecial].filter(Boolean).length;
+    if (strength < 3) {
+        showMsg("پاسوۆردی نوێ پێویستە کەمترین ٣ جۆر لەم ٤ەوە تێدا بێت: پیت گەورە، پیت بچووک، ژمارە، نیشانەی تایبەت", true);
+        return;
+    }
+
+    var oldHash = await hashPassword(oldPass);
+    var newHash = await hashPassword(newPass);
+
+    try {
+        var res = await fetch("/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "admin_pass_set", oldHash: oldHash, newHash: newHash })
+        });
+        var data = await res.json();
+        if (!res.ok || data.error) {
+            showMsg(data.error || "هەڵەیەک روویدا", true);
+            document.getElementById("oldPass").value = "";
+            return;
+        }
+        document.getElementById("oldPass").value = "";
+        document.getElementById("newPass").value = "";
+        document.getElementById("confirmPass").value = "";
+        showMsg("پاسوۆرد بە سەرکەوتوویی گۆڕدرا — لە هەر شوێنێکەوە کارئەکات ✓", false);
+    } catch(e) {
+        showMsg("هەڵەی تۆڕ — دووبارە هەوڵ بدەرەوە", true);
+    }
 }
 
 // ===========================

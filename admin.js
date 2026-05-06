@@ -49,6 +49,9 @@ async function doLogin() {
         sessionStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
+        if (window.innerWidth > 768) {
+            document.getElementById("sidebar").classList.add("open");
+        }
         initPanel();
     } else {
         errEl.style.display = "flex";
@@ -126,7 +129,6 @@ function showTab(id) {
     if (navEl) navEl.classList.add("active");
     var titleEl = document.getElementById("pageTitle");
     if (titleEl) titleEl.textContent = tabTitles[id] || "";
-    closeSidebar();
     if (id === "tab-stats")   { loadStats(); loadStatsCharts(); }
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
@@ -1222,6 +1224,9 @@ window.addEventListener("DOMContentLoaded", function() {
     if (sessionStorage.getItem("adminAuth") === "1") {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
+        if (window.innerWidth > 768) {
+            document.getElementById("sidebar").classList.add("open");
+        }
         initPanel();
     }
 });

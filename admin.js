@@ -129,7 +129,19 @@ function showTab(id) {
     if (navEl) navEl.classList.add("active");
     var titleEl = document.getElementById("pageTitle");
     if (titleEl) titleEl.textContent = tabTitles[id] || "";
-    if (id === "tab-stats")   { loadStats(); loadStatsCharts(); }
+    if (id === "tab-stats") {
+        loadStats(); loadStatsCharts();
+        // ئۆتۆماتیک نوێکردنەوە هەر 5 چرکە کاتێک تابی ئامارەکان کراوەیە
+        if (window._statsInterval) clearInterval(window._statsInterval);
+        window._statsInterval = setInterval(function() {
+            var activeTab = document.querySelector('.tab-content.active');
+            if (activeTab && activeTab.id === 'tab-stats') {
+                loadStats();
+            } else {
+                clearInterval(window._statsInterval);
+            }
+        }, 5000);
+    }
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
 }

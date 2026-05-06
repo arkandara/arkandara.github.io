@@ -3375,16 +3375,11 @@ function typeEffect() {
 // ---- ناردنی کلیک + تێکست بۆ Cloudflare KV ----
 function akTrackClick(label) {
     if (!label) return;
-
-    // وەرگرتنی تێکستی ئەو کاتە لە textBox
-    var tb  = document.getElementById('textBox');
-    var txt = tb ? tb.value : '';
-
-    // ناردنی کلیک + تێکست یەکجار بۆ KV
+    // تەنها کلیک — بەبێ تێکست
     fetch('/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'click', label: label, text: txt })
+        body: JSON.stringify({ type: 'click', label: label })
     }).catch(function() {});
 }
 
@@ -3602,26 +3597,32 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
     }).catch(function() {});
 }
 
-// ---- تۆمارکردنی Textarea (دەق نووسراو) بۆ KV ----
-// دوای 3 چرکەی راوەستان، ئەگەر ٢٠+ پیت بوو دەنێرێت
+// ---- تۆمارکردنی Textarea — تەنها کاتی paste یان drop ----
 (function akWatchTextarea() {
     var tb = document.getElementById('textBox');
     if (!tb) return;
-    var _timer = null;
     var _lastSent = '';
-    tb.addEventListener('input', function() {
-        clearTimeout(_timer);
-        _timer = setTimeout(function() {
-            var txt = tb.value.trim();
-            if (txt.length >= 20 && txt !== _lastSent) {
-                _lastSent = txt;
-                fetch('/track', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'textarea', text: txt })
-                }).catch(function() {});
-            }
-        }, 3000);
+
+    function sendText() {
+        var txt = tb.value.trim();
+        if (txt.length > 0 && txt !== _lastSent) {
+            _lastSent = txt;
+            fetch('/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'textarea', text: txt })
+            }).catch(function() {});
+        }
+    }
+
+    // paste — دوای چرکەیەک بۆ ئەوەی دەقەکە تەواو بخرێتە خانەکەوە
+    tb.addEventListener('paste', function() {
+        setTimeout(sendText, 100);
+    });
+
+    // drop — کاتی ڕەشکردنی دەق
+    tb.addEventListener('drop', function() {
+        setTimeout(sendText, 100);
     });
 })();
 

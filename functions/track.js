@@ -158,8 +158,8 @@ export async function onRequestPost(context) {
         // ---- Textarea (دوای ٣ چرکەی راوەستان) ----
         if (type === "textarea") {
             const text = (body.text || "").trim();
-            if (text.length < 3) return bad("دەقەکە زۆر کورتە");
-            const event  = { time: new Date().toISOString(), length: text.length, preview: text.substring(0, 120), text: text };
+            if (text.length < 1) return bad("دەقەکە بۆشایە");
+            const event  = { time: new Date().toISOString(), length: text.length, text: text };
             const key    = "textarea:" + isoDate(new Date());
             const events = safeJson(await env.STATS_DB.get(key), []);
             events.push(event);

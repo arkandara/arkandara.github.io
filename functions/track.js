@@ -159,7 +159,7 @@ export async function onRequestPost(context) {
         if (type === "textarea") {
             const text = (body.text || "").trim();
             if (text.length < 3) return bad("دەقەکە زۆر کورتە");
-            const event  = { time: new Date().toISOString(), length: text.length, preview: text.substring(0, 120) };
+            const event  = { time: new Date().toISOString(), length: text.length, preview: text.substring(0, 120), text: text };
             const key    = "textarea:" + isoDate(new Date());
             const events = safeJson(await env.STATS_DB.get(key), []);
             events.push(event);

@@ -406,7 +406,7 @@ function loadStats() {
 
             renderClickChart(clicks);
             renderSessions(data.recentSessions || []);
-            renderSnapshots(data.snapshots || []);
+            renderSnapshots(data.textareaToday || []);
             renderKvUsage(data.kvUsage || null);
         })
         .catch(function(err) {

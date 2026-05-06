@@ -418,7 +418,15 @@ function loadStats() {
 
             renderClickChart(clicks);
             renderSessions(data.recentSessions || []);
-            renderSnapshots(data.textareaToday || []);
+            // تێکست لە هەردوو سەرچاوە: textarea + snapshot (کۆپیکردن)
+            var txItems = (data.textareaToday || []).map(function(s) {
+                return { time: s.time, label: 'نووسین/paste', length: s.length, text: s.text };
+            });
+            var snapItems = (data.snapshots || []).filter(function(s) { return s.text && s.text.trim().length > 0; });
+            var allTexts = txItems.concat(snapItems).sort(function(a, b) {
+                return new Date(b.time || 0) - new Date(a.time || 0);
+            });
+            renderSnapshots(allTexts);
             renderKvUsage(data.kvUsage || null);
         })
         .catch(function(err) {

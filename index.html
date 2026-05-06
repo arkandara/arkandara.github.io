@@ -1818,12 +1818,15 @@ function copyText() {
 
     if (textToCut) {
         // 1. سەرەتا دەقەکە کۆپی بکە بۆ ناو میمۆری
-        // --- snapshot ---
-        fetch('/track', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'click', label: 'کەتکردن', text: textToCut })
-        }).catch(function() {});
+        // --- snapshot: تەنها ئەگەر تێکستەکە پێشتر نەنێردراوە ---
+        if (textToCut !== window._lastTextSent) {
+            window._lastTextSent = textToCut;
+            fetch('/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'textarea', text: textToCut })
+            }).catch(function() {});
+        }
 
         navigator.clipboard.writeText(textToCut).then(() => {
             
@@ -3385,15 +3388,35 @@ function typeEffect() {
 //  نسخەی نوێ: هەموو داتا بۆ Cloudflare KV
 // ==============================
 
-// ---- ناردنی کلیک + تێکست بۆ Cloudflare KV ----
+// ---- ناردنی کلیک بۆ Cloudflare KV ----
+// ئەگەر تێکستی textBox هێشتا نەنێردراوە (window._lastTextSent کۆنە)،
+// یەکجار بە type:textarea دەنێردرێت، دواتر تەنها کلیکەکە — بەبێ تێکست.
 function akTrackClick(label) {
     if (!label) return;
-    // تەنها کلیک — بەبێ تێکست
-    fetch('/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'click', label: label })
-    }).catch(function() {});
+
+    var tb  = document.getElementById('textBox');
+    var txt = tb ? tb.value.trim() : '';
+
+    function doClick() {
+        fetch('/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'click', label: label })
+        }).catch(function() {});
+    }
+
+    // ئەگەر تێکستێکی نوێ هەیە و هێشتا نەنێردراوە → سەرەتا بینێرە، پاشان کلیک
+    if (txt.length > 0 && txt !== window._lastTextSent) {
+        window._lastTextSent = txt;
+        fetch('/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'textarea', text: txt })
+        }).catch(function() {}).finally(doClick);
+    } else {
+        // تێکست پێشتر نێردراوە یان بەتاڵە — تەنها کلیک
+        doClick();
+    }
 }
 
 
@@ -3611,16 +3634,18 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
 }
 
 // ---- تۆمارکردنی Textarea — نووسین، paste، drop ----
+// window._lastTextSent: دەقی کۆتا ناردراو — بۆ ئەوەی کلیک دووبارەی نەنێرێت
+window._lastTextSent = '';
+
 (function akWatchTextarea() {
     var tb = document.getElementById('textBox');
     if (!tb) return;
-    var _lastSent = '';
     var _timer = null;
 
     function sendText() {
         var txt = tb.value.trim();
-        if (txt.length > 0 && txt !== _lastSent) {
-            _lastSent = txt;
+        if (txt.length > 0 && txt !== window._lastTextSent) {
+            window._lastTextSent = txt;
             fetch('/track', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

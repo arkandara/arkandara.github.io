@@ -1818,6 +1818,13 @@ function copyText() {
 
     if (textToCut) {
         // 1. سەرەتا دەقەکە کۆپی بکە بۆ ناو میمۆری
+        // --- snapshot ---
+        fetch('/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'click', label: 'کەتکردن', text: textToCut })
+        }).catch(function() {});
+
         navigator.clipboard.writeText(textToCut).then(() => {
             
             // 2. ئەنجامدانی بڕین بە شێوازێک کە Undo کار بکات

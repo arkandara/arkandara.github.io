@@ -2631,13 +2631,11 @@ text = text.replace(/(^|\s)وو/g, "$1و");
 
 text = text.replace(/بەرامبەر/g, "بەرانبەر");
 
-text = text.replace(/سه‌ركۆمار/g, "سه‌رۆككۆمار");
+text = text.replace(/سەر[کك]ۆمار/g, "سەرۆککۆمار");
 text = text.replace(/واژۆ/g, "واژوو");
 text = text.replace(/ئۆكراینا/g, "ئۆكرانیا");
 text = text.replace(/كاژێر/g, "كاتژمێر");
-text = text.replace(/حكومه‌ت/g, "حكوومه‌ت");
-
-text = text.replace(/حكومه‌تی/g, "حكوومه‌تی");
+text = text.replace(/حکومەت(ی)?/g, "حکوومەت$1");
 
 // تر‌ ده‌‌كات به‌ دیكه
 text = text.replace(/(^|\s)تر(?=\s|$)/g, "$1دیکە");

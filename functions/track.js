@@ -111,22 +111,6 @@ export async function onRequestPost(context) {
                 await env.STATS_DB.put("meta:clicks_list", JSON.stringify(list));
             }
 
-            // snapshot ی تێکست (ئەگەر هەبوو)
-            const text = (body.text || "").trim();
-            if (text.length > 0) {
-                const snap = {
-                    time:    new Date().toISOString(),
-                    label:   label,
-                    length:  text.length,
-                    text:    text   // تەواوی تێکستەکە پاشەکەوت دەکرێت
-                };
-                const snapKey  = "snapshots:" + isoDate(new Date());
-                const snapList = safeJson(await env.STATS_DB.get(snapKey), []);
-                snapList.unshift(snap);
-                if (snapList.length > 200) snapList.splice(200);
-                await env.STATS_DB.put(snapKey, JSON.stringify(snapList), { expirationTtl: 691200 }); // 8 رۆژ
-            }
-
             return ok({ success: true, label, count: current + 1 });
         }
 

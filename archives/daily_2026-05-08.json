@@ -1,0 +1,16 @@
+{
+  "type": "daily",
+  "date": "2026-05-08",
+  "generatedAt": "2026-05-08T22:11:52.719Z",
+  "totalVisits": 0,
+  "totalClicks": 0,
+  "totalTextarea": 0,
+  "clicks": {},
+  "deviceStats": {
+    "mobile": 0,
+    "desktop": 0,
+    "tablet": 0
+  },
+  "cityStats": {},
+  "sessions": []
+}

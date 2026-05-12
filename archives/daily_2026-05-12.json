@@ -1,0 +1,91 @@
+{
+  "type": "daily",
+  "date": "2026-05-12",
+  "generatedAt": "2026-05-12T22:36:03.101Z",
+  "totalVisits": 10,
+  "totalClicks": 110,
+  "totalTextarea": 200,
+  "clicks": {
+    "Gemini": 8,
+    "سڕینەوەی بۆشایی": 11,
+    "گۆڕین بۆ یونیکۆد": 23,
+    "کەتکردن": 11,
+    "گۆڕین بۆ عەلی کەی": 23,
+    "پاشەکەوت Word": 26,
+    "تەما": 2,
+    "سڕینەوەی دەق": 4,
+    "گەڕان و گۆڕین": 2
+  },
+  "deviceStats": {
+    "mobile": 0,
+    "desktop": 10,
+    "tablet": 0
+  },
+  "cityStats": {
+    "Sulaymaniyah": 7,
+    "Baghdad": 2,
+    "نەناسراو": 1
+  },
+  "sessions": [
+    {
+      "time": "2026-05-12T05:19:24.981Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-12T05:19:25.255Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-12T06:33:41.435Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-12T09:30:07.803Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-12T11:06:31.730Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-12T13:31:30.384Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "---",
+      "country": "---"
+    },
+    {
+      "time": "2026-05-12T14:14:46.744Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Baghdad",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-12T15:12:49.294Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-12T16:40:24.083Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    },
+    {
+      "time": "2026-05-12T18:56:01.667Z",
+      "device": "🖥️ کۆمپیوتەر",
+      "city": "Sulaymaniyah",
+      "country": "Iraq"
+    }
+  ]
+}

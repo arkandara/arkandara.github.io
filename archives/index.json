@@ -1,5 +1,38 @@
 [
   {
+    "date": "2026-05-14",
+    "generatedAt": "2026-05-14T22:19:35.966Z",
+    "totalVisits": 70,
+    "totalClicks": 135,
+    "totalTextarea": 156,
+    "clicks": {
+      "سڕینەوەی بۆشایی": 15,
+      "گۆڕین بۆ یونیکۆد": 36,
+      "کەتکردن": 13,
+      "Gemini": 4,
+      "گەڕان و گۆڕین": 4,
+      "گۆڕینی هەموو": 2,
+      "گۆڕین بۆ عەلی کەی": 30,
+      "پاشەکەوت Word": 22,
+      "دەربارە": 5,
+      "هەواڵەکان": 3,
+      "سڕینەوەی دەق": 1
+    },
+    "deviceStats": {
+      "mobile": 10,
+      "desktop": 60,
+      "tablet": 0
+    },
+    "cityStats": {
+      "Sulaymaniyah": 6,
+      "Baghdad": 6,
+      "Raniye": 2,
+      "As Sulaymaniyah": 24,
+      "نەناسراو": 32
+    },
+    "fileJson": "archives/daily_2026-05-14.json"
+  },
+  {
     "date": "2026-05-13",
     "generatedAt": "2026-05-13T22:39:12.577Z",
     "totalVisits": 9,

@@ -140,7 +140,7 @@ function showTab(id) {
             } else {
                 clearInterval(window._statsInterval);
             }
-        }, 5000);
+        }, 30000);
     }
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();

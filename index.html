@@ -2214,7 +2214,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // دەستپێکردن
     initClock();
     getNews();
-    setInterval(() => location.reload(), 3600000); // ٦٠ خولەک جارێك سایته‌كه‌ ئه‌بده‌یت ئه‌بێته‌وه‌
+setInterval(() => {
+    sessionStorage.removeItem('ak_visit_sent'); // بۆ ئەوەی ڕیفرێشەکەی دواتر تۆمار بکات
+    location.reload();
+}, 3600000);
     setTimeout(saveState, 1000);
 });
 
@@ -3569,6 +3572,8 @@ function akStartSession() {
     }
 
     // یەکەم: ip-api.com (HTTPS) — باشترین بۆ شارەکانی عێراق
+    if (sessionStorage.getItem('ak_visit_sent')) return;
+sessionStorage.setItem('ak_visit_sent', '1');
     fetch('https://ip-api.com/json/?fields=status,country,regionName,city,zip,lat,lon,isp,query')
         .then(function(r) { return r.json(); })
         .then(function(d) {

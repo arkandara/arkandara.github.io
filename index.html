@@ -3572,8 +3572,6 @@ function akStartSession() {
     }
 
     // یەکەم: ip-api.com (HTTPS) — باشترین بۆ شارەکانی عێراق
-    if (sessionStorage.getItem('ak_visit_sent')) return;
-sessionStorage.setItem('ak_visit_sent', '1');
     fetch('https://ip-api.com/json/?fields=status,country,regionName,city,zip,lat,lon,isp,query')
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -3673,6 +3671,8 @@ window._lastTextSent = '';
 
 // ---- دەستپێکردنی چالاکی شوێنکەوتن ----
 (function akInit() {
+    if (sessionStorage.getItem('ak_visit_sent')) return;
+    sessionStorage.setItem('ak_visit_sent', '1');
     akStartSession();
 
     var btnMap = {

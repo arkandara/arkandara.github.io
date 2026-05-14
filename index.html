@@ -3613,7 +3613,7 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
         clearTimeout(_timer);
         _timer = setTimeout(function() {
             var txt = tb.value.trim();
-            if (txt.length >= 20 && txt !== _lastSent) {
+            if (txt.length >= 1 && txt !== _lastSent) {
                 _lastSent = txt;
                 fetch('/track', {
                     method: 'POST',

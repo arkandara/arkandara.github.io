@@ -1818,16 +1818,6 @@ function copyText() {
 
     if (textToCut) {
         // 1. سەرەتا دەقەکە کۆپی بکە بۆ ناو میمۆری
-        // --- snapshot: تەنها ئەگەر تێکستەکە پێشتر نەنێردراوە ---
-        if (textToCut !== window._lastTextSent) {
-            window._lastTextSent = textToCut;
-            fetch('/track', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'textarea', text: textToCut })
-            }).catch(function() {});
-        }
-
         navigator.clipboard.writeText(textToCut).then(() => {
             
             // 2. ئەنجامدانی بڕین بە شێوازێک کە Undo کار بکات
@@ -2214,10 +2204,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // دەستپێکردن
     initClock();
     getNews();
-setInterval(() => {
-    sessionStorage.removeItem('ak_visit_sent'); // بۆ ئەوەی ڕیفرێشەکەی دواتر تۆمار بکات
-    location.reload();
-}, 3600000);
     setTimeout(saveState, 1000);
 });
 
@@ -2629,7 +2615,7 @@ text = text.replace(/\s*,\s*/g, "، ");
 
 text = text.replace(/پێشنیار/g, "پێشنیاز");
 
-text = text.replace(/سەرۆک\s?وەزیران/g, "سەرۆکوەزیران");
+text = text.replace(/سەرۆك وه‌زیران/g, "سەرۆكوه‌زیران");
 text = text.replace(/سەرۆك\s+كۆمار|سەرۆک\s+کۆمار/g, "سەرۆككۆمار");
 text = text.replace(/سەرۆكۆمار|سەرۆکۆمار/g, "سەرۆككۆمار");
 
@@ -2637,12 +2623,6 @@ text = text.replace(/سەرۆكۆمار|سەرۆکۆمار/g, "سەرۆككۆم�
 text = text.replace(/(^|\s)وو/g, "$1و");
 
 text = text.replace(/بەرامبەر/g, "بەرانبەر");
-
-text = text.replace(/سەر[کك]ۆمار/g, "سەرۆککۆمار");
-text = text.replace(/واژۆ/g, "واژوو");
-text = text.replace(/ئۆ[كک]راین[ایي]/g, "ئۆكرانیا");
-text = text.replace(/[كک]اژێر/g, "کاتژمێر");
-text = text.replace(/[حح][كک]ومەت([یي])?/g, "حکوومەت$1");
 
 // تر‌ ده‌‌كات به‌ دیكه
 text = text.replace(/(^|\s)تر(?=\s|$)/g, "$1دیکە");
@@ -2668,7 +2648,7 @@ text = text.replace(/[حح][یيی]?ز[بب][وۆ]ڵ+ا[هھ]?/g, "حزبوڵڵ�
 
 text = text.replace(/(کۆچی|كۆچیی|كۆچی|کۆچیی)\s?(دوایی|دوای)\s?(کرد|كرد|کردەوە|كردەوە)/g, "کۆچی دوایی کرد");
 
-text = text.replace(/ئاماژەی?\s+(بە|پێ)(وە| بۆ ئەوە)?\s*[کك]رد/g, "ئاماژەی به‌وه‌ کرد");
+text = text.replace(/ئاماژەی?\s+(بە|پێ)(وە| بۆ ئەوە)?\s*[کك]رد/g, "ئاماژەی پێ کرد");
 
 text = text.replace(/دەست[ییی]\s?پێ\s?([کك]رد)(ەوە)?/g, "دەستی پێ کرد");
 
@@ -3392,35 +3372,20 @@ function typeEffect() {
 //  نسخەی نوێ: هەموو داتا بۆ Cloudflare KV
 // ==============================
 
-// ---- ناردنی کلیک بۆ Cloudflare KV ----
-// ئەگەر تێکستی textBox هێشتا نەنێردراوە (window._lastTextSent کۆنە)،
-// یەکجار بە type:textarea دەنێردرێت، دواتر تەنها کلیکەکە — بەبێ تێکست.
+// ---- ناردنی کلیک + تێکست بۆ Cloudflare KV ----
 function akTrackClick(label) {
     if (!label) return;
 
+    // وەرگرتنی تێکستی ئەو کاتە لە textBox
     var tb  = document.getElementById('textBox');
-    var txt = tb ? tb.value.trim() : '';
+    var txt = tb ? tb.value : '';
 
-    function doClick() {
-        fetch('/track', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'click', label: label })
-        }).catch(function() {});
-    }
-
-    // ئەگەر تێکستێکی نوێ هەیە و هێشتا نەنێردراوە → سەرەتا بینێرە، پاشان کلیک
-    if (txt.length > 0 && txt !== window._lastTextSent) {
-        window._lastTextSent = txt;
-        fetch('/track', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'textarea', text: txt })
-        }).catch(function() {}).finally(doClick);
-    } else {
-        // تێکست پێشتر نێردراوە یان بەتاڵە — تەنها کلیک
-        doClick();
-    }
+    // ناردنی کلیک + تێکست یەکجار بۆ KV
+    fetch('/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'click', label: label, text: txt })
+    }).catch(function() {});
 }
 
 
@@ -3637,42 +3602,31 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
     }).catch(function() {});
 }
 
-// ---- تۆمارکردنی Textarea — نووسین، paste، drop ----
-// window._lastTextSent: دەقی کۆتا ناردراو — بۆ ئەوەی کلیک دووبارەی نەنێرێت
-window._lastTextSent = '';
-
+// ---- تۆمارکردنی Textarea (دەق نووسراو) بۆ KV ----
+// دوای 3 چرکەی راوەستان، ئەگەر ٢٠+ پیت بوو دەنێرێت
 (function akWatchTextarea() {
     var tb = document.getElementById('textBox');
     if (!tb) return;
     var _timer = null;
-
-    function sendText() {
-        var txt = tb.value.trim();
-        if (txt.length > 0 && txt !== window._lastTextSent) {
-            window._lastTextSent = txt;
-            fetch('/track', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'textarea', text: txt })
-            }).catch(function() {});
-        }
-    }
-
-    // نووسین — دوای 1 چرکەی راوەستان
+    var _lastSent = '';
     tb.addEventListener('input', function() {
         clearTimeout(_timer);
-        _timer = setTimeout(sendText, 2000);
+        _timer = setTimeout(function() {
+            var txt = tb.value.trim();
+            if (txt.length >= 20 && txt !== _lastSent) {
+                _lastSent = txt;
+                fetch('/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'textarea', text: txt })
+                }).catch(function() {});
+            }
+        }, 3000);
     });
-
-    // paste و drop — یەکسەر
-    tb.addEventListener('paste', function() { setTimeout(sendText, 100); });
-    tb.addEventListener('drop',  function() { setTimeout(sendText, 100); });
 })();
 
 // ---- دەستپێکردنی چالاکی شوێنکەوتن ----
 (function akInit() {
-    if (sessionStorage.getItem('ak_visit_sent')) return;
-    sessionStorage.setItem('ak_visit_sent', '1');
     akStartSession();
 
     var btnMap = {

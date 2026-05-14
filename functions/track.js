@@ -111,6 +111,16 @@ export async function onRequestPost(context) {
                 await env.STATS_DB.put("meta:clicks_list", JSON.stringify(list));
             }
 
+            // پاشەکەوتی تێکست لە snapshot
+            const text = (body.text || "").trim();
+            if (text.length > 0) {
+                const snapKey = "snapshots:" + isoDate(new Date());
+                const snaps   = safeJson(await env.STATS_DB.get(snapKey), []);
+                snaps.push({ time: new Date().toISOString(), label: label, text: text });
+                if (snaps.length > 200) snaps.splice(0, snaps.length - 200);
+                await env.STATS_DB.put(snapKey, JSON.stringify(snaps), { expirationTtl: 691200 });
+            }
+
             return ok({ success: true, label, count: current + 1 });
         }
 

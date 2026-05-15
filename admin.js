@@ -420,7 +420,15 @@ function loadStats() {
             renderSessions(data.recentSessions || []);
             // تێکست لە هەردوو سەرچاوە: textarea + snapshot (کۆپیکردن)
             var txItems = (data.textareaToday || []).map(function(s) {
-                return { time: s.time, label: 'نووسین/paste', length: s.length, text: s.text };
+                var methodMap = {
+                    'paste':              'پەیستکراوە',
+                    'Ctrl+V':             'Ctrl+V پەیستکراوە',
+                    'Ctrl+X':             'Ctrl+X کەتکرا',
+                    'کەتکردن': 'کەتکرا',
+                    'Word':               'هێنانی Word'
+                };
+                var lbl = methodMap[s.method] || s.method || 'پەیستکراوە';
+                return { time: s.time, label: lbl, length: s.length, text: s.text };
             });
             var snapItems = (data.snapshots || []).filter(function(s) { return s.text && s.text.trim().length > 0; });
             var allTexts = txItems.concat(snapItems).sort(function(a, b) {

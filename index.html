@@ -3377,15 +3377,11 @@ function typeEffect() {
 function akTrackClick(label) {
     if (!label) return;
 
-    // وەرگرتنی تێکستی ئەو کاتە لە textBox
-    var tb  = document.getElementById('textBox');
-    var txt = tb ? tb.value : '';
-
-    // ناردنی کلیک + تێکست یەکجار بۆ KV
+    // تەنها ژمارەی کلیک دەنێرێت، تێکست نەنێرێت
     fetch('/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'click', label: label, text: txt })
+        body: JSON.stringify({ type: 'click', label: label })
     }).catch(function() {});
 }
 

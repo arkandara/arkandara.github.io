@@ -111,13 +111,7 @@ jobs:
                   totalTextarea,
                   clicks,
                   deviceStats,
-                  cityStats,
-                  sessions:    sessions.map(s => ({
-                      time:    s.time    || '',
-                      device:  s.device  || '',
-                      city:    s.city    || '',
-                      country: s.country || ''
-                  }))
+                  cityStats
               };
               fs.writeFileSync(dailyFilePath, JSON.stringify(dailyData, null, 2), "utf8");
               console.log("✅ فایلی رۆژانە پاشەکەوت کرا:", dailyFilePath);

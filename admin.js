@@ -124,8 +124,10 @@ function showTab(id) {
     if (!tabEl) { console.warn("showTab: tab not found:", id); return; }
     document.querySelectorAll(".tab-content").forEach(function(el) { el.classList.remove("active"); });
     document.querySelectorAll(".nav-item").forEach(function(el) { el.classList.remove("active"); });
-    document.querySelectorAll(".tnav-item").forEach(function(el) { el.classList.remove("active"); });
+    document.querySelectorAll(".top-nav-btn").forEach(function(el) { el.classList.remove("active"); });
     tabEl.classList.add("active");
+    var tnavEl = document.getElementById("tnav-" + id.replace("tab-", ""));
+    if (tnavEl) tnavEl.classList.add("active");
     var navEl = document.getElementById("nav-" + id.replace("tab-", ""));
     if (navEl) navEl.classList.add("active");
     var titleEl = document.getElementById("pageTitle");
@@ -421,7 +423,15 @@ function loadStats() {
             renderSessions(data.recentSessions || []);
             // تێکست لە هەردوو سەرچاوە: textarea + snapshot (کۆپیکردن)
             var txItems = (data.textareaToday || []).map(function(s) {
-                return { time: s.time, label: 'نووسین/paste', length: s.length, text: s.text };
+                var methodMap = {
+                    'paste':              'پەیستکراوە',
+                    'Ctrl+V':             'Ctrl+V پەیستکراوە',
+                    'Ctrl+X':             'Ctrl+X کەتکرا',
+                    'کەتکردن': 'کەتکرا',
+                    'Word':               'هێنانی Word'
+                };
+                var lbl = methodMap[s.method] || s.method || 'پەیستکراوە';
+                return { time: s.time, label: lbl, length: s.length, text: s.text };
             });
             var snapItems = (data.snapshots || []).filter(function(s) { return s.text && s.text.trim().length > 0; });
             var allTexts = txItems.concat(snapItems).sort(function(a, b) {
@@ -977,7 +987,7 @@ function showArchiveChart(type, item) {
         var maxVal=Math.max(maxV,maxC);
         function niceMaxY(v){if(v<=5)return 5;if(v<=10)return 10;if(v<=20)return 20;if(v<=50)return 50;var mag=Math.pow(10,Math.floor(Math.log10(v)));return Math.ceil(v/mag)*mag;}
         var chartMax=niceMaxY(maxVal);
-        var n=months.length,svgW=Math.max(n*60+60,280),svgH=200;
+        var n=months.length,svgW=Math.max(n*60+60,400),svgH=200;
         var padL=42,padR=12,padT=16,padB=44;
         var chartH=svgH-padT-padB,chartW=svgW-padL-padR;
         var barW=Math.min(18,(chartW/n)-6),colW=chartW/n;
@@ -1036,7 +1046,7 @@ function showArchiveChart(type, item) {
         return Math.ceil(v/mag)*mag;
     }
     var chartMax = niceMax(maxVal);
-    var n=days.length, svgW=Math.max(n*44+60,280), svgH=200;
+    var n=days.length, svgW=Math.max(n*44+60,400), svgH=200;
     var padL=42,padR=12,padT=16,padB=44;
     var chartH=svgH-padT-padB, chartW=svgW-padL-padR;
     var barW=Math.min(13,(chartW/n)-5), colW=chartW/n;
@@ -1350,7 +1360,7 @@ function renderStatsPeriod(period) {
     var chartMax = niceMax(maxVal);
 
     var n    = data.length;
-    var svgW = Math.max(n * 44 + 60, 280);
+    var svgW = Math.max(n * 44 + 60, 400);
     var svgH = 200;
     var padL = 42;
     var padR = 12;

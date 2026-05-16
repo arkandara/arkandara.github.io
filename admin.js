@@ -124,6 +124,7 @@ function showTab(id) {
     if (!tabEl) { console.warn("showTab: tab not found:", id); return; }
     document.querySelectorAll(".tab-content").forEach(function(el) { el.classList.remove("active"); });
     document.querySelectorAll(".nav-item").forEach(function(el) { el.classList.remove("active"); });
+    document.querySelectorAll(".tnav-item").forEach(function(el) { el.classList.remove("active"); });
     tabEl.classList.add("active");
     var navEl = document.getElementById("nav-" + id.replace("tab-", ""));
     if (navEl) navEl.classList.add("active");

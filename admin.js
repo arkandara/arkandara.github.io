@@ -199,10 +199,15 @@ function loadSiteInfo(force) {
     fetch("/track")
         .then(function(r) { return r.json(); })
         .then(function(d) {
-            var data = Object.assign({}, SITE_DEFAULTS, d.settings || {});
-            // ئەگەر sessionStorage هەبوو، ئەوە بخوێنەوە نەک Worker
+            var kvSettings = d.settings || {};
+            // تەنها fieldە خاڵییەکان لە SITE_DEFAULTS بگرێت
+            var data = {};
+            Object.keys(SITE_DEFAULTS).forEach(function(k) {
+                data[k] = (kvSettings[k] !== undefined && kvSettings[k] !== "") ? kvSettings[k] : SITE_DEFAULTS[k];
+            });
+            // ئەگەر sessionStorage draft هەبوو (گۆڕانکاری پاشەکەوت نەکراو)، ئەوەی بخوێنەوە
             var ss = sessionStorage.getItem("siteInfoDraft");
-            if (ss) { try { data = Object.assign(data, JSON.parse(ss)); } catch(e) {} }
+            if (ss) { try { var draft = JSON.parse(ss); Object.keys(draft).forEach(function(k){ if(draft[k] !== "") data[k] = draft[k]; }); } catch(e) {} }
             document.getElementById("siteName").value         = data.siteName;
             document.getElementById("siteAuthor").value       = data.siteAuthor;
             document.getElementById("siteTitle").value        = data.siteTitle;

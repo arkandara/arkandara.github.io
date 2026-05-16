@@ -165,53 +165,131 @@
         }
 
         /* ===== هێدەر ناڤیگەیشن ===== */
+        .top-bar {
+            height: auto !important;
+            min-height: 60px;
+            padding: 10px 20px !important;
+            gap: 10px !important;
+            flex-wrap: wrap;
+        }
+        .top-bar-title {
+            font-size: 0.88em !important;
+            color: var(--text-muted) !important;
+            font-weight: 500 !important;
+            flex-shrink: 0;
+        }
         .top-bar-nav {
             margin-right: auto;
             display: flex;
             align-items: center;
-            gap: 3px;
-            overflow-x: auto;
-            flex-shrink: 1;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex: 1;
         }
         .top-nav-btn {
-            background: none;
-            border: none;
-            border-radius: 8px;
-            padding: 7px 11px;
-            font-size: 0.81em;
+            background: #f4f6f4;
+            border: 1.5px solid #dde8dd;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 0.82em;
             font-family: inherit;
-            font-weight: 600;
-            color: var(--text-muted);
+            font-weight: 700;
+            color: #5a7a5a;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
-            transition: var(--transition);
+            gap: 6px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+        .top-nav-btn i {
+            font-size: 0.95em;
+            opacity: 0.85;
+        }
+        .top-nav-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--accent);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(46,125,50,0.15);
+        }
+        .top-nav-btn.active {
+            background: var(--primary);
+            border-color: var(--primary-dark);
+            color: #fff;
+            box-shadow: 0 3px 12px rgba(46,125,50,0.3);
+        }
+        .top-nav-btn.active i { opacity: 1; }
+
+        /* بینینی سایت */
+        .view-site-btn {
+            background: #e3f2fd !important;
+            border: 1.5px solid #90caf9 !important;
+            color: #1565c0 !important;
+            border-radius: 10px !important;
+            padding: 8px 14px !important;
+            font-size: 0.82em !important;
+            font-weight: 700 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .view-site-btn:hover {
+            background: #1565c0 !important;
+            color: #fff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(21,101,192,0.25) !important;
+        }
+
+        /* دوگمەی دەرچوون */
+        .top-logout-btn {
+            background: #fff0f0;
+            border: 1.5px solid #ffcdd2;
+            border-radius: 10px;
+            padding: 8px 13px;
+            font-size: 0.82em;
+            font-family: inherit;
+            font-weight: 700;
+            color: #c62828;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
             white-space: nowrap;
         }
-        .top-nav-btn:hover { background: var(--primary-light); color: var(--primary); }
-        .top-nav-btn.active { background: var(--primary-light); color: var(--primary); }
-        .top-logout-btn {
-            background: none;
-            border: 1px solid rgba(229,57,53,0.3);
-            border-radius: 8px;
-            padding: 7px 10px;
-            font-size: 0.88em;
-            color: #e53935;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            transition: var(--transition);
-            flex-shrink: 0;
-            margin-right: 4px;
+        .top-logout-btn::after { content: " دەرچوون"; font-size: 0.95em; }
+        .top-logout-btn:hover {
+            background: #c62828;
+            border-color: #b71c1c;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(198,40,40,0.25);
         }
-        .top-logout-btn:hover { background: #ffebee; }
-        @media (max-width: 900px) {
-            .top-nav-btn span { display: none; }
+
+        /* موبایل */
+        @media (max-width: 700px) {
+            .top-bar { padding: 8px 12px !important; gap: 6px !important; }
+            .top-bar-title { display: none; }
+            .top-bar-nav { gap: 5px; }
+            .top-nav-btn { padding: 7px 10px; font-size: 0.78em; border-radius: 9px; }
+            .top-nav-btn span { font-size: 0.95em; }
+            .view-site-btn { padding: 7px 10px !important; font-size: 0.78em !important; }
+            .top-logout-btn { padding: 7px 10px; font-size: 0.78em; }
         }
-        @media (max-width: 600px) {
-            .top-bar-nav { gap: 2px; }
-            .top-nav-btn { padding: 6px 8px; font-size: 0.8em; }
+        @media (max-width: 480px) {
+            .top-nav-btn { padding: 6px 8px; font-size: 0.74em; gap: 4px; }
+            .top-nav-btn i { font-size: 0.88em; }
+            .top-nav-btn span { font-size: 0.9em; }
+            .view-site-btn { padding: 6px 8px !important; font-size: 0.74em !important; }
+            .top-logout-btn { padding: 6px 8px; }
+            .top-logout-btn::after { content: ""; }
         }
     </style>
 </head>

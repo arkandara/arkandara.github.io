@@ -77,11 +77,11 @@ jobs:
           };
 
           // ---- مانگانە: ٣٠ رۆژی ڕابردوو ----
-          const monthEnd   = todayStr;
-          const mStart     = new Date(now.getTime() - 29 * 86400000);
-          const monthStart = isoDate(mStart);
-          // ناوی مانگ: YYYY-MM (٣٠ رۆژی ڕابردوو)
-          const monthLabel = monthStart.slice(0, 7);
+          // مانگی ڕابردوو: یەک رۆژ دواوە = کۆتای مانگی ڕابردوو
+          const prevDay    = new Date(now.getTime() - 86400000);
+          const monthLabel = isoDate(prevDay).slice(0, 7);
+          const monthStart = monthLabel + "-01";
+          const monthEnd   = isoDate(prevDay);
 
           const monthDays = dailyIdx.filter(d => d.date >= monthStart && d.date <= monthEnd);
 

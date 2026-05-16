@@ -76,6 +76,12 @@
         /* ستایلی تابی Textarea */
         .textarea-stats-card .stat-num { font-size: 1.6em; }
 
+        /* stat-num variant: بچووکتر بۆ دەقی دریژ */
+        .stat-num-sm { font-size: 1rem; }
+        .stat-num-xs { font-size: 0.85rem; }
+        @media (max-width: 480px) { .stat-num-sm { font-size: 0.88rem; } .stat-num-xs { font-size: 0.78rem; } }
+        @media (max-width: 380px) { .stat-num-sm { font-size: 0.82rem; } .stat-num-xs { font-size: 0.72rem; } }
+
         /* stat-card ی پێنجەم */
         .stats-top-grid-5 {
             display: grid;
@@ -83,7 +89,10 @@
             gap: 14px;
         }
         @media (max-width: 1100px) { .stats-top-grid-5 { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 700px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 700px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+        @media (max-width: 480px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
+        @media (max-width: 480px)  { .stats-top-grid-5 .stat-card { padding: 12px 8px; } .stats-top-grid-5 .stat-num { font-size: 1.3em; } .stats-top-grid-5 .stat-lbl { font-size: 0.72em; } }
+        @media (max-width: 380px)  { .stats-top-grid-5 .stat-num { font-size: 1.15em; } .stats-top-grid-5 .stat-lbl { font-size: 0.68em; } }
 
         /* ===== Snapshot ستایل ===== */
         .snap-list { display: flex; flex-direction: column; gap: 8px; }
@@ -100,7 +109,8 @@
         .snap-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            row-gap: 6px;
             padding: 9px 14px;
             background: #f0f7f0;
             flex-wrap: wrap;
@@ -124,6 +134,7 @@
             font-size: 0.78em;
             color: #888;
             margin-right: auto;
+            flex-shrink: 0;
         }
 
         .snap-toggle-btn {
@@ -136,6 +147,8 @@
             cursor: pointer;
             display: flex; align-items: center; gap: 5px;
             transition: var(--transition);
+            flex-shrink: 0;
+            margin-right: auto;
         }
         .snap-toggle-btn:hover { background: var(--accent); color: #fff; }
 
@@ -404,7 +417,7 @@
                     <div class="stat-lbl"><i class="fas fa-th-large"></i> جۆری دوگمە</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-num" id="stat-top-btn" style="font-size:1rem;">&#8212;</div>
+                    <div class="stat-num stat-num-sm" id="stat-top-btn">&#8212;</div>
                     <div class="stat-lbl"><i class="fas fa-trophy"></i> زۆرترین کلیک</div>
                 </div>
                 <div class="stat-card">
@@ -412,7 +425,7 @@
                     <div class="stat-lbl"><i class="fas fa-keyboard"></i> جارەکانی نووسین</div>
                 </div>
                 <div class="stat-card" style="border-color:#e3f2fd;">
-                    <div class="stat-num" id="stat-kv-usage" style="font-size:0.85rem;">&#8212;</div>
+                    <div class="stat-num stat-num-xs" id="stat-kv-usage">&#8212;</div>
                     <div class="stat-lbl"><i class="fas fa-database" style="color:#1565c0;"></i> پری KV</div>
                     <div style="height:6px;background:#e3f2fd;border-radius:3px;margin-top:6px;overflow:hidden;">
                         <div id="kv-usage-bar" style="height:100%;width:0%;background:var(--accent);border-radius:3px;transition:width 0.5s;"></div>

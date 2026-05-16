@@ -193,7 +193,9 @@ var SITE_DEFAULTS = {
     updateText:    "نوێترین ئه‌بده‌یت  23ـی نیسانی 2026"
 };
 
-function loadSiteInfo() {
+var _siteInfoLoaded = false;
+function loadSiteInfo(force) {
+    if (_siteInfoLoaded && !force) return;
     fetch("/track")
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -207,6 +209,7 @@ function loadSiteInfo() {
             document.getElementById("bismillahText").value    = data.bismillahText;
             document.getElementById("bismillahSub").value     = data.bismillahSub;
             document.getElementById("updateText").value       = data.updateText || "";
+            _siteInfoLoaded = true;
         });
 }
 
@@ -227,7 +230,7 @@ function saveSiteInfo() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
     }).then(function(r) { return r.json(); })
-    .then(function() { showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
+    .then(function() { _siteInfoLoaded = false; showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 

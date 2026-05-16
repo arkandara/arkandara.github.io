@@ -150,8 +150,10 @@ body {
     .main-content {
         margin-right: 0 !important;
     }
-    .top-bar { padding: 0 12px; gap: 8px; }
-    .top-bar-title { font-size: 0.9em; }
+    .top-bar { padding: 0 12px; gap: 6px; }
+    .top-bar-title { display: none; }
+    .tnav-item span { display: none; }
+    .tnav-item { padding: 6px 8px; }
     .view-site-btn span { display: none; }
     .tab-content { padding: 14px 10px; }
     .stats-top-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -267,6 +269,8 @@ body {
     top: 0;
     z-index: 50;
     box-shadow: var(--shadow);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .menu-toggle {
@@ -298,6 +302,31 @@ body {
     transition: var(--transition);
 }
 .view-site-btn:hover { background: var(--primary); color: #fff; }
+
+/* ناڤی هێدەر */
+.topbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
+}
+.tnav-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 0.82em;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+.tnav-item:hover { background: var(--primary-light); color: var(--primary); }
+.tnav-item.active { background: var(--primary-light); color: var(--primary); }
+.tnav-item i { font-size: 13px; }
 
 /* تاب کۆنتێنت */
 .tab-content {

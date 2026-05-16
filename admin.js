@@ -147,7 +147,6 @@ function showTab(id) {
     }
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
-    if (id === "tab-buttons") loadButtons();
 }
 
 
@@ -388,29 +387,12 @@ function addBtnRow(label, color, action, group, fixed, cls) {
         ? '<span style="font-size:0.72em;color:#aaa;padding:0 8px;"><i class="fas fa-lock"></i></span>'
         : '<button class="del-btn" onclick="this.closest(\'.btn-row\').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
 
-    var uid = "btn_" + Date.now() + Math.random().toString(36).slice(2, 6);
-
     row.innerHTML =
         '<input type="hidden" class="btn-group-val" value="' + escHtml(group) + '">' +
         '<input type="hidden" class="btn-fixed-val" value="' + (fixed ? "1" : "0") + '">' +
+        '<input type="color" value="' + escHtml(color) + '" class="btn-color-preview" title="ڕەنگ">' +
         groupBadge +
-        // preview دوگمە
-        '<button type="button" id="prev_' + uid + '" style="' +
-            'background:' + escHtml(color) + ';color:#fff;border:none;border-radius:7px;' +
-            'padding:5px 12px;font-size:0.8em;font-weight:700;cursor:default;' +
-            'white-space:nowrap;min-width:80px;max-width:140px;overflow:hidden;text-overflow:ellipsis;' +
-            'font-family:inherit;pointer-events:none;flex-shrink:0;">' +
-            escHtml(label || "دوگمە") +
-        '</button>' +
-        // ڕەنگ
-        '<input type="color" value="' + escHtml(color) + '" class="btn-color-preview" title="ڕەنگ" ' +
-            'oninput="' +
-                'this.closest(\'.btn-row\').querySelector(\'[id^=prev_]\').style.background=this.value;' +
-            '">' +
-        // ناوی دوگمە
-        '<input type="text" placeholder="ناوی دوگمە" value="' + escHtml(label) + '" class="btn-label" style="flex:1;" ' +
-            'oninput="var p=this.closest(\'.btn-row\').querySelector(\'[id^=prev_]\');if(p)p.textContent=this.value||\'دوگمە\';">' +
-        // فەنکشن
+        '<input type="text" placeholder="تێکستی دوگمە" value="' + escHtml(label) + '" class="btn-label" style="flex:1;">' +
         '<input type="text" placeholder="فەنکشن (onclick)" value="' + escHtml(action) + '" class="btn-action" dir="ltr" style="font-family:monospace;font-size:0.82em;flex:1.2;">' +
         delBtn;
     list.appendChild(row);

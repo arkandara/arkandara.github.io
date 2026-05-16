@@ -76,12 +76,6 @@
         /* ستایلی تابی Textarea */
         .textarea-stats-card .stat-num { font-size: 1.6em; }
 
-        /* stat-num variant: بچووکتر بۆ دەقی دریژ */
-        .stat-num-sm { font-size: 1rem; }
-        .stat-num-xs { font-size: 0.85rem; }
-        @media (max-width: 480px) { .stat-num-sm { font-size: 0.88rem; } .stat-num-xs { font-size: 0.78rem; } }
-        @media (max-width: 380px) { .stat-num-sm { font-size: 0.82rem; } .stat-num-xs { font-size: 0.72rem; } }
-
         /* stat-card ی پێنجەم */
         .stats-top-grid-5 {
             display: grid;
@@ -89,10 +83,7 @@
             gap: 14px;
         }
         @media (max-width: 1100px) { .stats-top-grid-5 { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 700px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
-        @media (max-width: 480px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
-        @media (max-width: 480px)  { .stats-top-grid-5 .stat-card { padding: 12px 8px; } .stats-top-grid-5 .stat-num { font-size: 1.3em; } .stats-top-grid-5 .stat-lbl { font-size: 0.72em; } }
-        @media (max-width: 380px)  { .stats-top-grid-5 .stat-num { font-size: 1.15em; } .stats-top-grid-5 .stat-lbl { font-size: 0.68em; } }
+        @media (max-width: 700px)  { .stats-top-grid-5 { grid-template-columns: repeat(2, 1fr); } }
 
         /* ===== Snapshot ستایل ===== */
         .snap-list { display: flex; flex-direction: column; gap: 8px; }
@@ -109,8 +100,7 @@
         .snap-header {
             display: flex;
             align-items: center;
-            gap: 8px;
-            row-gap: 6px;
+            gap: 10px;
             padding: 9px 14px;
             background: #f0f7f0;
             flex-wrap: wrap;
@@ -134,7 +124,6 @@
             font-size: 0.78em;
             color: #888;
             margin-right: auto;
-            flex-shrink: 0;
         }
 
         .snap-toggle-btn {
@@ -147,8 +136,6 @@
             cursor: pointer;
             display: flex; align-items: center; gap: 5px;
             transition: var(--transition);
-            flex-shrink: 0;
-            margin-right: auto;
         }
         .snap-toggle-btn:hover { background: var(--accent); color: #fff; }
 
@@ -241,13 +228,23 @@
         </div>
 
         <nav class="sidebar-nav">
+            <a class="nav-item active" onclick="closeSidebar(); showTab('tab-site')" id="nav-site">
+                <i class="fas fa-globe"></i> زانیاری سایت
+            </a>
+           
+            <a class="nav-item" onclick="closeSidebar(); showTab('tab-stats')" id="nav-stats">
+                <i class="fas fa-chart-bar"></i> ئامارەکان
+            </a>
+            <a class="nav-item" onclick="closeSidebar(); showTab('tab-archive')" id="nav-archive">
+                <i class="fas fa-archive"></i> ئەرشیفی رۆژانه‌ و مانگانه‌
+            </a>
+           
+            <a class="nav-item" onclick="closeSidebar(); showTab('tab-password')" id="nav-password">
+                <i class="fas fa-key"></i> گۆڕینی پاسوۆرد
+            </a>
         </nav>
 
-        <div class="sidebar-footer">
-            <button class="logout-btn" onclick="doLogout()">
-                <i class="fas fa-sign-out-alt"></i> دەرچوون
-            </button>
-        </div>
+        <div class="sidebar-footer"></div>
     </aside>
 
     <!-- ناوەرۆکی سەرەکی -->
@@ -260,18 +257,12 @@
             </button>
             <div class="top-bar-title" id="pageTitle">زانیاری سایت</div>
             <div class="top-bar-right">
-                <nav class="topbar-nav" id="topbar-nav">
-                    <a class="tnav-item active" onclick="showTab('tab-site')" id="nav-site"><i class="fas fa-globe"></i><span>زانیاری سایت</span></a>
-                    <a class="tnav-item" onclick="showTab('tab-news')" id="nav-news"><i class="fas fa-rss"></i><span>سەرچاوەی هەواڵ</span></a>
-                    <a class="tnav-item" onclick="showTab('tab-buttons')" id="nav-buttons"><i class="fas fa-th-large"></i><span>دوگمەکان</span></a>
-                    <a class="tnav-item" onclick="showTab('tab-stats')" id="nav-stats"><i class="fas fa-chart-bar"></i><span>ئامارەکان</span></a>
-                    <a class="tnav-item" onclick="showTab('tab-archive')" id="nav-archive"><i class="fas fa-archive"></i><span>ئەرشیف</span></a>
-                    <a class="tnav-item" onclick="showTab('tab-preview')" id="nav-preview"><i class="fas fa-eye"></i><span>بینینی دەق</span></a>
-                    <a class="tnav-item" onclick="showTab('tab-password')" id="nav-password"><i class="fas fa-key"></i><span>پاسوۆرد</span></a>
-                </nav>
                 <a href="index.html" target="_blank" class="view-site-btn">
-                    <i class="fas fa-external-link-alt"></i><span> بینینی سایت</span>
+                    <i class="fas fa-external-link-alt"></i> بینینی سایت
                 </a>
+                <button class="logout-btn" onclick="doLogout()" style="margin-right:8px;">
+                    <i class="fas fa-sign-out-alt"></i> <span class="logout-label">دەرچوون</span>
+                </button>
             </div>
         </header>
 
@@ -412,7 +403,7 @@
                     <div class="stat-lbl"><i class="fas fa-th-large"></i> جۆری دوگمە</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-num stat-num-sm" id="stat-top-btn">&#8212;</div>
+                    <div class="stat-num" id="stat-top-btn" style="font-size:1rem;">&#8212;</div>
                     <div class="stat-lbl"><i class="fas fa-trophy"></i> زۆرترین کلیک</div>
                 </div>
                 <div class="stat-card">
@@ -420,7 +411,7 @@
                     <div class="stat-lbl"><i class="fas fa-keyboard"></i> جارەکانی نووسین</div>
                 </div>
                 <div class="stat-card" style="border-color:#e3f2fd;">
-                    <div class="stat-num stat-num-xs" id="stat-kv-usage">&#8212;</div>
+                    <div class="stat-num" id="stat-kv-usage" style="font-size:0.85rem;">&#8212;</div>
                     <div class="stat-lbl"><i class="fas fa-database" style="color:#1565c0;"></i> پری KV</div>
                     <div style="height:6px;background:#e3f2fd;border-radius:3px;margin-top:6px;overflow:hidden;">
                         <div id="kv-usage-bar" style="height:100%;width:0%;background:var(--accent);border-radius:3px;transition:width 0.5s;"></div>

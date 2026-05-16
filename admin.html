@@ -262,53 +262,11 @@
 <!-- ===== پانێلی سەرەکی ===== -->
 <div id="adminPanel" style="display:none">
 
-    <!-- overlay بۆ موبایل -->
-    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-    <!-- سایدبار -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <i class="fas fa-newspaper"></i>
-            </div>
-            <div>
-                <div class="sidebar-title">ئەدمین پانێل</div>
-                <div class="sidebar-sub">سەکۆی ڕۆژنامەنووس</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <a class="nav-item active" onclick="closeSidebar(); showTab('tab-site')" id="nav-site">
-                <i class="fas fa-globe"></i> زانیاری سایت
-            </a>
-           
-            <a class="nav-item" onclick="closeSidebar(); showTab('tab-stats')" id="nav-stats">
-                <i class="fas fa-chart-bar"></i> ئامارەکان
-            </a>
-            <a class="nav-item" onclick="closeSidebar(); showTab('tab-archive')" id="nav-archive">
-                <i class="fas fa-archive"></i> ئەرشیفی رۆژانه‌ و مانگانه‌
-            </a>
-           
-            <a class="nav-item" onclick="closeSidebar(); showTab('tab-password')" id="nav-password">
-                <i class="fas fa-key"></i> گۆڕینی پاسوۆرد
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <button class="logout-btn" onclick="doLogout()">
-                <i class="fas fa-sign-out-alt"></i> دەرچوون
-            </button>
-        </div>
-    </aside>
-
     <!-- ناوەرۆکی سەرەکی -->
     <main class="main-content">
 
         <!-- هێدەر -->
         <header class="top-bar">
-            <button class="menu-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
             <div class="top-bar-title" id="pageTitle">زانیاری سایت</div>
             <div class="top-bar-nav">
                 <button class="top-nav-btn active" onclick="showTab('tab-site')" id="tnav-site">

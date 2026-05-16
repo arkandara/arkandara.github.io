@@ -200,6 +200,9 @@ function loadSiteInfo(force) {
         .then(function(r) { return r.json(); })
         .then(function(d) {
             var data = Object.assign({}, SITE_DEFAULTS, d.settings || {});
+            // ئەگەر sessionStorage هەبوو، ئەوە بخوێنەوە نەک Worker
+            var ss = sessionStorage.getItem("siteInfoDraft");
+            if (ss) { try { data = Object.assign(data, JSON.parse(ss)); } catch(e) {} }
             document.getElementById("siteName").value         = data.siteName;
             document.getElementById("siteAuthor").value       = data.siteAuthor;
             document.getElementById("siteTitle").value        = data.siteTitle;
@@ -210,7 +213,26 @@ function loadSiteInfo(force) {
             document.getElementById("bismillahSub").value     = data.bismillahSub;
             document.getElementById("updateText").value       = data.updateText || "";
             _siteInfoLoaded = true;
+            // گوێگری زیاد بکە بۆ هەموو input-ەکان
+            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","updateText"].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.addEventListener("input", saveSiteInfoDraft);
+            });
         });
+}
+
+function saveSiteInfoDraft() {
+    var draft = {
+        siteName:      document.getElementById("siteName").value,
+        siteAuthor:    document.getElementById("siteAuthor").value,
+        siteTitle:     document.getElementById("siteTitle").value,
+        siteDesc:      document.getElementById("siteDesc").value,
+        primaryColor:  document.getElementById("primaryColor").value,
+        bismillahText: document.getElementById("bismillahText").value,
+        bismillahSub:  document.getElementById("bismillahSub").value,
+        updateText:    document.getElementById("updateText").value
+    };
+    sessionStorage.setItem("siteInfoDraft", JSON.stringify(draft));
 }
 
 function saveSiteInfo() {
@@ -230,7 +252,7 @@ function saveSiteInfo() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
     }).then(function(r) { return r.json(); })
-    .then(function() { _siteInfoLoaded = false; showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
+    .then(function() { _siteInfoLoaded = false; sessionStorage.removeItem("siteInfoDraft"); showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 

@@ -150,17 +150,14 @@ body {
     .main-content {
         margin-right: 0 !important;
     }
-    .top-bar { padding: 0 12px; gap: 6px; }
-    .top-bar-title { display: none; }
-    .tnav-item span { display: none; }
-    .tnav-item { padding: 6px 8px; }
+    .top-bar { padding: 0 12px; gap: 8px; }
+    .top-bar-title { font-size: 0.9em; }
     .view-site-btn span { display: none; }
     .tab-content { padding: 14px 10px; }
     .stats-top-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .card-grid { grid-template-columns: 1fr; }
     .bar-row { grid-template-columns: 90px 1fr 36px; }
     .bar-last { display: none; }
-    .bar-label { font-size: 0.78em; max-width: 90px; }
     .arc-tabs { flex-wrap: wrap; gap: 6px; }
     .arc-tab { flex: 1 1 auto; font-size: 0.78em; padding: 7px 8px; text-align: center; }
     .archive-row { flex-wrap: wrap; gap: 6px; }
@@ -229,24 +226,24 @@ body {
 .nav-item.active i { opacity: 1; }
 
 .sidebar-footer {
-    padding: 14px 10px 20px;
-    border-top: 1px solid rgba(255,255,255,0.07);
+    display: none;
 }
 
 .logout-btn {
-    width: 100%;
-    background: rgba(229,57,53,0.12);
+    background: rgba(229,57,53,0.10);
     border: 1px solid rgba(229,57,53,0.25);
-    color: #ef9a9a;
-    border-radius: 10px;
-    padding: 10px;
+    color: #e53935;
+    border-radius: 8px;
+    padding: 6px 12px;
     font-family: inherit;
-    font-size: 0.9em;
+    font-size: 0.82em;
     cursor: pointer;
     transition: var(--transition);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap;
 }
-.logout-btn:hover { background: rgba(229,57,53,0.22); color: #fff; }
+.logout-btn:hover { background: rgba(229,57,53,0.85); color: #fff; }
+@media (max-width: 600px) { .logout-label { display: none; } }
 
 /* ناوەرۆکی سەرەکی */
 .main-content {
@@ -269,8 +266,6 @@ body {
     top: 0;
     z-index: 50;
     box-shadow: var(--shadow);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 .menu-toggle {
@@ -302,31 +297,6 @@ body {
     transition: var(--transition);
 }
 .view-site-btn:hover { background: var(--primary); color: #fff; }
-
-/* ناڤی هێدەر */
-.topbar-nav {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin-left: 8px;
-}
-.tnav-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 10px;
-    border-radius: 7px;
-    font-size: 0.82em;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    text-decoration: none;
-    transition: var(--transition);
-    white-space: nowrap;
-}
-.tnav-item:hover { background: var(--primary-light); color: var(--primary); }
-.tnav-item.active { background: var(--primary-light); color: var(--primary); }
-.tnav-item i { font-size: 13px; }
 
 /* تاب کۆنتێنت */
 .tab-content {
@@ -655,7 +625,6 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-width: 0;
 }
 
 .bar-wrap {
@@ -956,12 +925,12 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     .stat-num { font-size: 1.5em; }
     .stat-lbl { font-size: 0.75em; }
 
-    /* bar-row: لەیبڵ بچووکتر، هەنوو نیشاندەدرێت */
+    /* bar-row: لەیبڵ شاردەوە، تەنها بار و ژمارە */
     .bar-row {
-        grid-template-columns: 90px 1fr 36px;
+        grid-template-columns: 1fr 44px;
         gap: 8px;
     }
-    .bar-label { font-size: 0.78em; max-width: 90px; display: block; }
+    .bar-label { display: none; }
     .bar-last  { display: none; }
     .bar-count { font-size: 0.82em; }
 
@@ -1090,7 +1059,7 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     /* bar-row: تەنها بار و ژمارە */
     .bar-row { grid-template-columns: 80px 1fr 36px; }
     .bar-last { display: none; }
-    .bar-label { font-size: 0.72em; max-width: 80px; }
+    .bar-label { font-size: 0.76em; }
 
     /* ئەرشیف */
     .archive-row { flex-direction: column; align-items: flex-start; padding: 12px; gap: 8px; }

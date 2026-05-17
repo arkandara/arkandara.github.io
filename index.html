@@ -14,6 +14,37 @@
     <meta property="og:image" content="https://arkandara.github.io/preview.jpg">
     <meta property="og:url" content="https://arkandara.github.io/">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="canonical" href="https://arkandara.pages.dev/">
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="سەکۆی ڕۆژنامەنووس">
+    <meta name="twitter:description" content="گۆڕینی فۆنتی عەلی بۆ یونیکۆد، خوێندنەوەی دەقی ناو وێنە، داگرتنی هەواڵ و زۆر تری دیکە.">
+    <meta name="twitter:image" content="https://arkandara.pages.dev/preview.jpg">
+
+    <!-- Structured Data (Schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "سەکۆی ڕۆژنامەنووس",
+      "url": "https://arkandara.pages.dev/",
+      "description": "گۆڕینی فۆنتی عەلی بۆ یونیکۆد، خوێندنەوەی دەقی ناو وێنە (OCR)، داگرتنی هەواڵی کوردی، وتار نووسین و فایلی Word دروست کردن بۆ ڕۆژنامەنووسانی کورد.",
+      "inLanguage": "ku",
+      "author": {
+        "@type": "Person",
+        "name": "Arkan Dara"
+      },
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
     
 <script>
 // ---- ئەگەر لە github.io بوو، بگوازەرەوە بۆ pages.dev ----
@@ -1426,40 +1457,16 @@ textarea {
 
 
     <div id="dlModal" class="modal">
-        <div class="modal-content" style="max-width: 420px; position: relative;">
-            <button onclick="toggleDlModal()" style="
-                position:absolute; top:10px; left:14px;
-                background:none; border:none; font-size:1.4em;
-                cursor:pointer; color:#888; line-height:1;
-                padding:2px 6px; border-radius:50%;
-                transition:background 0.2s;
-            " onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='none'" title="داخستن">✕</button>
-            <div class="modal-header">📥 داگرتنی ڤیدیۆ</div>
-            <div class="modal-body" style="text-align: center; padding-top: 8px;">
-                <p style="font-size: 13px; color: #555; margin-bottom: 16px;">سایتی داگرتنت هەڵبژێرە</p>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <a href="https://app.ytdown.to/en27/" target="_blank" onclick="toggleDlModal()" style="
-                        display:flex; align-items:center; gap:12px;
-                        background:#ff0000; color:#fff; text-decoration:none;
-                        border-radius:10px; padding:14px 20px;
-                        font-size:0.95em; font-weight:700; font-family:inherit;
-                        transition:opacity 0.2s;
-                    " onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-                        داگرتنی ڤیدیۆی یوتیوب
-                    </a>
-                    <a href="https://snapvid.net/en" target="_blank" onclick="toggleDlModal()" style="
-                        display:flex; align-items:center; gap:12px;
-                        background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);
-                        color:#fff; text-decoration:none;
-                        border-radius:10px; padding:14px 20px;
-                        font-size:0.95em; font-weight:700; font-family:inherit;
-                        transition:opacity 0.2s;
-                    " onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13H9v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
-                        داگرتنی ڤیدیۆی تۆرە کۆمەڵایەتییەکان
-                    </a>
-                </div>
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">📥 داگرتنی ڤیدیۆ و دەنگ</div>
+            <div class="modal-body" style="text-align: center;">
+                <p style="font-size: 14px;">لینکی یوتیوب، فەیسبووک، دابنێ و دوای داگرتن؛ كوالێتی ڤیدیۆكه‌ هه‌ڵبژێره‌ و داونڵوود بكه‌:</p>
+                <input type="text" id="videoUrl" class="dl-input" placeholder="https://...">
+                <button id="startDlBtn" onclick="processDownload()" class="dl-btn">كلیك بكه‌ بۆ داگرتنی ڤیدیۆكه‌</button>
+                <p id="dlStatus" style="margin-top: 15px; font-size: 13px; color: #ff0000; font-weight: bold;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="close-btn" onclick="toggleDlModal()">داخستن</button>
             </div>
         </div>
     </div>

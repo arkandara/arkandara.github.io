@@ -3756,7 +3756,8 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
     });
 })();
 
-// ---- ناردنی تێکستی textBox بۆ پانێڵی ئەدمین ----
+// ---- خوێندنەوەی دەقی textBox بە دەنگ (Text-to-Speech) ----
+var _ttsUtterance = null;
 function sendTextToAdmin() {
     var tb  = document.getElementById('textBox');
     var txt = tb ? tb.value.trim() : '';
@@ -3764,21 +3765,27 @@ function sendTextToAdmin() {
         alert('خانەی نووسین بۆشایە!');
         return;
     }
-    // ناردنی دەق بۆ Cloudflare KV (type: preview)
-    fetch('/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            type:    'preview',
-            text:    txt,
-            time:    new Date().toISOString()
-        })
-    }).then(function() {
-        window.open('admin.html?tab=preview', '_blank');
-    }).catch(function() {
-        // ئەگەر هەڵە بوو، باشە بازبدە
-        window.open('admin.html?tab=preview', '_blank');
-    });
+
+    // ئەگەر ئێستا دەخوێنێتەوە، راپەڕێنە
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        return;
+    }
+
+    _ttsUtterance = new SpeechSynthesisUtterance(txt);
+
+    // دیاریکردنی زمان بەپێی ناوەرۆک
+    var arabicPattern = /[\u0600-\u06FF]/;
+    if (arabicPattern.test(txt)) {
+        _ttsUtterance.lang = 'ar-SA';
+    } else {
+        _ttsUtterance.lang = 'en-US';
+    }
+
+    _ttsUtterance.rate  = 1;
+    _ttsUtterance.pitch = 1;
+
+    window.speechSynthesis.speak(_ttsUtterance);
 }
 
 

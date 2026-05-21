@@ -1555,25 +1555,6 @@ textarea {
     <i class="fas fa-info-circle" style="font-size: 18px; color: #2e7d32;"></i>
 </div>
 
-<!-- دوگمەی خوێندنەوەی دەقی خانەی نووسین -->
-<div class="header-icon-btn" onclick="sendTextToAdmin()" title="خوێندنەوەی دەقی خانەی نووسین" style="
-    background: linear-gradient(135deg,#e3f2fd,#bbdefb);
-    border: 1.5px solid rgba(21,101,192,0.25);
-    border-radius: 10px;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 27px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(21,101,192,0.12);
-" onmouseover="this.style.background='linear-gradient(135deg,#bbdefb,#90caf9)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 14px rgba(21,101,192,0.22)';"
-   onmouseout="this.style.background='linear-gradient(135deg,#e3f2fd,#bbdefb)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(21,101,192,0.12)';">
-    <i class="fas fa-eye" style="font-size: 18px; color: #1565c0;"></i>
-</div>
-
     </div>
 </div> 
 
@@ -2676,7 +2657,7 @@ text = text.replace(/(^|\s)وو/g, "$1و");
 text = text.replace(/بەرامبەر/g, "بەرانبەر");
 
 // تر‌ ده‌‌كات به‌ دیكه
-text = text.replace(/(^|\s)تر(?=\s|$)/g, "$1دیکە");
+text = text.replace(/(^|\s)تر(?=\s|$)/g, "$1دیكة");
 
 // كه‌وانه‌ له‌ ده‌وری ژماره‌ لاده‌بات
 text = text.replace(/\(([\d٠-٩]+)\)/g, "$1");
@@ -3756,8 +3737,7 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
     });
 })();
 
-// ---- خوێندنەوەی دەقی textBox بە دەنگ (Text-to-Speech) ----
-var _ttsUtterance = null;
+// ---- ناردنی تێکستی textBox بۆ پانێڵی ئەدمین ----
 function sendTextToAdmin() {
     var tb  = document.getElementById('textBox');
     var txt = tb ? tb.value.trim() : '';
@@ -3765,27 +3745,21 @@ function sendTextToAdmin() {
         alert('خانەی نووسین بۆشایە!');
         return;
     }
-
-    // ئەگەر ئێستا دەخوێنێتەوە، راپەڕێنە
-    if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-        return;
-    }
-
-    _ttsUtterance = new SpeechSynthesisUtterance(txt);
-
-    // دیاریکردنی زمان بەپێی ناوەرۆک
-    var arabicPattern = /[\u0600-\u06FF]/;
-    if (arabicPattern.test(txt)) {
-        _ttsUtterance.lang = 'ar-SA';
-    } else {
-        _ttsUtterance.lang = 'en-US';
-    }
-
-    _ttsUtterance.rate  = 1;
-    _ttsUtterance.pitch = 1;
-
-    window.speechSynthesis.speak(_ttsUtterance);
+    // ناردنی دەق بۆ Cloudflare KV (type: preview)
+    fetch('/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type:    'preview',
+            text:    txt,
+            time:    new Date().toISOString()
+        })
+    }).then(function() {
+        window.open('admin.html?tab=preview', '_blank');
+    }).catch(function() {
+        // ئەگەر هەڵە بوو، باشە بازبدە
+        window.open('admin.html?tab=preview', '_blank');
+    });
 }
 
 

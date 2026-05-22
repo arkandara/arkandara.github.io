@@ -1,8 +1,9 @@
 # ============================================================
 #  .github/workflows/daily-clear.yml
 #  هەر شەو 12:20 AM عێراق (UTC+3) = 21:20 UTC:
-#  ١. داتای رۆژ لە KV دەخوێنێتەوە و ئەرشیف دەکات لە GitHub
-#  ٢. هەموو ئامارەکانی KV سفر دەبنەوە بۆ ئەوەی داتای نوێ دەست بکات
+#  ١. داتای رۆژ لە KV دەخوێنێتەوە
+#  ٢. رێزێکی نوێ زیاد دەکات بۆ archives/daily_current.json
+#  ٣. هەموو ئامارەکانی KV سفر دەبنەوە
 # ============================================================
 
 name: 🌙 ئەرشیفی شەوانە و سفرکردنەوەی ئامارەکان
@@ -21,6 +22,9 @@ jobs:
         uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_PAT }}
+
+      - name: 🔄 Pull کردنی کۆتاترین گۆڕانکاری
+        run: git pull --rebase
 
       - name: 📡 ئەرشیفکردن و سفرکردنەوەی KV
         env:
@@ -58,9 +62,9 @@ jobs:
               });
           }
 
-          const cfGet    = (key)       => cfRequest("GET",    key);
-          const cfDelete = (key)       => cfRequest("DELETE", key);
-          const cfPut    = (key, val)  => cfRequest("PUT",    key, val);
+          const cfGet    = (key)      => cfRequest("GET",    key);
+          const cfDelete = (key)      => cfRequest("DELETE", key);
+          const cfPut    = (key, val) => cfRequest("PUT",    key, val);
 
           function safeJson(raw, def) { try { return JSON.parse(raw); } catch(e) { return def; } }
           function safeArray(raw) { try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch(e) { return []; } }
@@ -69,57 +73,70 @@ jobs:
           async function main() {
               const now         = new Date();
               const archiveDate = isoDate(now);
+              const thisMonth   = archiveDate.slice(0, 7);
               console.log("📅 رۆژی ئەرشیف:", archiveDate);
 
-              // ---- ١. خوێندنەوەی داتا ----
+              // ---- ١. خوێندنەوەی داتا لە KV ----
               const clickLabels = safeArray(await cfGet("meta:clicks_list"));
               const clicks = {};
               for (const lbl of clickLabels) {
                   const v = await cfGet("click:" + lbl);
                   if (v && !isNaN(+v)) clicks[lbl] = +v;
               }
-              const totalVisits   = +(await cfGet("meta:total_visits")   || "0");
-              const totalTextarea = +(await cfGet("meta:total_textarea") || "0");
-              const sessions      = safeArray(await cfGet("visits:"    + archiveDate));
-              const snapshots     = safeArray(await cfGet("snapshots:" + archiveDate));
+              const totalVisits    = +(await cfGet("meta:total_visits")   || "0");
+              const totalTextarea  = +(await cfGet("meta:total_textarea") || "0");
+              const sessions       = safeArray(await cfGet("visits:"    + archiveDate));
 
               // ---- ٢. حیسابکردنی deviceStats و cityStats ----
               const deviceStats = { mobile: 0, desktop: 0, tablet: 0 };
-              const cityStats = {};
+              const cityStats   = {};
               sessions.forEach(s => {
-                  const d = s.device || '';
-                  if (d.includes('تابلێت') || d.includes('📟')) deviceStats.tablet++;
-                  else if (d.includes('موبایل') || d.includes('📱')) deviceStats.mobile++;
+                  const d = s.device || "";
+                  if (d.includes("تابلێت") || d.includes("📟")) deviceStats.tablet++;
+                  else if (d.includes("موبایل") || d.includes("📱")) deviceStats.mobile++;
                   else deviceStats.desktop++;
-                  const city = (s.city && s.city !== '---') ? s.city : ((s.country && s.country !== '---') ? s.country : 'نەناسراو');
+                  const city = (s.city && s.city !== "---") ? s.city : ((s.country && s.country !== "---") ? s.country : "نەناسراو");
                   cityStats[city] = (cityStats[city] || 0) + 1;
               });
 
-              const totalClicks = Object.values(clicks).reduce((s,v)=>s+v,0);
+              const totalClicks = Object.values(clicks).reduce((s,v)=>s+v, 0);
 
               if (!fs.existsSync("archives")) fs.mkdirSync("archives");
 
-              // ---- ٣. فایلی جیاوازی رۆژانە — دروستکردن یان نوێکردنەوە ----
-              // ئەم فایلە نەسرێتەوە، بەردەوام داتای ئەو رۆژە تیادا دەمێنێت
-              const dailyFilePath = `archives/daily_${archiveDate}.json`;
-              const dailyData = {
-                  type:        "daily",
-                  date:        archiveDate,
-                  generatedAt: now.toISOString(),
+              // ---- ٣. زیادکردن بۆ daily_current.json ----
+              const currentPath = "archives/daily_current.json";
+              let current = { type: "daily_current", month: thisMonth, updatedAt: "", days: [] };
+              if (fs.existsSync(currentPath)) {
+                  try { current = JSON.parse(fs.readFileSync(currentPath, "utf8")); } catch(e) {}
+                  // ئەگەر مانگی نوێ دەست پێکرد، سفر بکەرەوە
+                  if (current.month !== thisMonth) {
+                      console.log("📅 مانگی نوێ — daily_current.json سفر دەبێتەوە");
+                      current = { type: "daily_current", month: thisMonth, updatedAt: "", days: [] };
+                  }
+              }
+
+              // سرینەوەی ئەگەر ئەمرۆ پێشتر تۆماربووە
+              current.days = (current.days || []).filter(d => d.date !== archiveDate);
+              current.days.push({
+                  date:         archiveDate,
+                  generatedAt:  now.toISOString(),
                   totalVisits,
                   totalClicks,
                   totalTextarea,
                   clicks,
                   deviceStats,
                   cityStats
-              };
-              fs.writeFileSync(dailyFilePath, JSON.stringify(dailyData, null, 2), "utf8");
-              console.log("✅ فایلی رۆژانە پاشەکەوت کرا:", dailyFilePath);
+              });
+              current.days.sort((a,b) => a.date.localeCompare(b.date));
+              current.updatedAt = now.toISOString();
 
-              // ---- ٤. نوێکردنەوەی index.json (خلاصە — بەبێ sessions) ----
+              fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
+              console.log("✅ daily_current.json نوێکرایەوە — رۆژ:", archiveDate, "| کۆی رۆژ:", current.days.length);
+
+              // ---- ٤. نوێکردنەوەی index.json ----
               const idxPath = "archives/index.json";
               let idx = [];
-              try { const _i = JSON.parse(fs.readFileSync(idxPath,"utf8")); idx = Array.isArray(_i) ? _i : []; } catch(e){}
+              try { const _i = JSON.parse(fs.readFileSync(idxPath,"utf8")); idx = Array.isArray(_i) ? _i : []; } catch(e) {}
               idx = idx.filter(x => x.date !== archiveDate);
               idx.unshift({
                   date:        archiveDate,
@@ -129,12 +146,10 @@ jobs:
                   totalTextarea,
                   clicks,
                   deviceStats,
-                  cityStats,
-                  fileJson:    dailyFilePath
+                  cityStats
               });
-              // هەمیشەیی — سنووری ژمارە نییە
-              fs.writeFileSync(idxPath, JSON.stringify(idx,null,2),"utf8");
-              console.log("✅ index.json نوێکرایەوە:", archiveDate);
+              fs.writeFileSync(idxPath, JSON.stringify(idx, null, 2), "utf8");
+              console.log("✅ index.json نوێکرایەوە");
 
               // ---- ٥. سفرکردنەوەی KV ----
               console.log("🗑️ سفرکردنەوەی KV...");

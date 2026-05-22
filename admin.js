@@ -712,7 +712,7 @@ function renderSnapshots(snaps) {
                 '<div class="snap-header">' +
                     '<span class="snap-label"><i class="fas fa-mouse-pointer"></i> ' + escHtml(s.label || "—") + '</span>' +
                     '<span class="snap-time"><i class="fas fa-clock"></i> ' + timeStr + '</span>' +
-                    '<span class="snap-len">' + (s.length || txt.length) + ' پیت</span>' +
+                    '<span class="snap-len">' + (txt.trim() ? txt.trim().split(/\s+/).length : 0) + ' وشە</span>' +
                     (txt.length > 0
                         ? '<button class="snap-toggle-btn" onclick="toggleSnap(\'' + uid + '\')">' +
                           '<i class="fas fa-chevron-down" id="' + uid + '_icon"></i> خوێندنەوە</button>'

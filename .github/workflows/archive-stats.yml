@@ -1,23 +1,22 @@
 # ============================================================
 #  .github/workflows/archive-stats.yml
 #
-#  مانگانە : دوای هەر ٣٠ رۆژ لە index.json
-#            ١. فایلی مانگانە دروست دەکات لە فایلی رۆژانەکان
-#            ٢. فایلی مانگانە نەسرێتەوە (بەردەوام داتای ئەو مانگە تیادا)
-#
-#  ساڵانە  : ١ی ١ی هەر ساڵ (ساعەت 21:50 UTC = 12:50 AM عێراق)
-#            ١. فایلی ساڵانە لە فایلەکانی مانگانەی ئەو ساڵ دروست دەکات
-#            ٢. فایلەکانی مانگانە دەسرێنەوە
+#  مانگانە : ١ی هەر مانگ 21:40 UTC = 12:40 AM عێراق
+#            ١. داتای daily_current.json کۆدەکاتەوە بۆ فایلی مانگانە
+#            ٢. داتای ناو daily_current.json سفر دەبێتەوە (فایلەکە نەسرێتەوە)
 #            ٣. monthly_index.json نوێدەکاتەوە
+#
+#  ساڵانە  : ١ی ١ی هەر ساڵ 21:50 UTC = 12:50 AM عێراق
+#            ١. فایلی ساڵانە لە فایلەکانی مانگانەی ئەو ساڵ دروست دەکات
+#            ٢. فایلەکانی مانگانە نەسرێنەوە
+#            ٣. yearly_index.json نوێدەکاتەوە
 # ============================================================
 
 name: 📦 ئەرشیفی مانگانە و ساڵانە
 
 on:
   schedule:
-    # هەر ٣٠ رۆژ — ١ی هەر مانگ 21:40 UTC = 12:40 AM عێراق
     - cron: "40 21 1 * *"
-    # ساڵانە — ١ی ١ی هەر ساڵ 21:50 UTC = 12:50 AM عێراق
     - cron: "50 21 1 1 *"
   workflow_dispatch:
 
@@ -46,61 +45,45 @@ jobs:
           const isJan1   = (now.getUTCMonth() === 0 && now.getUTCDate() === 1);
 
           // ================================
-          // مانگانە — ٣٠ ڕۆژی ڕابردوو
+          // مانگانە — لە daily_current.json
           // ================================
-          const idxPath = "archives/index.json";
-          let dailyIdx = [];
-          try {
-              const _d = JSON.parse(fs.readFileSync(idxPath, "utf8"));
-              dailyIdx = Array.isArray(_d) ? _d : [];
-          } catch(e) {
-              console.log("⚠️ archives/index.json نییە");
+          const currentPath = "archives/daily_current.json";
+
+          if (!fs.existsSync(currentPath)) {
+              console.log("⚠️ daily_current.json نییە");
               process.exit(0);
           }
 
-          if (!dailyIdx.length) {
-              console.log("⚠️ داتایەک تێدا نییە");
-              process.exit(0);
+          let current;
+          try { current = JSON.parse(fs.readFileSync(currentPath, "utf8")); } catch(e) {
+              console.log("⚠️ هەڵە لە خوێندنەوەی daily_current.json"); process.exit(0);
           }
 
-          console.log("📅 ئێستا:", todayStr, "| کۆی رۆژەکان:", dailyIdx.length, "| ١ی ١:", isJan1);
+          const days = current.days || [];
+          if (!days.length) { console.log("⚠️ داتایەک تێدا نییە"); process.exit(0); }
 
-          const mergeDevice = (days) => {
-              const t = { mobile:0, desktop:0, tablet:0 };
-              days.forEach(d => { const s = d.deviceStats||{}; t.mobile+=s.mobile||0; t.desktop+=s.desktop||0; t.tablet+=s.tablet||0; });
-              return t;
-          };
-          const mergeCity = (days) => {
-              const t = {};
-              days.forEach(d => { Object.entries(d.cityStats||{}).forEach(([c,n])=>{ t[c]=(t[c]||0)+n; }); });
-              return t;
-          };
-
-          // ---- مانگانە: ٣٠ رۆژی ڕابردوو ----
-          // مانگی ڕابردوو: یەک رۆژ دواوە = کۆتای مانگی ڕابردوو
+          // مانگی ڕابردوو
           const prevDay    = new Date(now.getTime() - 86400000);
           const monthLabel = isoDate(prevDay).slice(0, 7);
           const monthStart = monthLabel + "-01";
           const monthEnd   = isoDate(prevDay);
 
-          const monthDays = dailyIdx.filter(d => d.date >= monthStart && d.date <= monthEnd);
+          const monthDays = days.filter(d => d.date >= monthStart && d.date <= monthEnd);
 
           if (monthDays.length > 0) {
-              // خوێندنەوەی فایلەکانی رۆژانە بۆ کلیکی تەواو
-              const mergeClicks = (days) => {
+              const mergeDevice = (ds) => {
+                  const t = { mobile:0, desktop:0, tablet:0 };
+                  ds.forEach(d => { const s=d.deviceStats||{}; t.mobile+=s.mobile||0; t.desktop+=s.desktop||0; t.tablet+=s.tablet||0; });
+                  return t;
+              };
+              const mergeCity = (ds) => {
                   const t = {};
-                  days.forEach(d => {
-                      // ئەگەر فایلی جیاوازی هەیە، لێی بخوێنە
-                      if (d.fileJson && fs.existsSync(d.fileJson)) {
-                          try {
-                              const fd = JSON.parse(fs.readFileSync(d.fileJson, "utf8"));
-                              Object.entries(fd.clicks||{}).forEach(([k,v])=>{ t[k]=(t[k]||0)+v; });
-                              return;
-                          } catch(e) {}
-                      }
-                      // وەکو پشتگیری: لە index.json
-                      Object.entries(d.clicks||{}).forEach(([k,v])=>{ t[k]=(t[k]||0)+v; });
-                  });
+                  ds.forEach(d => { Object.entries(d.cityStats||{}).forEach(([c,n])=>{ t[c]=(t[c]||0)+n; }); });
+                  return t;
+              };
+              const mergeClicks = (ds) => {
+                  const t = {};
+                  ds.forEach(d => { Object.entries(d.clicks||{}).forEach(([k,v])=>{ t[k]=(t[k]||0)+v; }); });
                   return t;
               };
 
@@ -109,8 +92,8 @@ jobs:
                   month:       monthLabel,
                   period:      `${monthStart}_${monthEnd}`,
                   generatedAt: now.toISOString(),
-                  totalVisits: monthDays.reduce((s,d) => s + (d.totalVisits||0), 0),
-                  totalClicks: monthDays.reduce((s,d) => s + (d.totalClicks||0), 0),
+                  totalVisits: monthDays.reduce((s,d) => s+(d.totalVisits||0), 0),
+                  totalClicks: monthDays.reduce((s,d) => s+(d.totalClicks||0), 0),
                   deviceStats: mergeDevice(monthDays),
                   cityStats:   mergeCity(monthDays),
                   clicks:      mergeClicks(monthDays),
@@ -121,14 +104,14 @@ jobs:
                   }))
               };
 
-              const mPath = `archives/monthly_${monthStart}_${monthEnd}.json`;
+              const mPath = `archives/monthly_${monthLabel}.json`;
               fs.writeFileSync(mPath, JSON.stringify(mData, null, 2), "utf8");
 
               // نوێکردنەوەی monthly_index.json
               const mIdxPath = "archives/monthly_index.json";
               let mIdx = [];
               try { const _m = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); mIdx = Array.isArray(_m) ? _m : []; } catch(e) {}
-              mIdx = mIdx.filter(x => x.period !== mData.period);
+              mIdx = mIdx.filter(x => x.month !== mData.month);
               mIdx.unshift({
                   month:       mData.month,
                   period:      mData.period,
@@ -139,7 +122,14 @@ jobs:
                   file:        mPath
               });
               fs.writeFileSync(mIdxPath, JSON.stringify(mIdx, null, 2), "utf8");
-              console.log(`✅ مانگانە: ${monthStart} → ${monthEnd} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان)`);
+              console.log(`✅ مانگانە: ${monthLabel} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان)`);
+
+              // سفرکردنەوەی داتای ناو daily_current.json — فایلەکە نەسرێتەوە
+              current.days = [];
+              current.month = todayStr.slice(0, 7);
+              current.updatedAt = now.toISOString();
+              fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
+              console.log("✅ daily_current.json سفر بووەوە — ئامادەی مانگی نوێ");
           } else {
               console.log("⚠️ هیچ داتایەکی مانگانە نەدۆزراوەتەوە");
           }
@@ -155,28 +145,21 @@ jobs:
           const lastYear = now.getUTCFullYear() - 1;
           console.log(`📅 دروستکردنی ئەرشیفی ساڵانەی ${lastYear}...`);
 
-          // خوێندنەوەی monthly_index.json
           const mIdxPath = "archives/monthly_index.json";
           let mIdx = [];
           try { const _m = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); mIdx = Array.isArray(_m) ? _m : []; } catch(e) {}
 
-          // فیلتەرکردنی فایلەکانی مانگانەی ساڵی ڕابردوو
-          const yearMonths = mIdx.filter(x => {
-              const p = x.period || x.month || "";
-              return p.startsWith(String(lastYear));
-          });
+          const yearMonths = mIdx.filter(x => (x.month||"").startsWith(String(lastYear)));
 
-          if (yearMonths.length === 0) {
+          if (!yearMonths.length) {
               console.log(`⚠️ هیچ فایلی مانگانەیەک بۆ ${lastYear} نەدۆزراوەتەوە`);
               process.exit(0);
           }
 
-          // کۆکردنەوەی داتاکانی هەموو مانگەکان
           const allDays = [];
           yearMonths.forEach(m => { (m.days||[]).forEach(d => allDays.push(d)); });
           allDays.sort((a,b) => (a.date||"").localeCompare(b.date||""));
 
-          // کۆکردنەوەی deviceStats و cityStats و clicks لە فایلەکانی مانگانە
           const yDevice = { mobile:0, desktop:0, tablet:0 };
           const yCity   = {};
           const yClicks = {};
@@ -198,8 +181,8 @@ jobs:
               type:        "yearly",
               year:        String(lastYear),
               generatedAt: now.toISOString(),
-              totalVisits: allDays.reduce((s,d) => s + (d.visits||0), 0),
-              totalClicks: allDays.reduce((s,d) => s + (d.clicks||0), 0),
+              totalVisits: allDays.reduce((s,d) => s+(d.visits||0), 0),
+              totalClicks: allDays.reduce((s,d) => s+(d.clicks||0), 0),
               deviceStats: yDevice,
               cityStats:   yCity,
               clicks:      yClicks,
@@ -215,7 +198,6 @@ jobs:
           const yPath = `archives/yearly_${lastYear}.json`;
           fs.writeFileSync(yPath, JSON.stringify(yData, null, 2), "utf8");
 
-          // نوێکردنەوەی yearly_index.json
           const yIdxPath = "archives/yearly_index.json";
           let yIdx = [];
           try { const _y = JSON.parse(fs.readFileSync(yIdxPath, "utf8")); yIdx = Array.isArray(_y) ? _y : []; } catch(e) {}
@@ -230,24 +212,7 @@ jobs:
           });
           fs.writeFileSync(yIdxPath, JSON.stringify(yIdx, null, 2), "utf8");
           console.log(`✅ ساڵانە ${lastYear}: ${yData.totalVisits} سەردان، ${yearMonths.length} مانگ`);
-
-          // سرینەوەی فایلەکانی مانگانەی ئەو ساڵ
-          let deletedCount = 0;
-          yearMonths.forEach(m => {
-              if (m.file && fs.existsSync(m.file)) {
-                  fs.unlinkSync(m.file);
-                  deletedCount++;
-                  console.log("🗑️ سرا:", m.file);
-              }
-          });
-
-          // نوێکردنەوەی monthly_index.json — سرینەوەی ئەو مانگانەی ساڵی ڕابردوو
-          const mIdxUpdated = mIdx.filter(x => {
-              const p = x.period || x.month || "";
-              return !p.startsWith(String(lastYear));
-          });
-          fs.writeFileSync(mIdxPath, JSON.stringify(mIdxUpdated, null, 2), "utf8");
-          console.log(`✅ ${deletedCount} فایلی مانگانە سرا، monthly_index.json نوێکرایەوە`);
+          console.log("✅ فایلەکانی مانگانە نەسرێنەوە — بەردەوام بمێنن");
           JSEOF
 
       - name: 📤 Commit

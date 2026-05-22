@@ -889,7 +889,6 @@ function loadArchiveList() {
                     '<div class="archive-meta">' +
                         '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +
                         '<span><i class="fas fa-mouse-pointer"></i> '+(a.totalClicks||0)+' کلیک</span>' +
-                        '<span><i class="fas fa-sun"></i> '+(a.days||[]).length+' رۆژ</span>' +
                     '</div>' +
                 '</div>';
             });
@@ -1116,7 +1115,6 @@ function showArchiveChart(type, item) {
         '<div class="sc-summary">' +
           '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumV+'</strong></span>' +
           '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumC+'</strong></span>' +
-          '<span><i class="fas fa-sun"></i> رۆژ: <strong>'+n+'</strong></span>' +
         '</div>' +
         '<div class="sc-chart-wrap"><svg width="'+svgW+'" height="'+svgH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svg+'</svg></div>' +
         '<div class="sc-legend"><span class="sc-leg-v"><span class="sc-dot" style="background:#42a5f5"></span>سەردان</span><span class="sc-leg-c"><span class="sc-dot" style="background:#4caf50"></span>کلیک</span></div>';

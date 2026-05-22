@@ -1393,11 +1393,11 @@ function renderStatsPeriod(period) {
 
     var n    = data.length;
     var svgW = Math.max(n * 44 + 60, 400);
-    var svgH = 200;
+    var svgH = 214;
     var padL = 42;
     var padR = 12;
     var padT = 16;
-    var padB = 44;
+    var padB = 58;
     var chartH = svgH - padT - padB;
     var chartW = svgW - padL - padR;
     var barW   = Math.min(13, (chartW / n) - 5);
@@ -1440,8 +1440,12 @@ function renderStatsPeriod(period) {
         var raw = d[labelKey] || "";
         var lbl = "";
         if (period === "daily") {
-            var p = raw.split("-");
+            var p = raw.replace(" ★","").split("-");
+            var kurdishDaysS = ["یەکشەممە","دووشەممە","سێشەممە","چوارشەممە","پێنجشەممە","هەینی","شەممە"];
+            var rawClean = raw.replace(" ★","");
+            var dayNameS = rawClean ? kurdishDaysS[new Date(rawClean).getDay()] : "";
             lbl = (p[2]||"") + "/" + (p[1]||"");
+            svg += '<text x="'+cx+'" y="'+(svgH-padB+26)+'" text-anchor="middle" font-size="9" fill="'+lblClr+'" opacity="0.75">'+dayNameS+'</text>';
         } else if (period === "weekly") {
             var ws = (raw.split("_")[0]||"").split("-");
             var we = (raw.split("_")[1]||"").split("-");

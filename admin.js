@@ -1373,8 +1373,14 @@ function renderStatsPeriod(period) {
         return;
     }
 
-    var sumVisits = data.reduce(function(s,d){ return s+(d.totalVisits||0); },0);
-    var sumClicks = data.reduce(function(s,d){ return s+(d.totalClicks||0); },0);
+    // کۆی گشتی لە هەموو ئەرشیفکراوەکان — نەک تەنها ئەوەی لە چارتەکەدا دیاردەکرێت
+    var _fullIndex = (period === "daily") ? (_archiveIndex||[])
+                   : (period === "weekly") ? (_weeklyIndex||[])
+                   : (period === "yearly") ? (_yearlyIndex||[])
+                   : (_monthlyIndex||[]);
+    var sumVisits = _fullIndex.reduce(function(s,d){ return s+(d.totalVisits||0); },0);
+    var sumClicks = _fullIndex.reduce(function(s,d){ return s+(d.totalClicks||0); },0);
+    var _fullN    = _fullIndex.length || 1;
     var maxV = Math.max.apply(null, data.map(function(d){ return d.totalVisits||0; })) || 1;
     var maxC = Math.max.apply(null, data.map(function(d){ return d.totalClicks||0; })) || 1;
     var maxVal = Math.max(maxV, maxC);
@@ -1465,7 +1471,7 @@ function renderStatsPeriod(period) {
         '<div class="sc-summary">' +
           '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumVisits+'</strong></span>' +
           '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumClicks+'</strong></span>' +
-          '<span><i class="fas fa-chart-line"></i> تێکرا/رۆژ: <strong>'+Math.round(sumVisits/(n||1))+'</strong></span>' +
+          '<span><i class="fas fa-chart-line"></i> تێکرا/رۆژ: <strong>'+Math.round(sumVisits/(_fullN||1))+'</strong></span>' +
         '</div>' +
         '<div class="sc-chart-wrap">'+fullSVG+'</div>' +
         '<div class="sc-legend">' +

@@ -1411,7 +1411,7 @@ function renderYearlyView(selectedYear) {
         var badge = y._live ? ' <span style="font-size:10px;background:#fff3cd;color:#856404;padding:1px 6px;border-radius:8px;margin-right:4px">جاری</span>' : '';
         var rowBg = isDark2 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)';
         var rowBorder = isDark2 ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)';
-        html += '<div onclick="renderYearlyView(''+y.year+'')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:10px;background:'+rowBg+';border:1px solid '+rowBorder+';">' +
+        html += '<div onclick="renderYearlyView(\'' + y.year + '\')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:10px;background:' + rowBg + ';border:1px solid ' + rowBorder + ';">' +
             '<span style="font-size:1.1em;font-weight:bold"><i class="fas fa-calendar" style="color:#42a5f5;margin-left:6px"></i>'+y.year+badge+'</span>' +
             '<span style="display:flex;gap:16px;font-size:0.9em;opacity:0.8">' +
                 '<span><i class="fas fa-globe" style="color:#42a5f5"></i> '+(y.totalVisits||0)+'</span>' +

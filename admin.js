@@ -1302,6 +1302,129 @@ var _monthlyIndex = null;
 var _yearlyIndex  = null;
 var _statsPeriod  = "daily";
 
+function renderYearlyView(selectedYear) {
+    var wrap = document.getElementById("statsChartsWrap");
+    if (!wrap) return;
+
+    var years = _yearlyIndex || [];
+
+    // ئەگەر ساڵی ئێستا لە yearly_index نییە، لە monthly_index دروستی دەکەین
+    var currentYear = String(new Date().getFullYear());
+    var hasCurrentYear = years.some(function(y){ return y.year === currentYear; });
+    var allYears = years.slice();
+    if (!hasCurrentYear && (_monthlyIndex||[]).length) {
+        var cyMonths = (_monthlyIndex||[]).filter(function(m){
+            return (m.period||m.month||"").startsWith(currentYear);
+        });
+        if (cyMonths.length) {
+            var cyVisits = cyMonths.reduce(function(s,m){ return s+(m.totalVisits||0); }, 0);
+            var cyClicks = cyMonths.reduce(function(s,m){ return s+(m.totalClicks||0); }, 0);
+            allYears = [{ year: currentYear, totalVisits: cyVisits, totalClicks: cyClicks, months: cyMonths, _live: true }].concat(allYears);
+        }
+    }
+
+    if (!allYears.length) {
+        wrap.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا داتایەک نییە</div>';
+        return;
+    }
+
+    if (selectedYear) {
+        var yEntry = allYears.find(function(y){ return y.year === selectedYear; });
+        if (!yEntry) return;
+        var months = yEntry.months || [];
+        if (!months.length) {
+            wrap.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هیچ مانگێک بۆ ' + selectedYear + ' نەدۆزراوەتەوە</div>';
+            return;
+        }
+        var isDark = document.body.classList.contains("dark-mode");
+        var gridClr = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
+        var axisClr = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)";
+        var numClr  = isDark ? "#777" : "#aaa";
+        var lblClr  = isDark ? "#999" : "#777";
+        var sumV = months.reduce(function(s,m){ return s+(m.totalVisits||m.visits||0); }, 0);
+        var sumC = months.reduce(function(s,m){ return s+(m.totalClicks||m.clicks||0); }, 0);
+        var maxV = Math.max.apply(null, months.map(function(m){ return m.totalVisits||m.visits||0; })) || 1;
+        var maxC = Math.max.apply(null, months.map(function(m){ return m.totalClicks||m.clicks||0; })) || 1;
+        var chartMax = Math.max(maxV, maxC);
+        function niceMax(v){ if(v<=5)return 5;if(v<=10)return 10;if(v<=20)return 20;if(v<=50)return 50;var mag=Math.pow(10,Math.floor(Math.log10(v)));return Math.ceil(v/mag)*mag; }
+        chartMax = niceMax(chartMax);
+        var n = months.length;
+        var svgW = Math.max(n * 55 + 60, 400);
+        var svgH = 214, padL=42, padR=12, padT=16, padB=58;
+        var chartH = svgH-padT-padB, chartW = svgW-padL-padR;
+        var barW = Math.min(16, (chartW/n)-6), colW = chartW/n;
+        var GRID = 4, svg = "";
+        var kurdishMonths = ["","کانوونی دووەم","شوبات","ئازار","نیسان","ئایار","حوزەیران","تەممووز","ئاب","ئەیلوول","تشرینی یەکەم","تشرینی دووەم","کانوونی یەکەم"];
+        for(var g=0;g<=GRID;g++){
+            var gVal=Math.round(chartMax*g/GRID);
+            var gy=padT+chartH-Math.round(chartH*g/GRID);
+            svg+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(svgW-padR)+'" y2="'+gy+'" stroke="'+gridClr+'" stroke-width="1"/>';
+            svg+='<text x="'+(padL-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+numClr+'">'+gVal+'</text>';
+        }
+        months.forEach(function(m, i){
+            var visits = m.totalVisits||m.visits||0;
+            var clicks = m.totalClicks||m.clicks||0;
+            var cx = padL + i*colW + colW/2;
+            var hV = Math.max(2, Math.round(chartH*visits/chartMax));
+            var hC = Math.max(2, Math.round(chartH*clicks/chartMax));
+            var yV = padT+chartH-hV, yC = padT+chartH-hC;
+            svg+='<rect x="'+(cx-barW-1)+'" y="'+yV+'" width="'+barW+'" height="'+hV+'" rx="3" fill="#42a5f5" opacity="0.88"><title>سەردان: '+visits+'</title></rect>';
+            svg+='<rect x="'+(cx+1)+'" y="'+yC+'" width="'+barW+'" height="'+hC+'" rx="3" fill="#4caf50" opacity="0.88"><title>کلیک: '+clicks+'</title></rect>';
+            if(hV>14) svg+='<text x="'+(cx-barW/2-1)+'" y="'+(yV-3)+'" text-anchor="middle" font-size="9" fill="#42a5f5" font-weight="bold">'+visits+'</text>';
+            if(hC>14) svg+='<text x="'+(cx+barW/2+1)+'" y="'+(yC-3)+'" text-anchor="middle" font-size="9" fill="#4caf50" font-weight="bold">'+clicks+'</text>';
+            var mp = (m.period||m.month||"").split("-");
+            var mNum = +(mp[1]||0);
+            var lbl = kurdishMonths[mNum] || (mp[1]||"");
+            svg+='<text x="'+cx+'" y="'+(svgH-padB+14)+'" text-anchor="middle" font-size="9" fill="'+lblClr+'">'+lbl+'</text>';
+        });
+        svg+='<line x1="'+padL+'" y1="'+(padT+chartH)+'" x2="'+(svgW-padR)+'" y2="'+(padT+chartH)+'" stroke="'+axisClr+'" stroke-width="1.5"/>';
+        wrap.innerHTML =
+            '<div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">' +
+              '<button onclick="renderYearlyView()" class="add-btn" style="font-size:12px;padding:4px 12px">← بەربێدەوە</button>' +
+              '<strong>' + selectedYear + '</strong>' +
+            '</div>' +
+            '<div class="sc-summary">' +
+              '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumV+'</strong></span>' +
+              '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumC+'</strong></span>' +
+              '<span><i class="fas fa-calendar-alt"></i> ژمارەی مانگ: <strong>'+n+'</strong></span>' +
+            '</div>' +
+            '<div class="sc-chart-wrap"><svg width="'+svgW+'" height="'+svgH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svg+'</svg></div>' +
+            '<div class="sc-legend">' +
+              '<span class="sc-leg-v"><span class="sc-dot" style="background:#42a5f5"></span> سەردان</span>' +
+              '<span class="sc-leg-c"><span class="sc-dot" style="background:#4caf50"></span> کلیک</span>' +
+            '</div>';
+        return;
+    }
+
+    // نیشاندانی لیستی ساڵەکان
+    var isDark2 = document.body.classList.contains("dark-mode");
+    var totalV = allYears.reduce(function(s,y){return s+(y.totalVisits||0);},0);
+    var totalC = allYears.reduce(function(s,y){return s+(y.totalClicks||0);},0);
+    var html = '<div class="sc-summary">' +
+        '<span><i class="fas fa-calendar"></i> ژمارەی ساڵ: <strong>'+allYears.length+'</strong></span>' +
+        '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+totalV+'</strong></span>' +
+        '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+totalC+'</strong></span>' +
+    '</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">';
+    allYears.forEach(function(y){
+        var mCount = (y.months||[]).length;
+        var badge = y._live ? ' <span style="font-size:10px;background:#fff3cd;color:#856404;padding:1px 6px;border-radius:8px;margin-right:4px">جاری</span>' : '';
+        var rowBg = isDark2 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)';
+        var rowBorder = isDark2 ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)';
+        html += '<div onclick="renderYearlyView(''+y.year+'')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:10px;background:'+rowBg+';border:1px solid '+rowBorder+';">' +
+            '<span style="font-size:1.1em;font-weight:bold"><i class="fas fa-calendar" style="color:#42a5f5;margin-left:6px"></i>'+y.year+badge+'</span>' +
+            '<span style="display:flex;gap:16px;font-size:0.9em;opacity:0.8">' +
+                '<span><i class="fas fa-globe" style="color:#42a5f5"></i> '+(y.totalVisits||0)+'</span>' +
+                '<span><i class="fas fa-mouse-pointer" style="color:#4caf50"></i> '+(y.totalClicks||0)+'</span>' +
+                '<span><i class="fas fa-calendar-alt" style="color:#888"></i> '+mCount+' مانگ</span>' +
+            '</span>' +
+            '<i class="fas fa-chevron-left" style="opacity:0.4"></i>' +
+        '</div>';
+    });
+    html += '</div>';
+    wrap.innerHTML = html;
+}
+
 function loadStatsCharts() {
     var wrap = document.getElementById("statsChartsWrap");
     if (!wrap) return;
@@ -1361,8 +1484,8 @@ function renderStatsPeriod(period) {
         data = (_weeklyIndex||[]).slice(0,12).reverse();
         labelKey = "week";
     } else if (period === "yearly") {
-        data = (_yearlyIndex||[]).slice(0,10).reverse();
-        labelKey = "year";
+        renderYearlyView();
+        return;
     } else {
         data = (_monthlyIndex||[]).slice(0,12).reverse();
         labelKey = "month";

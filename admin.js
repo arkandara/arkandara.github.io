@@ -812,13 +812,13 @@ function loadArchiveList() {
     var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
 
     Promise.all([
-        fetch(base + "index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+        fetch(base + "daily_current.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
         fetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch(base + "monthly_archive.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
         fetch(base + "yearly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch("/track").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
     ]).then(function(results) {
-        var daily   = results[0] || [];
+        var daily   = (results[0] && results[0].days) ? results[0].days.slice().reverse() : [];
         var weekly  = results[1] || [];
         var monthly = (results[2] && results[2].months) ? results[2].months.slice().reverse() : [];
         var yearly  = results[3] || [];
@@ -1457,13 +1457,13 @@ function loadStatsCharts() {
     var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
 
     Promise.all([
-        fetch(base + "index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        fetch(base + "daily_current.json").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; }),
         fetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch(base + "monthly_archive.json").then(function(r){ return r.ok?r.json():{months:[]}; }).catch(function(){ return {months:[]}; }),
         fetch(base + "yearly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch("/track").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
     ]).then(function(results) {
-        var archived = results[0] || [];
+        var archived = (results[0] && results[0].days) ? results[0].days.slice().reverse() : [];
         _weeklyIndex  = results[1];
         _monthlyIndex = (results[2] && results[2].months) ? results[2].months.slice().reverse() : [];
         _yearlyIndex  = results[3];

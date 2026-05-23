@@ -2,14 +2,13 @@
 #  .github/workflows/archive-stats.yml
 #
 #  مانگانە : ١ی هەر مانگ 21:40 UTC = 12:40 AM عێراق
-#            ١. داتای daily_current.json کۆدەکاتەوە بۆ فایلی مانگانە
-#            ٢. داتای ناو daily_current.json سفر دەبێتەوە (فایلەکە نەسرێتەوە)
-#            ٣. monthly_index.json نوێدەکاتەوە
+#            ١. داتای daily_current.json کۆدەکاتەوە
+#            ٢. زیادی دەکرێت بۆ archives/monthly_archive.json
+#            ٣. daily_current.json سفر دەبێتەوە
 #
 #  ساڵانە  : ١ی ١ی هەر ساڵ 21:50 UTC = 12:50 AM عێراق
-#            ١. فایلی ساڵانە لە فایلەکانی مانگانەی ئەو ساڵ دروست دەکات
-#            ٢. فایلەکانی مانگانە نەسرێنەوە
-#            ٣. yearly_index.json نوێدەکاتەوە
+#            ١. فایلی ساڵانە لە monthly_archive.json دروست دەکات
+#            ٢. yearly_index.json نوێدەکاتەوە
 # ============================================================
 
 name: 📦 ئەرشیفی مانگانە و ساڵانە
@@ -47,7 +46,8 @@ jobs:
           // ================================
           // مانگانە — لە daily_current.json
           // ================================
-          const currentPath = "archives/daily_current.json";
+          const currentPath  = "archives/daily_current.json";
+          const archivePath  = "archives/monthly_archive.json";
 
           if (!fs.existsSync(currentPath)) {
               console.log("⚠️ daily_current.json نییە");
@@ -88,9 +88,7 @@ jobs:
               };
 
               const mData = {
-                  type:        "monthly",
                   month:       monthLabel,
-                  period:      `${monthStart}_${monthEnd}`,
                   generatedAt: now.toISOString(),
                   totalVisits: monthDays.reduce((s,d) => s+(d.totalVisits||0), 0),
                   totalClicks: monthDays.reduce((s,d) => s+(d.totalClicks||0), 0),
@@ -104,25 +102,18 @@ jobs:
                   }))
               };
 
-              const mPath = `archives/monthly_${monthLabel}.json`;
-              fs.writeFileSync(mPath, JSON.stringify(mData, null, 2), "utf8");
+              // خوێندنەوەی monthly_archive.json و زیادکردنی مانگی نوێ
+              let archive = { months: [] };
+              try { archive = JSON.parse(fs.readFileSync(archivePath, "utf8")); } catch(e) {}
+              if (!Array.isArray(archive.months)) archive.months = [];
 
-              // نوێکردنەوەی monthly_index.json
-              const mIdxPath = "archives/monthly_index.json";
-              let mIdx = [];
-              try { const _m = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); mIdx = Array.isArray(_m) ? _m : []; } catch(e) {}
-              mIdx = mIdx.filter(x => x.month !== mData.month);
-              mIdx.unshift({
-                  month:       mData.month,
-                  period:      mData.period,
-                  generatedAt: mData.generatedAt,
-                  totalVisits: mData.totalVisits,
-                  totalClicks: mData.totalClicks,
-                  days:        mData.days,
-                  file:        mPath
-              });
-              fs.writeFileSync(mIdxPath, JSON.stringify(mIdx, null, 2), "utf8");
-              console.log(`✅ مانگانە: ${monthLabel} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان)`);
+              // سڕینەوەی ئەگەر پێشتر هەمان مانگ هەبووە، دواتر زیادکردن
+              archive.months = archive.months.filter(m => m.month !== mData.month);
+              archive.months.push(mData);
+              archive.months.sort((a,b) => a.month.localeCompare(b.month));
+
+              fs.writeFileSync(archivePath, JSON.stringify(archive, null, 2), "utf8");
+              console.log(`✅ مانگانە: ${monthLabel} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان) → monthly_archive.json`);
 
               // سفرکردنەوەی داتای ناو daily_current.json — فایلەکە نەسرێتەوە
               current.days = [];
@@ -145,14 +136,12 @@ jobs:
           const lastYear = now.getUTCFullYear() - 1;
           console.log(`📅 دروستکردنی ئەرشیفی ساڵانەی ${lastYear}...`);
 
-          const mIdxPath = "archives/monthly_index.json";
-          let mIdx = [];
-          try { const _m = JSON.parse(fs.readFileSync(mIdxPath, "utf8")); mIdx = Array.isArray(_m) ? _m : []; } catch(e) {}
-
-          const yearMonths = mIdx.filter(x => (x.month||"").startsWith(String(lastYear)));
+          let archive2 = { months: [] };
+          try { archive2 = JSON.parse(fs.readFileSync(archivePath, "utf8")); } catch(e) {}
+          const yearMonths = (archive2.months||[]).filter(m => (m.month||"").startsWith(String(lastYear)));
 
           if (!yearMonths.length) {
-              console.log(`⚠️ هیچ فایلی مانگانەیەک بۆ ${lastYear} نەدۆزراوەتەوە`);
+              console.log(`⚠️ هیچ مانگێک بۆ ${lastYear} لە monthly_archive.json نەدۆزراوەتەوە`);
               process.exit(0);
           }
 
@@ -164,17 +153,12 @@ jobs:
           const yCity   = {};
           const yClicks = {};
           yearMonths.forEach(m => {
-              if (m.file && fs.existsSync(m.file)) {
-                  try {
-                      const mf = JSON.parse(fs.readFileSync(m.file, "utf8"));
-                      const ds = mf.deviceStats || {};
-                      yDevice.mobile  += ds.mobile  || 0;
-                      yDevice.desktop += ds.desktop || 0;
-                      yDevice.tablet  += ds.tablet  || 0;
-                      Object.entries(mf.cityStats||{}).forEach(([c,n])=>{ yCity[c]=(yCity[c]||0)+n; });
-                      Object.entries(mf.clicks   ||{}).forEach(([k,v])=>{ yClicks[k]=(yClicks[k]||0)+v; });
-                  } catch(e) {}
-              }
+              const ds = m.deviceStats || {};
+              yDevice.mobile  += ds.mobile  || 0;
+              yDevice.desktop += ds.desktop || 0;
+              yDevice.tablet  += ds.tablet  || 0;
+              Object.entries(m.cityStats||{}).forEach(([c,n])=>{ yCity[c]=(yCity[c]||0)+n; });
+              Object.entries(m.clicks   ||{}).forEach(([k,v])=>{ yClicks[k]=(yClicks[k]||0)+v; });
           });
 
           const yData = {
@@ -188,7 +172,6 @@ jobs:
               clicks:      yClicks,
               months: yearMonths.map(m => ({
                   month:  m.month,
-                  period: m.period,
                   visits: m.totalVisits || 0,
                   clicks: m.totalClicks || 0
               })),
@@ -212,7 +195,6 @@ jobs:
           });
           fs.writeFileSync(yIdxPath, JSON.stringify(yIdx, null, 2), "utf8");
           console.log(`✅ ساڵانە ${lastYear}: ${yData.totalVisits} سەردان، ${yearMonths.length} مانگ`);
-          console.log("✅ فایلەکانی مانگانە نەسرێنەوە — بەردەوام بمێنن");
           JSEOF
 
       - name: 📤 Commit

@@ -952,19 +952,9 @@ function showArchiveChart(type, item) {
         title.textContent = (dp[2]||"") + "/" + (dp[1]||"") + "/" + (dp[0]||"");
         area.style.display = "block";
 
-        // ئەگەر fileJson هەیە، فایلەکە بخوێنەوە
-        var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
-        var jsonFile = item.fileJson ? item.fileJson.replace("archives/","") : ("daily_" + (item.date||"").replace(" ★","") + ".json");
-
-        inner.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> بارکردن...</div>';
-
-        fetch(base + jsonFile)
-            .then(function(r){ return r.ok ? r.json() : null; })
-            .then(function(data) {
-                if (!data) {
-                    inner.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> فایلی ئەرشیف نییە</div>';
-                    return;
-                }
+        // ئەگەر داتا ڕاستەوخۆ لە item هەیە (daily_current) — بەبێ فەچ
+        // ئەگەر fileJson هەیە، فایلی جیاوازەکە بخوێنەوە (ئەرشیفی کۆن)
+        function renderDailyChart(data) {
                 var clicks = data.clicks || {};
                 var sorted = Object.entries(clicks).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
                 var maxC   = sorted.length ? sorted[0][1] : 1;
@@ -989,10 +979,29 @@ function showArchiveChart(type, item) {
                     renderDeviceCityMeta(data) +
                     (sorted.length ? '<div style="margin-top:10px;font-size:12px;color:var(--text-muted);margin-bottom:6px;">زۆرترین کلیکەکان:</div>' : '') +
                     barsHTML;
-            })
-            .catch(function(){
-                inner.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردن</div>';
-            });
+        }
+
+        if (!item.fileJson) {
+            // داتا ڕاستەوخۆ لە daily_current.json — بەبێ فەچ
+            renderDailyChart(item);
+        } else {
+            // ئەرشیفی کۆن کە fileJson هەیە
+            var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
+            var jsonFile = item.fileJson.replace("archives/","");
+            inner.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> بارکردن...</div>';
+            fetch(base + jsonFile)
+                .then(function(r){ return r.ok ? r.json() : null; })
+                .then(function(data) {
+                    if (!data) {
+                        inner.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> فایلی ئەرشیف نییە</div>';
+                        return;
+                    }
+                    renderDailyChart(data);
+                })
+                .catch(function(){
+                    inner.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردن</div>';
+                });
+        }
         area.scrollIntoView({behavior:"smooth",block:"nearest"});
         return;
     }

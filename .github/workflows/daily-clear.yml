@@ -133,25 +133,7 @@ jobs:
               fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
               console.log("✅ daily_current.json نوێکرایەوە — رۆژ:", archiveDate, "| کۆی رۆژ:", current.days.length);
 
-              // ---- ٤. نوێکردنەوەی index.json ----
-              const idxPath = "archives/index.json";
-              let idx = [];
-              try { const _i = JSON.parse(fs.readFileSync(idxPath,"utf8")); idx = Array.isArray(_i) ? _i : []; } catch(e) {}
-              idx = idx.filter(x => x.date !== archiveDate);
-              idx.unshift({
-                  date:        archiveDate,
-                  generatedAt: now.toISOString(),
-                  totalVisits,
-                  totalClicks,
-                  totalTextarea,
-                  clicks,
-                  deviceStats,
-                  cityStats
-              });
-              fs.writeFileSync(idxPath, JSON.stringify(idx, null, 2), "utf8");
-              console.log("✅ index.json نوێکرایەوە");
-
-              // ---- ٥. سفرکردنەوەی KV ----
+              // ---- ٤. سفرکردنەوەی KV ----
               console.log("🗑️ سفرکردنەوەی KV...");
               await cfDelete("visits:"    + archiveDate);
               await cfDelete("snapshots:" + archiveDate);

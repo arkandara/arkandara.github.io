@@ -814,13 +814,13 @@ function loadArchiveList() {
     Promise.all([
         fetch(base + "index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-        fetch(base + "monthly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+        fetch(base + "monthly_archive.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
         fetch(base + "yearly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch("/track").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var daily   = results[0] || [];
         var weekly  = results[1] || [];
-        var monthly = results[2] || [];
+        var monthly = (results[2] && results[2].months) ? results[2].months.slice().reverse() : [];
         var yearly  = results[3] || [];
         var liveKV  = results[4] || {};
 
@@ -1058,68 +1058,90 @@ function showArchiveChart(type, item) {
         return;
     }
 
-    var days = item.days || [];
+    // مانگانە: مانگی تەواوبوو = تەنها کۆی ئامار، مانگی ئێستا = چارتی رۆژانە
+    var mp = (item.month||"").split("-");
+    var mNames = ["","کانوونی دووەم","شوبات","ئازار","نیسان","ئایار","حوزەیران","تەممووز","ئاب","ئەیلوول","تشرینی یەکەم","تشرینی دووەم","کانوونی یەکەم"];
+    title.textContent = (mNames[+(mp[1]||0)]||mp[1]) + " " + (mp[0]||"");
 
-    if (type === "weekly") {
-        var wp = (item.week||"").split("_");
-        title.textContent = (wp[0]||"") + " → " + (wp[1]||"");
-    } else {
-        var mp = (item.month||"").split("-");
-        var mNames = ["","کانوونی دووەم","شوبات","ئازار","نیسان","ئایار","حوزەیران","تەممووز","ئاب","ئەیلوول","تشرینی یەکەم","تشرینی دووەم","کانوونی یەکەم"];
-        title.textContent = (mNames[+(mp[1]||0)]||mp[1]) + " " + (mp[0]||"");
+    var thisMonth = new Date().toISOString().slice(0,7);
+    var isCurrentMonth = (item.month === thisMonth);
+
+    if (!isCurrentMonth) {
+        // مانگی تەواوبوو — تەنها کۆی ئامار پیشاندەدرێت
+        inner.innerHTML =
+            '<div class="sc-summary">' +
+              '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+(item.totalVisits||0)+'</strong></span>' +
+              '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+(item.totalClicks||0)+'</strong></span>' +
+            '</div>' +
+            renderDeviceCityMeta(item);
+        area.style.display = "block";
+        area.scrollIntoView({behavior:"smooth",block:"nearest"});
+        return;
     }
 
-    var maxV = Math.max.apply(null, days.map(function(d){ return d.visits||0; })) || 1;
-    var maxC = Math.max.apply(null, days.map(function(d){ return d.clicks||0; })) || 1;
-    var maxVal = Math.max(maxV, maxC);
-
-    function niceMax(v) {
-        if (v<=5) return 5; if (v<=10) return 10; if (v<=20) return 20; if (v<=50) return 50;
-        var mag = Math.pow(10, Math.floor(Math.log10(v)));
-        return Math.ceil(v/mag)*mag;
-    }
-    var chartMax = niceMax(maxVal);
-    var n=days.length, svgW=Math.max(n*44+60,400), svgH=200;
-    var padL=42,padR=12,padT=16,padB=44;
-    var chartH=svgH-padT-padB, chartW=svgW-padL-padR;
-    var barW=Math.min(13,(chartW/n)-5), colW=chartW/n;
-    var isDark=document.body.classList.contains("dark-mode");
-    var gridClr=isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.07)";
-    var axisClr=isDark?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.15)";
-    var numClr=isDark?"#777":"#aaa", lblClr=isDark?"#999":"#777";
-
-    var svg="";
-    for (var g=0;g<=4;g++) {
-        var gVal=Math.round(chartMax*g/4);
-        var gy=padT+chartH-Math.round(chartH*g/4);
-        svg+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(svgW-padR)+'" y2="'+gy+'" stroke="'+gridClr+'" stroke-width="1"/>';
-        svg+='<text x="'+(padL-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+numClr+'">'+gVal+'</text>';
-    }
-    days.forEach(function(d,i) {
-        var visits=d.visits||0, clicks=d.clicks||0;
-        var cx=padL+i*colW+colW/2;
-        var hV=Math.max(2,Math.round(chartH*visits/chartMax));
-        var hC=Math.max(2,Math.round(chartH*clicks/chartMax));
-        var yV=padT+chartH-hV, yC=padT+chartH-hC;
-        svg+='<rect x="'+(cx-barW-1)+'" y="'+yV+'" width="'+barW+'" height="'+hV+'" rx="3" fill="#42a5f5" opacity="0.88"><title>سەردان: '+visits+'</title></rect>';
-        svg+='<rect x="'+(cx+1)+'" y="'+yC+'" width="'+barW+'" height="'+hC+'" rx="3" fill="#4caf50" opacity="0.88"><title>کلیک: '+clicks+'</title></rect>';
-        if (hV>14) svg+='<text x="'+(cx-barW/2-1)+'" y="'+(yV-3)+'" text-anchor="middle" font-size="9" fill="#42a5f5" font-weight="bold">'+visits+'</text>';
-        if (hC>14) svg+='<text x="'+(cx+barW/2+1)+'" y="'+(yC-3)+'" text-anchor="middle" font-size="9" fill="#4caf50" font-weight="bold">'+clicks+'</text>';
-        var dp=(d.date||"").split("-");
-        var lbl=(dp[2]||"")+"/"+(dp[1]||"");
-        svg+='<text x="'+cx+'" y="'+(svgH-padB+14)+'" text-anchor="middle" font-size="10" fill="'+lblClr+'">'+lbl+'</text>';
-    });
-    svg+='<line x1="'+padL+'" y1="'+(padT+chartH)+'" x2="'+(svgW-padR)+'" y2="'+(padT+chartH)+'" stroke="'+axisClr+'" stroke-width="1.5"/>';
-
-    var sumV=days.reduce(function(s,d){return s+(d.visits||0);},0);
-    var sumC=days.reduce(function(s,d){return s+(d.clicks||0);},0);
-    inner.innerHTML =
-        '<div class="sc-summary">' +
-          '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumV+'</strong></span>' +
-          '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumC+'</strong></span>' +
-        '</div>' +
-        '<div class="sc-chart-wrap"><svg width="'+svgW+'" height="'+svgH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svg+'</svg></div>' +
-        '<div class="sc-legend"><span class="sc-leg-v"><span class="sc-dot" style="background:#42a5f5"></span>سەردان</span><span class="sc-leg-c"><span class="sc-dot" style="background:#4caf50"></span>کلیک</span></div>';
+    // مانگی ئێستا — چارتی رۆژانە لە daily_current.json
+    var base2 = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
+    inner.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> بارکردن...</div>';
+    fetch(base2 + "daily_current.json")
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(cur) {
+            var days = (cur && cur.days) ? cur.days : [];
+            if (!days.length) {
+                inner.innerHTML = '<div class="no-data">هیچ داتایەک نییە بۆ مانگی ئێستا</div>';
+                return;
+            }
+            function niceMax(v) {
+                if (v<=5) return 5; if (v<=10) return 10; if (v<=20) return 20; if (v<=50) return 50;
+                var mag = Math.pow(10, Math.floor(Math.log10(v)));
+                return Math.ceil(v/mag)*mag;
+            }
+            var maxV = Math.max.apply(null, days.map(function(d){ return d.totalVisits||0; })) || 1;
+            var maxC = Math.max.apply(null, days.map(function(d){ return d.totalClicks||0; })) || 1;
+            var chartMax = niceMax(Math.max(maxV, maxC));
+            var n=days.length, svgW=Math.max(n*44+60,400), svgH=200;
+            var padL=42,padR=12,padT=16,padB=44;
+            var chartH=svgH-padT-padB, chartW=svgW-padL-padR;
+            var barW=Math.min(13,(chartW/n)-5), colW=chartW/n;
+            var isDark=document.body.classList.contains("dark-mode");
+            var gridClr=isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.07)";
+            var axisClr=isDark?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.15)";
+            var numClr=isDark?"#777":"#aaa", lblClr=isDark?"#999":"#777";
+            var svg="";
+            for (var g=0;g<=4;g++) {
+                var gVal=Math.round(chartMax*g/4);
+                var gy=padT+chartH-Math.round(chartH*g/4);
+                svg+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(svgW-padR)+'" y2="'+gy+'" stroke="'+gridClr+'" stroke-width="1"/>';
+                svg+='<text x="'+(padL-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+numClr+'">'+gVal+'</text>';
+            }
+            days.forEach(function(d,i) {
+                var visits=d.totalVisits||0, clicks=d.totalClicks||0;
+                var cx=padL+i*colW+colW/2;
+                var hV=Math.max(2,Math.round(chartH*visits/chartMax));
+                var hC=Math.max(2,Math.round(chartH*clicks/chartMax));
+                var yV=padT+chartH-hV, yC=padT+chartH-hC;
+                svg+='<rect x="'+(cx-barW-1)+'" y="'+yV+'" width="'+barW+'" height="'+hV+'" rx="3" fill="#42a5f5" opacity="0.88"><title>سەردان: '+visits+'</title></rect>';
+                svg+='<rect x="'+(cx+1)+'" y="'+yC+'" width="'+barW+'" height="'+hC+'" rx="3" fill="#4caf50" opacity="0.88"><title>کلیک: '+clicks+'</title></rect>';
+                if (hV>14) svg+='<text x="'+(cx-barW/2-1)+'" y="'+(yV-3)+'" text-anchor="middle" font-size="9" fill="#42a5f5" font-weight="bold">'+visits+'</text>';
+                if (hC>14) svg+='<text x="'+(cx+barW/2+1)+'" y="'+(yC-3)+'" text-anchor="middle" font-size="9" fill="#4caf50" font-weight="bold">'+clicks+'</text>';
+                var dp=(d.date||"").split("-");
+                var lbl=(dp[2]||"")+"/"+(dp[1]||"");
+                svg+='<text x="'+cx+'" y="'+(svgH-padB+14)+'" text-anchor="middle" font-size="10" fill="'+lblClr+'">'+lbl+'</text>';
+            });
+            svg+='<line x1="'+padL+'" y1="'+(padT+chartH)+'" x2="'+(svgW-padR)+'" y2="'+(padT+chartH)+'" stroke="'+axisClr+'" stroke-width="1.5"/>';
+            var sumV=days.reduce(function(s,d){return s+(d.totalVisits||0);},0);
+            var sumC=days.reduce(function(s,d){return s+(d.totalClicks||0);},0);
+            inner.innerHTML =
+                '<div class="sc-summary">' +
+                  '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumV+'</strong></span>' +
+                  '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumC+'</strong></span>' +
+                  '<span style="font-size:11px;opacity:0.7"><i class="fas fa-info-circle"></i> مانگی ئێستا — هێشتا تەواو نەبووە</span>' +
+                '</div>' +
+                '<div class="sc-chart-wrap"><svg width="'+svgW+'" height="'+svgH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svg+'</svg></div>' +
+                '<div class="sc-legend"><span class="sc-leg-v"><span class="sc-dot" style="background:#42a5f5"></span>سەردان</span><span class="sc-leg-c"><span class="sc-dot" style="background:#4caf50"></span>کلیک</span></div>';
+        })
+        .catch(function() {
+            inner.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردن</div>';
+        });
     area.style.display = "block";
     area.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
@@ -1310,7 +1332,7 @@ function renderYearlyView(selectedYear) {
 
     var years = _yearlyIndex || [];
 
-    // ئەگەر ساڵی ئێستا لە yearly_index نییە، لە monthly_index دروستی دەکەین
+    // ئەگەر ساڵی ئێستا لە yearly_index نییە، لە monthly_archive دروستی دەکەین
     var currentYear = String(new Date().getFullYear());
     var hasCurrentYear = years.some(function(y){ return y.year === currentYear; });
     var allYears = years.slice();
@@ -1437,13 +1459,13 @@ function loadStatsCharts() {
     Promise.all([
         fetch(base + "index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
-        fetch(base + "monthly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        fetch(base + "monthly_archive.json").then(function(r){ return r.ok?r.json():{months:[]}; }).catch(function(){ return {months:[]}; }),
         fetch(base + "yearly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch("/track").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var archived = results[0] || [];
         _weeklyIndex  = results[1];
-        _monthlyIndex = results[2];
+        _monthlyIndex = (results[2] && results[2].months) ? results[2].months.slice().reverse() : [];
         _yearlyIndex  = results[3];
         var kv        = results[4] || {};
 

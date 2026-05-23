@@ -1058,6 +1058,8 @@ function showArchiveChart(type, item) {
         return;
     }
 
+    var days = item.days || [];
+
     if (type === "weekly") {
         var wp = (item.week||"").split("_");
         title.textContent = (wp[0]||"") + " → " + (wp[1]||"");

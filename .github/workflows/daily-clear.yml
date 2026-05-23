@@ -108,8 +108,10 @@ jobs:
               let current = { type: "daily_current", month: thisMonth, updatedAt: "", days: [] };
               if (fs.existsSync(currentPath)) {
                   try { current = JSON.parse(fs.readFileSync(currentPath, "utf8")); } catch(e) {}
-                  // ئەگەر مانگی نوێ دەست پێکرد، سفر بکەرەوە
-                  if (current.month !== thisMonth) {
+                  // ئەگەر مانگی نوێ دەست پێکرد و ئەمرۆ ١ی مانگ نییە، سفر بکەرەوە
+                  // (١ی مانگ: archive-stats لە 21:40 سفر دەکاتەوە — daily-clear پێش ئەوە ناسفرێت)
+                  const isFirstOfMonth = (archiveDate.slice(8) === "01");
+                  if (current.month !== thisMonth && !isFirstOfMonth) {
                       console.log("📅 مانگی نوێ — daily_current.json سفر دەبێتەوە");
                       current = { type: "daily_current", month: thisMonth, updatedAt: "", days: [] };
                   }

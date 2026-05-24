@@ -37,14 +37,16 @@ async function checkAuth(request, env) {
     return false;
 }
 
-// ---- GET: خوێندنەوەی ئامارەکان (بۆ ئەدمین تەنها) ----
+// ---- GET: خوێندنەوەی ئامارەکان ----
 export async function onRequestGet(context) {
     const { env, request } = context;
     const origin = request.headers.get("Origin") || ALLOWED_ORIGIN;
     const CORS = corsHeaders(origin);
 
+    // بەبێ توکن — تەنها forceReload بگەڕێنە (بۆ سایتی سەرەکی)
     if (!await checkAuth(request, env)) {
-        return new Response(JSON.stringify({ error: "مجاز نییە" }), { status: 401, headers: CORS });
+        const forceReload = await env.STATS_DB.get("meta:force_reload");
+        return new Response(JSON.stringify({ forceReload: forceReload || null }), { status: 200, headers: CORS });
     }
 
     try{

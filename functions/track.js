@@ -71,19 +71,8 @@ export async function onRequestGet(context) {
         const settingsRaw = await env.STATS_DB.get("settings:site");
         const settings    = safeJson(settingsRaw, null);
 
-        const kvKeys   = await env.STATS_DB.list({ limit: 1000 });
-        const keyCount = kvKeys.keys.length;
-        const enc      = new TextEncoder();
-        let totalBytes = 0;
-        for (const k of kvKeys.keys) {
-            const val = await env.STATS_DB.get(k.name);
-            if (val) totalBytes += enc.encode(val).length;
-        }
-        const maxBytes = 1024 * 1024 * 1024;
-        const usedMB   = (totalBytes / (1024 * 1024)).toFixed(3);
-        const maxMB    = (maxBytes   / (1024 * 1024)).toFixed(0);
-        const percent  = ((totalBytes / maxBytes) * 100).toFixed(2);
-        const kvUsage  = { keyCount, usedMB, maxMB, percent };
+        // kvUsage: list() لابرا چونکە سنووری ڕۆژانەی Cloudflare تەواو دەکات
+        const kvUsage  = { keyCount: "---", usedMB: "---", maxMB: "1024", percent: "---" };
 
         let recentSessions = [], snapshots = [], textareaToday = [];
         if (full) {

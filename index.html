@@ -3610,6 +3610,23 @@ function akStartSession() {
         });
 }
 
+// ---- پشکینی ریفرێش — هەر ٣٠ چرکە ----
+(function akWatchReload() {
+    var _lastReload = null;
+    setInterval(function() {
+        fetch('/track')
+            .then(function(r){ return r.json(); })
+            .then(function(d) {
+                var flag = d.forceReload || null;
+                if (flag && flag !== _lastReload) {
+                    _lastReload = flag;
+                    window.location.reload();
+                }
+            })
+            .catch(function(){});
+    }, 30000);
+})();
+
 function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
     // utm_source لە URL — زۆر دەقیقتر لە document.referrer
     var utmSource = new URLSearchParams(window.location.search).get('utm_source') || '';

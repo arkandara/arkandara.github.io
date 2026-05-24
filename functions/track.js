@@ -17,10 +17,24 @@ function corsHeaders(origin) {
 }
 
 // ---- بەراستی توکنی Bearer ----
-function checkAuth(request, env) {
+async function checkAuth(request, env) {
     const authHeader = request.headers.get("Authorization") || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    return token === (env.ADMIN_TOKEN || "");
+    if (!token) return false;
+
+    // ١. بەراوردی لەگەڵ ADMIN_TOKEN ی env
+    const adminToken = env.ADMIN_TOKEN || "";
+    if (adminToken && token === adminToken) return true;
+
+    // ٢. ئەگەر ADMIN_TOKEN بەردەست نەبوو — بەراوردی لەگەڵ hash ی پاشەکەوتکراو لە KV
+    const savedHash = await env.STATS_DB.get("settings:admin_pass_hash");
+    if (savedHash && token === savedHash) return true;
+
+    // ٣. بەراوردی لەگەڵ DEFAULT_PASS_HASH ی env
+    const defaultHash = env.DEFAULT_PASS_HASH || "";
+    if (defaultHash && token === defaultHash) return true;
+
+    return false;
 }
 
 // ---- GET: خوێندنەوەی ئامارەکان (بۆ ئەدمین تەنها) ----
@@ -29,11 +43,11 @@ export async function onRequestGet(context) {
     const origin = request.headers.get("Origin") || ALLOWED_ORIGIN;
     const CORS = corsHeaders(origin);
 
-    if (!checkAuth(request, env)) {
+    if (!await checkAuth(request, env)) {
         return new Response(JSON.stringify({ error: "مجاز نییە" }), { status: 401, headers: CORS });
     }
 
-    try {
+    try{
         const url  = new URL(request.url);
         const full = url.searchParams.get("full") === "1";
 
@@ -114,7 +128,7 @@ export async function onRequestPost(context) {
 
         if (!publicTypes.includes(type)) {
             // هەموو typeی تری ئەدمین: پشکنینی توکن پێویستە
-            if (!checkAuth(request, env)) {
+            if (!await checkAuth(request, env)) {
                 return new Response(JSON.stringify({ error: "مجاز نییە" }), { status: 401, headers: CORS });
             }
         }
@@ -276,19 +290,34 @@ export async function onRequestPost(context) {
             const passHash = body.passHash || "";
             if (!passHash || passHash.length !== 64) return bad("hash نادروستە", CORS);
 
-            // خوێندنەوەی hash ی پاشەکەوتکراو
+            // ١. پێشتر لە KV بخوێنەوە
             const savedHash = await env.STATS_DB.get("settings:admin_pass_hash");
-            const defaultHash = env.DEFAULT_PASS_HASH || "";
-            const expected = savedHash || defaultHash;
 
-            if (!expected) return bad("هیچ پاسۆرد دیاری نەکراوە", CORS);
+            // ٢. ئەگەر KV خاڵی بوو، لە env بخوێنەوە
+            const defaultHash = env.DEFAULT_PASS_HASH || "";
+
+            // ٣. ئەگەر هەردووکیان بۆش بوون، هاشەکە بە خۆی لە KV پاشەکەوت بکە (bootstrap)
+            let expected = savedHash || defaultHash;
+
+            if (!expected) {
+                // ئەگەر هیچ hash ی نەبوو — passHash ی داواکراو بە خۆی وەک hash پاشەکەوت بکە
+                // (تەنها یەک جار دەکرێت، bootstrap)
+                await env.STATS_DB.put("settings:admin_pass_hash", passHash);
+                expected = passHash;
+            }
+
             if (passHash !== expected) {
                 return new Response(JSON.stringify({ error: "پاسۆرد هەڵەیە" }), { status: 401, headers: CORS });
             }
 
-            // پاسۆرد ڕاستە — ADMIN_TOKEN بگەڕێنەوە بۆ فرۆنتێند
-            const token = env.ADMIN_TOKEN || "";
-            if (!token) return bad("ADMIN_TOKEN دیاری نەکراوە", CORS);
+            // ئەگەر KV خاڵی بوو و env hash هەبوو — ئێستا لە KV پاشەکەوت بکە بۆ داهاتوو
+            if (!savedHash && defaultHash && passHash === defaultHash) {
+                await env.STATS_DB.put("settings:admin_pass_hash", passHash);
+            }
+
+            // پاسۆرد ڕاستە
+            // ADMIN_TOKEN لە env وەک توکن — ئەگەر نەبوو، passHash خۆی وەک توکن بەکاردێت
+            const token = env.ADMIN_TOKEN || passHash;
             return ok({ success: true, token: token }, CORS);
         }
 

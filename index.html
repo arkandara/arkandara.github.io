@@ -3611,8 +3611,38 @@ function akStartSession() {
 }
 
 function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
-    var ref = document.referrer || '';
-    var referrer = ref ? (ref.includes('google') ? 'Google' : ref.includes('facebook') || ref.includes('fb.') ? 'Facebook' : ref.includes('twitter') || ref.includes('x.com') ? 'Twitter/X' : ref.includes('whatsapp') ? 'WhatsApp' : ref.includes('telegram') ? 'Telegram' : ref.split('/').slice(0,3).join('/')) : 'ڕاستەوخۆ';
+    // utm_source لە URL — زۆر دەقیقتر لە document.referrer
+    var utmSource = new URLSearchParams(window.location.search).get('utm_source') || '';
+    var utmMap = {
+        'facebook': 'Facebook', 'fb': 'Facebook',
+        'twitter': 'Twitter/X', 'x': 'Twitter/X',
+        'telegram': 'Telegram',
+        'whatsapp': 'WhatsApp',
+        'instagram': 'Instagram',
+        'google': 'Google',
+        'youtube': 'YouTube'
+    };
+    var referrer;
+    if (utmSource) {
+        referrer = utmMap[utmSource.toLowerCase()] || utmSource;
+    } else {
+        var ref = document.referrer || '';
+        if (!ref) {
+            referrer = 'ڕاستەوخۆ';
+        } else if (ref.includes('google')) {
+            referrer = 'Google';
+        } else if (ref.includes('facebook') || ref.includes('fb.')) {
+            referrer = 'Facebook';
+        } else if (ref.includes('twitter') || ref.includes('x.com')) {
+            referrer = 'Twitter/X';
+        } else if (ref.includes('instagram')) {
+            referrer = 'Instagram';
+        } else if (ref.includes('youtube')) {
+            referrer = 'YouTube';
+        } else {
+            referrer = ref.split('/').slice(0, 3).join('/');
+        }
+    }
     var timezone = '';
     try { timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e) {}
     fetch('/track', {

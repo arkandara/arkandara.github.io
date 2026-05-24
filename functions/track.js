@@ -110,7 +110,7 @@ export async function onRequestPost(context) {
         const type = body.type || "click";
 
         // ئەم typeانە بێ توکن کار دەکەن (سایتی خۆی دەیان نێردرێت)
-        const publicTypes = ["click", "visit", "textarea", "preview"];
+        const publicTypes = ["click", "visit", "textarea", "preview", "admin_pass_get", "admin_pass_verify"];
 
         if (!publicTypes.includes(type)) {
             // هەموو typeی تری ئەدمین: پشکنینی توکن پێویستە
@@ -270,7 +270,29 @@ export async function onRequestPost(context) {
             return ok({ success: true }, CORS);
         }
 
-        return bad("جۆری نادروست", CORS);
+        // ---- admin_pass_verify: پشکنینی پاسۆرد و گەڕاندنەوەی ADMIN_TOKEN ----
+        // ئەمە بێ توکن کار دەکات چونکە پێش لۆگینە
+        if (type === "admin_pass_verify") {
+            const passHash = body.passHash || "";
+            if (!passHash || passHash.length !== 64) return bad("hash نادروستە", CORS);
+
+            // خوێندنەوەی hash ی پاشەکەوتکراو
+            const savedHash = await env.STATS_DB.get("settings:admin_pass_hash");
+            const defaultHash = env.DEFAULT_PASS_HASH || "";
+            const expected = savedHash || defaultHash;
+
+            if (!expected) return bad("هیچ پاسۆرد دیاری نەکراوە", CORS);
+            if (passHash !== expected) {
+                return new Response(JSON.stringify({ error: "پاسۆرد هەڵەیە" }), { status: 401, headers: CORS });
+            }
+
+            // پاسۆرد ڕاستە — ADMIN_TOKEN بگەڕێنەوە بۆ فرۆنتێند
+            const token = env.ADMIN_TOKEN || "";
+            if (!token) return bad("ADMIN_TOKEN دیاری نەکراوە", CORS);
+            return ok({ success: true, token: token }, CORS);
+        }
+
+                return bad("جۆری نادروست", CORS);
 
     } catch (err) {
         return err500(err, corsHeaders(context.request.headers.get("Origin") || ALLOWED_ORIGIN));

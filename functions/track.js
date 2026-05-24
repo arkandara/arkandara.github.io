@@ -79,7 +79,8 @@ export async function onRequestGet(context) {
             textareaToday = safeJson(txRaw, []);
         }
 
-        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings, kvUsage });
+        const forceReload = await env.STATS_DB.get("meta:force_reload");
+        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings, kvUsage, forceReload });
 
     } catch (err) {
         return err500(err);
@@ -210,6 +211,12 @@ export async function onRequestPost(context) {
             const dayKey = "snapshots:" + isoDate(new Date());
             await env.STATS_DB.put(dayKey, JSON.stringify(snaps), { expirationTtl: 691200 });
             return ok({ success: true, count: snaps.length });
+        }
+
+        // ---- force_reload (ریفرێشکردنی سایت) ----
+        if (type === "force_reload") {
+            await env.STATS_DB.put("meta:force_reload", new Date().toISOString(), { expirationTtl: 300 });
+            return ok({ success: true });
         }
 
         // ---- daily_clear (سفرکردنەوەی ئامارەکان) ----

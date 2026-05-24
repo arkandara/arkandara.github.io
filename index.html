@@ -3613,12 +3613,18 @@ function akStartSession() {
 // ---- پشکینی ریفرێش — هەر ٣٠ چرکە ----
 (function akWatchReload() {
     var _lastReload = null;
+    var _initialized = false;
     setInterval(function() {
         fetch('/track')
             .then(function(r){ return r.json(); })
             .then(function(d) {
                 var flag = d.forceReload || null;
-                if (flag && flag !== _lastReload) {
+                if (!_initialized) {
+                    // یەکەم پشکینەوە — تەنها تۆمار بکە، ریفرێش مەکە
+                    _lastReload = flag;
+                    _initialized = true;
+                } else if (flag && flag !== _lastReload) {
+                    // فلاگی نوێ — ریفرێش بکە
                     _lastReload = flag;
                     window.location.reload();
                 }

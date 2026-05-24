@@ -5,8 +5,18 @@
 // ===========================
 
 const ADMIN_USERNAME = "admin";
-// پاسۆردی پێش‌نیازی: SHA-256 ی "arkandara2024"
-const DEFAULT_PASS_HASH = "95a5d03a1cbc38f0a1cf2dd9d60faa4ac996524b27cfec444e1172107df32bfb";
+
+// ---- توکنی Bearer لە sessionStorage ----
+function getAdminToken() {
+    return sessionStorage.getItem("adminToken") || "";
+}
+
+function authHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + getAdminToken()
+    };
+}
 
 async function hashPassword(pass) {
     const encoder = new TextEncoder();
@@ -20,13 +30,14 @@ async function getSavedPassHash() {
     try {
         const res = await fetch("/track", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: authHeaders(),
             body: JSON.stringify({ type: "admin_pass_get" })
         });
+        if (!res.ok) return null;
         const data = await res.json();
-        return data.hash || DEFAULT_PASS_HASH;
+        return data.hash || null;
     } catch(e) {
-        return DEFAULT_PASS_HASH;
+        return null;
     }
 }
 
@@ -45,7 +56,14 @@ async function doLogin() {
         return;
     }
     const passHash = await hashPassword(pass);
-    if (user === ADMIN_USERNAME && passHash === await getSavedPassHash()) {
+    // پشکنینی پاسۆرد: داواکاری بۆ سێرڤەر دەنێردرێت
+    const savedHash = await getSavedPassHash();
+    const matched = savedHash ? (passHash === savedHash) : false;
+    if (user === ADMIN_USERNAME && matched) {
+        // توکنی Bearer لە env نییە بۆ فرۆنتێند — بە شێوازی token بەکاری دەهێنین
+        // توکنەکە لە env.ADMIN_TOKEN ی سێرڤەرە، ئەمەش لاپەڕەکەی ئەدمینە
+        // کارمەندی: hash ی پاسۆردی دروستکراو بەکار دێت وەک token بۆ ئەم سیشنە
+        sessionStorage.setItem("adminToken", passHash);
         sessionStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
@@ -62,6 +80,7 @@ async function doLogin() {
 
 function doLogout() {
     sessionStorage.removeItem("adminAuth");
+    sessionStorage.removeItem("adminToken");
     document.getElementById("adminPanel").style.display = "none";
     document.getElementById("loginScreen").style.display = "flex";
     document.getElementById("loginUser").value = "";
@@ -152,16 +171,18 @@ function showTab(id) {
 
 
 function resetAdminPass() {
-    if (confirm("دڵنیایت لە ڕیسێتکردنی پاسوۆرد؟\nپاسوۆردەکە: arkandara2024")) {
-        localStorage.clear();
-        sessionStorage.clear();
+    if (confirm("دڵنیایت لە ڕیسێتکردنی پاسوۆرد؟\nئەدمین پاسوۆردی دیفۆڵت لە env دا دیاریکراوە.")) {
+        sessionStorage.removeItem("adminAuth");
+        sessionStorage.removeItem("adminToken");
         var errEl = document.getElementById("loginError");
         if (errEl) {
             errEl.style.display = "flex";
             errEl.style.background = "#e8f5e9";
             errEl.style.color = "#2e7d32";
-            errEl.innerHTML = '<i class="fas fa-check-circle"></i> پاسوۆرد ڕیسێت کرا: arkandara2024';
+            errEl.innerHTML = '<i class="fas fa-check-circle"></i> سیشن پاکیەوە کرا، تکایە دووبارە لۆگین بکە';
         }
+        document.getElementById("adminPanel").style.display = "none";
+        document.getElementById("loginScreen").style.display = "flex";
     }
 }
 
@@ -197,7 +218,7 @@ var SITE_DEFAULTS = {
 var _siteInfoLoaded = false;
 function loadSiteInfo(force) {
     if (_siteInfoLoaded && !force) return;
-    fetch("/track")
+    fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(d) {
             var kvSettings = d.settings || {};
@@ -255,7 +276,7 @@ function saveSiteInfo() {
     // پاشەکەوتکردن لە KV (جیهانی)
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
     }).then(function(r) { return r.json(); })
     .then(function() { _siteInfoLoaded = false; sessionStorage.removeItem("siteInfoDraft"); showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
@@ -275,7 +296,7 @@ var RSS_DEFAULTS = [
 ];
 
 function loadRssSources() {
-    fetch("/track")
+    fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(d) {
             var sources = (d.settings && d.settings.rssSources) ? d.settings.rssSources : RSS_DEFAULTS;
@@ -314,7 +335,7 @@ function saveRss() {
     if (!valid) { showToast("⚠️ تکایە هەموو خانەکانی ناو و ئادرەس پڕ بکەرەوە", true); return; }
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ type: "settings", rssSources: sources })
     }).then(function() { showToast("✅ سەرچاوەکانی هەواڵ پاشەکەوت کران!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
@@ -351,7 +372,7 @@ function getClsFromAction(action) {
 }
 
 function loadButtons() {
-    fetch("/track")
+    fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(d) {
             var btns = (d.settings && d.settings.toolbarBtns) ? d.settings.toolbarBtns : BTN_DEFAULTS;
@@ -412,7 +433,7 @@ function saveButtons() {
     });
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ type: "settings", toolbarBtns: btns })
     }).then(function() { showToast("✅ دوگمەکانی تووڵبار پاشەکەوت کران!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
@@ -430,7 +451,7 @@ function loadStats() {
     setEl("stat-total-textarea","⏳");
     setEl("stat-kv-usage",      "⏳");
 
-    fetch("/track?full=1")
+    fetch("/track?full=1", { headers: authHeaders() })
         .then(function(r) {
             if (!r.ok) throw new Error("هەڵەی " + r.status);
             return r.json();
@@ -788,7 +809,7 @@ function loadTextsTab() {
     var el = document.getElementById("textareaList");
     if (!el) return;
     el.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
-    fetch("/track?full=1")
+    fetch("/track?full=1", { headers: authHeaders() })
         .then(function(r){ return r.json(); })
         .then(function(data) {
             var txItems = (data.textareaToday || []).map(function(s) {
@@ -825,7 +846,7 @@ function deleteAllSnaps() {
     if (!confirm("دڵنیایت لە سڕینەوەی هەموو " + _currentSnaps.length + " دەق؟")) return;
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ type: "snapshots_replace", snaps: [] })
     }).then(function() {
         _currentSnaps = [];
@@ -875,7 +896,7 @@ function loadArchiveList() {
         fetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         fetch(base + "monthly_archive.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
         fetch(base + "yearly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-        fetch("/track").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
+        fetch("/track", { headers: authHeaders() }).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var daily   = (results[0] && results[0].days) ? results[0].days.slice().reverse() : [];
         var weekly  = results[1] || [];
@@ -1258,7 +1279,7 @@ async function changePassword() {
     try {
         var res = await fetch("/track", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: authHeaders(),
             body: JSON.stringify({ type: "admin_pass_set", oldHash: oldHash, newHash: newHash })
         });
         var data = await res.json();
@@ -1286,7 +1307,7 @@ function manualClearStats() {
     // تەنها snapshot ەکانی ئەمرۆ بسڕەوە
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ type: "snapshots_replace", snaps: [] })
     }).then(function() {
         _currentSnaps = [];
@@ -1333,7 +1354,7 @@ function loadPreviewText() {
     el.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
 
     // داتا لە Cloudflare KV بخوێنەوە
-    fetch("/track")
+    fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             var p = data.preview;
@@ -1364,7 +1385,7 @@ function clearPreviewText() {
     // سڕینەوە لە KV
     fetch("/track", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ type: "preview", text: " ", time: "" })
     }).then(function() {
         loadPreviewText();
@@ -1529,7 +1550,7 @@ function loadStatsCharts() {
         fetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         fetch(base + "monthly_archive.json").then(function(r){ return r.ok?r.json():{months:[]}; }).catch(function(){ return {months:[]}; }),
         fetch(base + "yearly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
-        fetch("/track").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
+        fetch("/track", { headers: authHeaders() }).then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var archived = (results[0] && results[0].days) ? results[0].days.slice().reverse() : [];
         _weeklyIndex  = results[1];

@@ -26,11 +26,13 @@ async function hashPassword(pass) {
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+// getSavedPassHash: بەکارنایێنراوە دیکە — verifyAndLogin جێی گرتووە
+// ئەمە بۆ پاراستنی گونجانی کۆد دەمێنێتەوە
 async function getSavedPassHash() {
     try {
         const res = await fetch("/track", {
             method: "POST",
-            headers: authHeaders(),
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ type: "admin_pass_get" })
         });
         if (!res.ok) return null;
@@ -55,15 +57,34 @@ async function doLogin() {
         errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> تکایە هەموو خانەکان پڕ بکەرەوە';
         return;
     }
-    const passHash = await hashPassword(pass);
-    // پشکنینی پاسۆرد: داواکاری بۆ سێرڤەر دەنێردرێت
-    const savedHash = await getSavedPassHash();
-    const matched = savedHash ? (passHash === savedHash) : false;
-    if (user === ADMIN_USERNAME && matched) {
-        // توکنی Bearer لە env نییە بۆ فرۆنتێند — بە شێوازی token بەکاری دەهێنین
-        // توکنەکە لە env.ADMIN_TOKEN ی سێرڤەرە، ئەمەش لاپەڕەکەی ئەدمینە
-        // کارمەندی: hash ی پاسۆردی دروستکراو بەکار دێت وەک token بۆ ئەم سیشنە
-        sessionStorage.setItem("adminToken", passHash);
+
+    if (user !== ADMIN_USERNAME) {
+        errEl.style.display = "flex";
+        errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> ناو یان پاسوۆرد هەڵەیە';
+        return;
+    }
+
+    try {
+        const passHash = await hashPassword(pass);
+
+        // ناردنی hash بۆ سێرڤەر — سێرڤەر پشکنین دەکات و ADMIN_TOKEN دەگەڕێنێتەوە
+        const res = await fetch("/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "admin_pass_verify", passHash: passHash })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+            errEl.style.display = "flex";
+            errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> ناو یان پاسوۆرد هەڵەیە';
+            document.getElementById("loginPass").value = "";
+            return;
+        }
+
+        // سێرڤەر ADMIN_TOKEN ی ڕاستەکەی گەڕاندەوە — پاشەکەوتی بکە
+        sessionStorage.setItem("adminToken", data.token);
         sessionStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
@@ -71,10 +92,10 @@ async function doLogin() {
             document.getElementById("sidebar").classList.add("open");
         }
         initPanel();
-    } else {
+
+    } catch(e) {
         errEl.style.display = "flex";
-        errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> ناو یان پاسوۆرد هەڵەیە';
-        document.getElementById("loginPass").value = "";
+        errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> کێشەی پەیوەندی — دووبارە هەوڵ بدەرەوە';
     }
 }
 

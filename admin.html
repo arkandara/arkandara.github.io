@@ -591,9 +591,31 @@
         <div class="tab-content" id="tab-archive">
             <div class="section-title">
                 <i class="fas fa-archive"></i> ئەرشیفی  ئامارەکان
-                <button class="add-btn" onclick="loadArchiveList()" style="margin-right:auto;">
-                    <i class="fas fa-sync-alt"></i> نوێکردنەوە
-                </button>
+                <div style="margin-right:auto;display:flex;gap:8px;">
+                    <button class="add-btn" onclick="loadArchiveList()">
+                        <i class="fas fa-sync-alt"></i> نوێکردنەوە
+                    </button>
+                    <button class="add-btn" onclick="toggleArchiveTexts()" id="btn-archive-texts" style="background:#f3e5f5;color:#7b1fa2;border:1px solid #ce93d8;">
+                        <i class="fas fa-keyboard"></i> تێکستەکان
+                    </button>
+                </div>
+            </div>
+
+            <!-- پانێڵی تێکستەکان — پەنھانە بە گشتی -->
+            <div id="archiveTextsPanel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-keyboard"></i> دەقەکانی نووسراوی ئەمرۆ
+                        <button class="add-btn" onclick="deleteAllSnaps()" style="background:#ffebee;color:#e53935;border:1px solid #ffcdd2;margin-right:auto;">
+                            <i class="fas fa-trash"></i> سڕینەوەی هەموو
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="textareaList2">
+                            <div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="card">

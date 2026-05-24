@@ -565,6 +565,9 @@ function renderSessions(sessions) {
             if (s.isp) extra += '<div style="font-size:10px;color:#aaa;margin-top:2px;"><i class="fas fa-wifi"></i> ' + escHtml(s.isp) + '</div>';
             if (s.lat && s.lon) extra += '<a href="https://maps.google.com/?q='+s.lat+','+s.lon+'" target="_blank" style="font-size:10px;color:#42a5f5;"><i class="fas fa-map"></i> گووگڵ مەپ</a>';
             if (s.ip && s.ip !== "") extra += '<div style="font-size:10px;color:#ccc;margin-top:1px;direction:ltr;">IP: ' + escHtml(s.ip) + '</div>';
+            if (s.referrer && s.referrer !== "ڕاستەوخۆ") extra += '<div style="font-size:10px;color:#ce93d8;margin-top:1px;"><i class="fas fa-external-link-alt"></i> ' + escHtml(s.referrer) + '</div>';
+            else if (s.referrer === "ڕاستەوخۆ") extra += '<div style="font-size:10px;color:#81c784;margin-top:1px;"><i class="fas fa-link"></i> ڕاستەوخۆ</div>';
+            if (s.timezone) extra += '<div style="font-size:10px;color:#90caf9;margin-top:1px;direction:ltr;"><i class="fas fa-clock"></i> ' + escHtml(s.timezone) + '</div>';
             var dt = new Date(s.time || s.start || "");
             var timeStr = dt.toLocaleDateString("ar-IQ") + " " + dt.toLocaleTimeString("ar-IQ", {hour:"2-digit",minute:"2-digit"});
             var deviceText = escHtml(s.device || "نەناسراو");

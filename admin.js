@@ -147,6 +147,7 @@ function showTab(id) {
     }
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
+    if (id === "tab-texts") loadTextsTab();
 }
 
 
@@ -695,7 +696,7 @@ function renderKvUsage(usage) {
 var _currentSnaps = [];
 function renderSnapshots(snaps) {
     _currentSnaps = snaps || [];
-    var el = document.getElementById("textareaList");
+    var el = document.getElementById("textareaList") || document.getElementById("textareaList2");
     if (!el) return;
 
     if (!snaps || !snaps.length) {
@@ -768,6 +769,42 @@ function renderSnapshots(snaps) {
     }
 }
 
+
+function loadTextsTab() {
+    var el = document.getElementById("textareaList");
+    if (!el) return;
+    el.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
+    fetch("/track?full=1")
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+            var txItems = (data.textareaToday || []).map(function(s) {
+                var methodMap = { 'paste':'پەیستکراوە','Ctrl+V':'Ctrl+V پەیستکراوە','Ctrl+X':'Ctrl+X کەتکرا','کەتکردن':'کەتکرا','Word':'هێنانی Word' };
+                return { time: s.time, label: methodMap[s.method] || s.method || 'پەیستکراوە', length: s.length, text: s.text };
+            });
+            var snapItems = (data.snapshots || []).filter(function(s){ return s.text && s.text.trim().length > 0; });
+            var allTexts = txItems.concat(snapItems).sort(function(a,b){ return new Date(b.time||0)-new Date(a.time||0); });
+            _currentSnaps = allTexts;
+            if (!allTexts.length) {
+                el.innerHTML = '<div class="no-data"><i class="fas fa-info-circle"></i> هێشتا دەقێک تۆمار نەکراوە ئەمرۆ</div>';
+                return;
+            }
+            el.innerHTML = allTexts.map(function(s) {
+                var dt = new Date(s.time || "");
+                var timeStr = dt.toLocaleTimeString("ar-IQ", {hour:"2-digit",minute:"2-digit"});
+                return '<div style="border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;">' +
+                    '<div style="font-size:11px;color:#aaa;margin-bottom:6px;">' +
+                        '<i class="fas fa-clock"></i> ' + timeStr +
+                        (s.label ? ' &nbsp;·&nbsp; <i class="fas fa-tag"></i> ' + escHtml(s.label) : '') +
+                        (s.length ? ' &nbsp;·&nbsp; ' + s.length + ' پیت' : '') +
+                    '</div>' +
+                    '<div style="font-size:13px;line-height:1.8;white-space:pre-wrap;word-break:break-word;">' + escHtml(s.text || "") + '</div>' +
+                '</div>';
+            }).join("");
+        })
+        .catch(function(){
+            el.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردن</div>';
+        });
+}
 
 function deleteAllSnaps() {
     if (!_currentSnaps.length) { showToast("⚠️ هیچ دەقێک نییە", true); return; }

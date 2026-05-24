@@ -815,7 +815,7 @@ function renderSnapshots(snaps) {
 function forceSiteReload() {
     fetch('/track', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ type: 'force_reload' })
     })
     .then(function(r){ return r.json(); })

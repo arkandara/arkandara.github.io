@@ -3610,29 +3610,19 @@ function akStartSession() {
         });
 }
 
-// ---- پشکینی ریفرێش — هەر ٣ چرکە ----
+// ---- ریفرێش — Server-Sent Events ----
 (function akWatchReload() {
-    var _lastReload = null;
-
-    // یەکەم: فلاگی ئێستا وەربگرە بەبێ ریفرێش
-    fetch('/track')
-        .then(function(r){ return r.json(); })
-        .then(function(d){ _lastReload = d.forceReload || null; })
-        .catch(function(){});
-
-    // هەر ٣ چرکە چێک بکە
-    setInterval(function() {
-        fetch('/track')
-            .then(function(r){ return r.json(); })
-            .then(function(d) {
-                var flag = d.forceReload || null;
-                if (flag && flag !== _lastReload) {
-                    _lastReload = flag;
-                    window.location.reload();
-                }
-            })
-            .catch(function(){});
-    }, 3000);
+    function connect() {
+        var es = new EventSource('/reload');
+        es.onmessage = function(e) {
+            if (e.data === 'reload') window.location.reload();
+        };
+        es.onerror = function() {
+            es.close();
+            setTimeout(connect, 5000);
+        };
+    }
+    connect();
 })();
 
 function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {

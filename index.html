@@ -3611,6 +3611,10 @@ function akStartSession() {
 }
 
 function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
+    var ref = document.referrer || '';
+    var referrer = ref ? (ref.includes('google') ? 'Google' : ref.includes('facebook') || ref.includes('fb.') ? 'Facebook' : ref.includes('twitter') || ref.includes('x.com') ? 'Twitter/X' : ref.includes('whatsapp') ? 'WhatsApp' : ref.includes('telegram') ? 'Telegram' : ref.split('/').slice(0,3).join('/')) : 'ڕاستەوخۆ';
+    var timezone = '';
+    try { timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e) {}
     fetch('/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -3625,7 +3629,9 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
             isp:      isp,
             lat:      lat,
             lon:      lon,
-            ip:       ip
+            ip:       ip,
+            referrer: referrer,
+            timezone: timezone
         })
     }).catch(function() {});
 }

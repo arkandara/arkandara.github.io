@@ -4,7 +4,7 @@
       "month": "2026-01",
       "generatedAt": "2026-02-03T21:10:05.300Z",
       "totalVisits": 215,
-      "totalClicks": 480,
+      "totalClicks": 1100,
       "deviceStats": {},
       "cityStats": {},
       "clicks": {},
@@ -29,8 +29,8 @@
     {
       "month": "2026-02",
       "generatedAt": "2026-03-03T20:45:10.550Z",
-      "totalVisits": 298,
-      "totalClicks": 456,
+      "totalVisits": 450,
+      "totalClicks": 1400,
       "deviceStats": {},
       "cityStats": {},
       "clicks": {},
@@ -55,8 +55,8 @@
     {
       "month": "2026-03",
       "generatedAt": "2026-04-03T18:15:20.120Z",
-      "totalVisits": 242,
-      "totalClicks": 410,
+      "totalVisits": 540,
+      "totalClicks": 1600,
       "deviceStats": {},
       "cityStats": {},
       "clicks": {},
@@ -81,8 +81,8 @@
     {
       "month": "2026-04",
       "generatedAt": "2026-05-03T12:02:49.870Z",
-      "totalVisits": 75,
-      "totalClicks": 111,
+      "totalVisits": 630,
+      "totalClicks": 1700,
       "deviceStats": {
         "mobile": 2,
         "desktop": 11,

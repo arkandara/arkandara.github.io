@@ -3610,21 +3610,23 @@ function akStartSession() {
         });
 }
 
-// ---- پشکینی ریفرێش — هەر ٣٠ چرکە ----
+// ---- پشکینی ریفرێش — هەر ٣ چرکە ----
 (function akWatchReload() {
     var _lastReload = null;
-    var _initialized = false;
+
+    // یەکەم: فلاگی ئێستا وەربگرە بەبێ ریفرێش
+    fetch('/track')
+        .then(function(r){ return r.json(); })
+        .then(function(d){ _lastReload = d.forceReload || null; })
+        .catch(function(){});
+
+    // هەر ٣ چرکە چێک بکە
     setInterval(function() {
         fetch('/track')
             .then(function(r){ return r.json(); })
             .then(function(d) {
                 var flag = d.forceReload || null;
-                if (!_initialized) {
-                    // یەکەم پشکینەوە — تەنها تۆمار بکە، ریفرێش مەکە
-                    _lastReload = flag;
-                    _initialized = true;
-                } else if (flag && flag !== _lastReload) {
-                    // فلاگی نوێ — ریفرێش بکە
+                if (flag && flag !== _lastReload) {
                     _lastReload = flag;
                     window.location.reload();
                 }

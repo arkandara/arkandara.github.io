@@ -137,7 +137,9 @@ export async function onRequestPost(context) {
                 lat:      body.lat      || "",
                 lon:      body.lon      || "",
                 ip:       body.ip       || "",
-                device:   body.device   || "نەناسراو"
+                device:   body.device   || "نەناسراو",
+                referrer: body.referrer || "ڕاستەوخۆ",
+                timezone: body.timezone || ""
             };
             const tot = parseInt(await env.STATS_DB.get("meta:total_visits") || "0");
             await env.STATS_DB.put("meta:total_visits", String(tot + 1));

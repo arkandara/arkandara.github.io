@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /functions/
+Disallow: /archives/
 
-Sitemap: https://arkandara.pages.dev/sitemap.xml
+Sitemap: https://arkandara.github.io/sitemap.xml

@@ -770,6 +770,20 @@ function renderSnapshots(snaps) {
 }
 
 
+function forceSiteReload() {
+    fetch('/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'force_reload' })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+        if (d.success) showToast('✅ سایتەکە لە هەموو شوێنێک لە ٣٠ چرکەدا ریفرێش دەبێتەوە');
+        else showToast('⚠️ هەڵەیەک ڕوویدا', true);
+    })
+    .catch(function(){ showToast('⚠️ هەڵەیەک ڕوویدا', true); });
+}
+
 function loadTextsTab() {
     var el = document.getElementById("textareaList");
     if (!el) return;

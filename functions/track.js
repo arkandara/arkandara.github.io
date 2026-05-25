@@ -43,10 +43,12 @@ export async function onRequestGet(context) {
     const origin = request.headers.get("Origin") || ALLOWED_ORIGIN;
     const CORS = corsHeaders(origin);
 
-    // بەبێ توکن — تەنها forceReload بگەڕێنە (بۆ سایتی سەرەکی)
+    // بەبێ توکن — forceReload و settings بگەڕێنە (بۆ سایتی سەرەکی)
     if (!await checkAuth(request, env)) {
-        const forceReload = await env.STATS_DB.get("meta:force_reload");
-        return new Response(JSON.stringify({ forceReload: forceReload || null }), { status: 200, headers: CORS });
+        const forceReload  = await env.STATS_DB.get("meta:force_reload");
+        const settingsRaw  = await env.STATS_DB.get("settings:site");
+        const settings     = settingsRaw ? JSON.parse(settingsRaw) : null;
+        return new Response(JSON.stringify({ forceReload: forceReload || null, settings }), { status: 200, headers: CORS });
     }
 
     try{

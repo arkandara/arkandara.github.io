@@ -851,7 +851,7 @@ function loadTextsTab() {
                     '<div style="font-size:11px;color:#aaa;margin-bottom:6px;">' +
                         '<i class="fas fa-clock"></i> ' + timeStr +
                         (s.label ? ' &nbsp;·&nbsp; <i class="fas fa-tag"></i> ' + escHtml(s.label) : '') +
-                        (s.length ? ' &nbsp;·&nbsp; ' + s.length + ' پیت' : '') +
+                        (s.text ? ' &nbsp;·&nbsp; ' + (s.text.trim() ? s.text.trim().split(/\s+/).length : 0) + ' وشە' : '') +
                     '</div>' +
                     '<div style="font-size:13px;line-height:1.8;white-space:pre-wrap;word-break:break-word;">' + escHtml(s.text || "") + '</div>' +
                 '</div>';

@@ -231,9 +231,10 @@ var SITE_DEFAULTS = {
     siteTitle:     "سه‌كۆی ڕۆژنامه‌نووس",
     siteDesc:      "گۆڕینی فۆنتی عەلی بۆ یونیکۆد (Ali K to Unicode)",
     primaryColor:  "#2e7d32",
-    bismillahText: "بِسْمِ اللَّهِ",
-    bismillahSub:  "سه‌كۆی ڕۆژنامه‌نووس",
-    updateText:    "نوێترین ئه‌بده‌یت  23ـی نیسانی 2026"
+    bismillahText:     "بِسْمِ اللَّهِ",
+    bismillahSub:      "سه‌كۆی ڕۆژنامه‌نووس",
+    bismillahDuration: 3.3,
+    updateText:        "نوێترین ئه‌بده‌یت  23ـی نیسانی 2026"
 };
 
 var _siteInfoLoaded = false;
@@ -259,10 +260,16 @@ function loadSiteInfo(force) {
             document.getElementById("primaryHex").textContent = data.primaryColor;
             document.getElementById("bismillahText").value    = data.bismillahText;
             document.getElementById("bismillahSub").value     = data.bismillahSub;
+            // کاتی بسمیڵا
+            var dur = parseFloat(data.bismillahDuration) || 3.3;
+            var durEl = document.getElementById("bismillahDuration");
+            var durValEl = document.getElementById("bismillahDurationVal");
+            if (durEl) { durEl.value = dur; }
+            if (durValEl) { durValEl.textContent = dur.toFixed(1) + " چرکە"; }
             document.getElementById("updateText").value       = data.updateText || "";
             _siteInfoLoaded = true;
             // گوێگری زیاد بکە بۆ هەموو input-ەکان
-            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","updateText"].forEach(function(id) {
+            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","bismillahDuration","updateText"].forEach(function(id) {
                 var el = document.getElementById(id);
                 if (el) el.addEventListener("input", saveSiteInfoDraft);
             });
@@ -276,9 +283,10 @@ function saveSiteInfoDraft() {
         siteTitle:     document.getElementById("siteTitle").value,
         siteDesc:      document.getElementById("siteDesc").value,
         primaryColor:  document.getElementById("primaryColor").value,
-        bismillahText: document.getElementById("bismillahText").value,
-        bismillahSub:  document.getElementById("bismillahSub").value,
-        updateText:    document.getElementById("updateText").value
+        bismillahText:     document.getElementById("bismillahText").value,
+        bismillahSub:      document.getElementById("bismillahSub").value,
+        bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3,
+        updateText:        document.getElementById("updateText").value
     };
     sessionStorage.setItem("siteInfoDraft", JSON.stringify(draft));
 }
@@ -291,8 +299,9 @@ function saveSiteInfo() {
         siteDesc:      document.getElementById("siteDesc").value.trim(),
         updateText:    document.getElementById("updateText").value.trim(),
         primaryColor:  document.getElementById("primaryColor").value,
-        bismillahText: document.getElementById("bismillahText").value.trim(),
-        bismillahSub:  document.getElementById("bismillahSub").value.trim()
+        bismillahText:     document.getElementById("bismillahText").value.trim(),
+        bismillahSub:      document.getElementById("bismillahSub").value.trim(),
+        bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3
     };
     // پاشەکەوتکردن لە KV (جیهانی)
     fetch("/track", {

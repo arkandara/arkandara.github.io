@@ -3453,13 +3453,31 @@ function akTrackClick(label) {
                 if (h1) h1.textContent = s.siteName;
             }
 
-            // تایتڵی تاب
-            if (s.siteTitle) document.title = s.siteTitle;
+            // تایتڵی تاب + og:title + twitter:title
+            if (s.siteTitle) {
+                document.title = s.siteTitle;
+                var ogTitle = document.querySelector('meta[property="og:title"]');
+                if (ogTitle) ogTitle.setAttribute('content', s.siteTitle);
+                var twTitle = document.querySelector('meta[name="twitter:title"]');
+                if (twTitle) twTitle.setAttribute('content', s.siteTitle);
+            }
 
-            // Meta description
+            // Meta description + og:description + twitter:description
             if (s.siteDesc) {
-                var meta = document.querySelector('meta[name="description"]');
-                if (meta) meta.setAttribute('content', s.siteDesc);
+                var metaDesc = document.querySelector('meta[name="description"]');
+                if (metaDesc) metaDesc.setAttribute('content', s.siteDesc);
+                var ogDesc = document.querySelector('meta[property="og:description"]');
+                if (ogDesc) ogDesc.setAttribute('content', s.siteDesc);
+                var twDesc = document.querySelector('meta[name="twitter:description"]');
+                if (twDesc) twDesc.setAttribute('content', s.siteDesc);
+            }
+
+            // ناوی نووسەر — meta author + span#site-author
+            if (s.siteAuthor) {
+                var metaAuthor = document.querySelector('meta[name="author"]');
+                if (metaAuthor) metaAuthor.setAttribute('content', s.siteAuthor);
+                var spanAuthor = document.getElementById('site-author');
+                if (spanAuthor) spanAuthor.textContent = s.siteAuthor;
             }
 
             // ڕەنگی سەرەکی

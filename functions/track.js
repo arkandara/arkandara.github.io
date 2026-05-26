@@ -212,7 +212,7 @@ export async function onRequestPost(context) {
 
         // ---- ڕێکخستنەکانی سایت (ئەدمین تەنها) ----
         if (type === "settings") {
-            const allowed = ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","updateText","rssSources","toolbarBtns"];
+            const allowed = ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","bismillahDuration","updateText","rssSources","toolbarBtns"];
             const data = {};
             allowed.forEach(k => { if (body[k] !== undefined) data[k] = body[k]; });
             if (!Object.keys(data).length) return bad("داتا بۆشایە", CORS);

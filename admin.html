@@ -435,6 +435,62 @@
                                 <span id="bismillahDurationVal" style="min-width:70px;font-weight:600;color:var(--primary,#2e7d32);font-size:1em;">3.3 چرکە</span>
                             </div>
                         </div>
+
+                        <!-- ===== کۆنتڕۆڵەکانی ڕووناکییەکی ناوچەی نووسین ===== -->
+                        <div style="border-top:1px solid #e0e0e0;margin-top:18px;padding-top:18px;">
+                            <div style="font-weight:700;font-size:0.97em;color:var(--primary,#2e7d32);margin-bottom:14px;">
+                                ✨ ڕووناکییەکی ناوچەی نووسین
+                            </div>
+
+                            <div class="field-group">
+                                <label>ڕەنگی ڕووناکییەکە</label>
+                                <div class="color-row">
+                                    <input type="color" id="glowColor" class="color-picker" value="#4caf50"
+                                        oninput="document.getElementById('glowColorHex').textContent=this.value; document.documentElement.style.setProperty('--glow-color',this.value)">
+                                    <span class="color-hex" id="glowColorHex">#4caf50</span>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label>خێراییەکی ئامۆژگاری <span style="font-size:0.82em;color:#aaa;">(بنەڕەتی: 4 چرکە — کەمتر = خێراتر)</span></label>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <input type="range" id="glowSpeed" min="1" max="12" step="0.5" value="4"
+                                        style="flex:1;accent-color:var(--primary,#2e7d32);cursor:pointer;"
+                                        oninput="document.getElementById('glowSpeedVal').textContent=parseFloat(this.value).toFixed(1)+' چرکە'; document.documentElement.style.setProperty('--glow-speed',this.value+'s')">
+                                    <span id="glowSpeedVal" style="min-width:70px;font-weight:600;color:var(--primary,#2e7d32);">4.0 چرکە</span>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label>تۆخییەکەی (Opacity) <span style="font-size:0.82em;color:#aaa;">(بنەڕەتی: 0.35)</span></label>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <input type="range" id="glowOpacity" min="0.05" max="1" step="0.05" value="0.35"
+                                        style="flex:1;accent-color:var(--primary,#2e7d32);cursor:pointer;"
+                                        oninput="document.getElementById('glowOpacityVal').textContent=parseFloat(this.value).toFixed(2); document.documentElement.style.setProperty('--glow-opacity',this.value)">
+                                    <span id="glowOpacityVal" style="min-width:70px;font-weight:600;color:var(--primary,#2e7d32);">0.35</span>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label>ئەستووری بۆردەری ڕووناکییەکە <span style="font-size:0.82em;color:#aaa;">(px — بنەڕەتی: 2)</span></label>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <input type="range" id="glowBorderWidth" min="1" max="6" step="1" value="2"
+                                        style="flex:1;accent-color:var(--primary,#2e7d32);cursor:pointer;"
+                                        oninput="document.getElementById('glowBorderWidthVal').textContent=this.value+'px'; document.documentElement.style.setProperty('--glow-border-width',this.value+'px')">
+                                    <span id="glowBorderWidthVal" style="min-width:70px;font-weight:600;color:var(--primary,#2e7d32);">2px</span>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <label>خێراییەکی سوڕینەوەی بۆردەر <span style="font-size:0.82em;color:#aaa;">(بنەڕەتی: 7 چرکە — کەمتر = خێراتر)</span></label>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <input type="range" id="glowBorderSpeed" min="2" max="20" step="0.5" value="7"
+                                        style="flex:1;accent-color:var(--primary,#2e7d32);cursor:pointer;"
+                                        oninput="document.getElementById('glowBorderSpeedVal').textContent=parseFloat(this.value).toFixed(1)+' چرکە'; document.documentElement.style.setProperty('--glow-border-speed',this.value+'s')">
+                                    <span id="glowBorderSpeedVal" style="min-width:70px;font-weight:600;color:var(--primary,#2e7d32);">7.0 چرکە</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

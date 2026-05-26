@@ -234,7 +234,12 @@ var SITE_DEFAULTS = {
     bismillahText:     "بِسْمِ اللَّهِ",
     bismillahSub:      "سه‌كۆی ڕۆژنامه‌نووس",
     bismillahDuration: 3.3,
-    updateText:        "نوێترین ئه‌بده‌یت  23ـی نیسانی 2026"
+    updateText:        "نوێترین ئه‌بده‌یت  23ـی نیسانی 2026",
+    glowColor:       "#4caf50",
+    glowSpeed:       4,
+    glowOpacity:     0.35,
+    glowBorderWidth: 2,
+    glowBorderSpeed: 7
 };
 
 var _siteInfoLoaded = false;
@@ -268,8 +273,36 @@ function loadSiteInfo(force) {
             if (durValEl) { durValEl.textContent = dur.toFixed(1) + " چرکە"; }
             document.getElementById("updateText").value       = data.updateText || "";
             _siteInfoLoaded = true;
+            // --- بارکردنی کۆنتڕۆڵەکانی گلۆ ---
+            var glowColor = data.glowColor || "#4caf50";
+            var glowColorEl = document.getElementById("glowColor");
+            var glowColorHexEl = document.getElementById("glowColorHex");
+            if (glowColorEl) { glowColorEl.value = glowColor; }
+            if (glowColorHexEl) { glowColorHexEl.textContent = glowColor; }
+            document.documentElement.style.setProperty('--glow-color', glowColor);
+
+            var glowSpeed = parseFloat(data.glowSpeed) || 4;
+            var glowSpeedEl = document.getElementById("glowSpeed");
+            if (glowSpeedEl) { glowSpeedEl.value = glowSpeed; document.getElementById("glowSpeedVal").textContent = glowSpeed.toFixed(1) + " چرکە"; }
+            document.documentElement.style.setProperty('--glow-speed', glowSpeed + 's');
+
+            var glowOpacity = (data.glowOpacity !== undefined) ? parseFloat(data.glowOpacity) : 0.35;
+            var glowOpacityEl = document.getElementById("glowOpacity");
+            if (glowOpacityEl) { glowOpacityEl.value = glowOpacity; document.getElementById("glowOpacityVal").textContent = glowOpacity.toFixed(2); }
+            document.documentElement.style.setProperty('--glow-opacity', glowOpacity);
+
+            var glowBorderWidth = parseFloat(data.glowBorderWidth) || 2;
+            var glowBorderWidthEl = document.getElementById("glowBorderWidth");
+            if (glowBorderWidthEl) { glowBorderWidthEl.value = glowBorderWidth; document.getElementById("glowBorderWidthVal").textContent = glowBorderWidth + "px"; }
+            document.documentElement.style.setProperty('--glow-border-width', glowBorderWidth + 'px');
+
+            var glowBorderSpeed = parseFloat(data.glowBorderSpeed) || 7;
+            var glowBorderSpeedEl = document.getElementById("glowBorderSpeed");
+            if (glowBorderSpeedEl) { glowBorderSpeedEl.value = glowBorderSpeed; document.getElementById("glowBorderSpeedVal").textContent = glowBorderSpeed.toFixed(1) + " چرکە"; }
+            document.documentElement.style.setProperty('--glow-border-speed', glowBorderSpeed + 's');
+
             // گوێگری زیاد بکە بۆ هەموو input-ەکان
-            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","bismillahDuration","updateText"].forEach(function(id) {
+            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","bismillahDuration","updateText","glowColor","glowSpeed","glowOpacity","glowBorderWidth","glowBorderSpeed"].forEach(function(id) {
                 var el = document.getElementById(id);
                 if (el) el.addEventListener("input", saveSiteInfoDraft);
             });
@@ -286,7 +319,12 @@ function saveSiteInfoDraft() {
         bismillahText:     document.getElementById("bismillahText").value,
         bismillahSub:      document.getElementById("bismillahSub").value,
         bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3,
-        updateText:        document.getElementById("updateText").value
+        updateText:        document.getElementById("updateText").value,
+        glowColor:       document.getElementById("glowColor").value,
+        glowSpeed:       parseFloat(document.getElementById("glowSpeed").value) || 4,
+        glowOpacity:     parseFloat(document.getElementById("glowOpacity").value) || 0.35,
+        glowBorderWidth: parseFloat(document.getElementById("glowBorderWidth").value) || 2,
+        glowBorderSpeed: parseFloat(document.getElementById("glowBorderSpeed").value) || 7
     };
     sessionStorage.setItem("siteInfoDraft", JSON.stringify(draft));
 }
@@ -301,7 +339,12 @@ function saveSiteInfo() {
         primaryColor:  document.getElementById("primaryColor").value,
         bismillahText:     document.getElementById("bismillahText").value.trim(),
         bismillahSub:      document.getElementById("bismillahSub").value.trim(),
-        bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3
+        bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3,
+        glowColor:       document.getElementById("glowColor").value,
+        glowSpeed:       parseFloat(document.getElementById("glowSpeed").value) || 4,
+        glowOpacity:     parseFloat(document.getElementById("glowOpacity").value) || 0.35,
+        glowBorderWidth: parseFloat(document.getElementById("glowBorderWidth").value) || 2,
+        glowBorderSpeed: parseFloat(document.getElementById("glowBorderSpeed").value) || 7
     };
     // پاشەکەوتکردن لە KV (جیهانی)
     fetch("/track", {

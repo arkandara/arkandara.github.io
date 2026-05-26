@@ -296,21 +296,30 @@ if (window.location.hostname === "arkandara.github.io") {
     100% { background-position: 200% 50%; }
 }
 
+/* ڕووناکییەکی نەرم — گلۆبەل CSS variables */
+:root {
+    --glow-color: #4caf50;
+    --glow-speed: 4s;
+    --glow-opacity: 0.35;
+    --glow-border-width: 2px;
+    --glow-border-speed: 7s;
+}
+
 @keyframes ambient-glow-pulse {
-    0%   { box-shadow: 0 0 10px 2px rgba(76,175,80,0.25), 0 0 22px 5px rgba(76,175,80,0.10); }
-    50%  { box-shadow: 0 0 18px 5px rgba(76,175,80,0.38), 0 0 38px 10px rgba(76,175,80,0.15); }
-    100% { box-shadow: 0 0 10px 2px rgba(76,175,80,0.25), 0 0 22px 5px rgba(76,175,80,0.10); }
+    0%   { box-shadow: 0 0 10px 2px color-mix(in srgb, var(--glow-color) calc(var(--glow-opacity) * 100%), transparent), 0 0 22px 5px color-mix(in srgb, var(--glow-color) calc(var(--glow-opacity) * 40%), transparent); }
+    50%  { box-shadow: 0 0 18px 5px color-mix(in srgb, var(--glow-color) calc(var(--glow-opacity) * 120%), transparent), 0 0 38px 10px color-mix(in srgb, var(--glow-color) calc(var(--glow-opacity) * 50%), transparent); }
+    100% { box-shadow: 0 0 10px 2px color-mix(in srgb, var(--glow-color) calc(var(--glow-opacity) * 100%), transparent), 0 0 22px 5px color-mix(in srgb, var(--glow-color) calc(var(--glow-opacity) * 40%), transparent); }
 }
 
 /* مۆدی ڕۆژ — گلۆی نەرمی هەمیشەیی */
 body:not(.dark-mode) textarea {
-    border: 2px solid transparent;
+    border: var(--glow-border-width) solid transparent;
     background-image: linear-gradient(#dde4e1, #dde4e1),
-                      linear-gradient(90deg, #4caf50, #a5d6a7, #ffffff, #a5d6a7, #4caf50);
+                      linear-gradient(90deg, var(--glow-color), color-mix(in srgb, var(--glow-color) 50%, white), #ffffff, color-mix(in srgb, var(--glow-color) 50%, white), var(--glow-color));
     background-origin: border-box;
     background-clip: padding-box, border-box;
     background-size: 100% 100%, 200% 100%;
-    animation: border-glow 7s linear infinite, ambient-glow-pulse 4s ease-in-out infinite;
+    animation: border-glow var(--glow-border-speed) linear infinite, ambient-glow-pulse var(--glow-speed) ease-in-out infinite;
 }
 
 /* مۆدی شەو — گلۆ تەواو دەچێتەوە */
@@ -3486,6 +3495,13 @@ function akTrackClick(label) {
                 // گۆڕینی --primary-dark بەپێی ئەو ڕەنگە
                 document.documentElement.style.setProperty('--accent', s.primaryColor);
             }
+
+            // کۆنتڕۆڵەکانی ڕووناکییەکی ناوچەی نووسین
+            if (s.glowColor)                  document.documentElement.style.setProperty('--glow-color',        s.glowColor);
+            if (s.glowSpeed)                  document.documentElement.style.setProperty('--glow-speed',        s.glowSpeed + 's');
+            if (s.glowOpacity !== undefined)  document.documentElement.style.setProperty('--glow-opacity',      s.glowOpacity);
+            if (s.glowBorderWidth)            document.documentElement.style.setProperty('--glow-border-width', s.glowBorderWidth + 'px');
+            if (s.glowBorderSpeed)            document.documentElement.style.setProperty('--glow-border-speed', s.glowBorderSpeed + 's');
 
             // دەقی بسمیڵا
             if (s.bismillahText) {

@@ -86,7 +86,7 @@ if (window.location.hostname === "arkandara.github.io") {
     align-items: center;
     justify-content: center;
     gap: 18px;
-    animation: bsm-fadeout 0.7s ease 2.6s forwards;
+    animation: bsm-fadeout 0.7s ease var(--bsm-delay, 2.6s) forwards;
 }
 
 #bismillah-screen.hidden { display: none; }
@@ -1358,10 +1358,30 @@ textarea {
 </div>
 
 <script>
-    setTimeout(() => {
-        const s = document.getElementById('bismillah-screen');
-        if (s) s.addEventListener('animationend', () => s.classList.add('hidden'), { once: true });
-    }, 6300);
+    // کاتی بسمیڵا لە KV دەخوێنێتەوە — بنەڕەتی 3.3 چرکە
+    (function () {
+        var DEFAULT_DUR = 3.3;
+        function applyBsmDuration(dur) {
+            dur = parseFloat(dur) || DEFAULT_DUR;
+            // delay = dur - 0.7s (ئەنیمەیشنی fade-out)، کەمترین 0.3
+            var delay = Math.max(dur - 0.7, 0.3).toFixed(2) + "s";
+            document.documentElement.style.setProperty('--bsm-delay', delay);
+            // کاتی هایدکردن = dur * 1000 + 900ms (بۆ تەواوبوونی fade)
+            var hideMs = Math.round(dur * 1000) + 900;
+            setTimeout(function () {
+                var s = document.getElementById('bismillah-screen');
+                if (s) s.addEventListener('animationend', function () { s.classList.add('hidden'); }, { once: true });
+            }, hideMs);
+        }
+        // هەوڵ بدە لە KV بخوێنێتەوە
+        fetch("/track")
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                var dur = (d.settings && d.settings.bismillahDuration) ? d.settings.bismillahDuration : DEFAULT_DUR;
+                applyBsmDuration(dur);
+            })
+            .catch(function () { applyBsmDuration(DEFAULT_DUR); });
+    })();
 </script>
 
 

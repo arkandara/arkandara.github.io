@@ -242,9 +242,8 @@ var SITE_DEFAULTS = {
     glowBorderSpeed: 7
 };
 
-var _siteInfoLoaded = false;
 function loadSiteInfo(force) {
-    if (_siteInfoLoaded && !force) return;
+    if (sessionStorage.getItem("_siteInfoLoaded") && !force) return;
     fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -254,7 +253,9 @@ function loadSiteInfo(force) {
             Object.keys(SITE_DEFAULTS).forEach(function(k) {
                 data[k] = (kvSettings[k] !== undefined && kvSettings[k] !== "") ? kvSettings[k] : SITE_DEFAULTS[k];
             });
-
+            // ئەگەر sessionStorage draft هەبوو (گۆڕانکاری پاشەکەوت نەکراو)، ئەوەی بخوێنەوە
+            var ss = sessionStorage.getItem("siteInfoDraft");
+            if (ss) { try { var draft = JSON.parse(ss); Object.keys(draft).forEach(function(k){ if(draft[k] !== "") data[k] = draft[k]; }); } catch(e) {} }
             document.getElementById("siteName").value         = data.siteName;
             document.getElementById("siteAuthor").value       = data.siteAuthor;
             document.getElementById("siteTitle").value        = data.siteTitle;
@@ -270,7 +271,7 @@ function loadSiteInfo(force) {
             if (durEl) { durEl.value = dur; }
             if (durValEl) { durValEl.textContent = dur.toFixed(1) + " چرکە"; }
             document.getElementById("updateText").value       = data.updateText || "";
-            _siteInfoLoaded = true;
+            sessionStorage.setItem("_siteInfoLoaded", "1");
             // --- بارکردنی کۆنتڕۆڵەکانی گلۆ ---
             var glowColor = data.glowColor || "#4caf50";
             var glowColorEl = document.getElementById("glowColor");
@@ -300,10 +301,32 @@ function loadSiteInfo(force) {
             document.documentElement.style.setProperty('--glow-border-speed', glowBorderSpeed + 's');
 
             // گوێگری زیاد بکە بۆ هەموو input-ەکان
+            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","bismillahDuration","updateText","glowColor","glowSpeed","glowOpacity","glowBorderWidth","glowBorderSpeed"].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.addEventListener("input", saveSiteInfoDraft);
+            });
         });
 }
 
-
+function saveSiteInfoDraft() {
+    var draft = {
+        siteName:      document.getElementById("siteName").value,
+        siteAuthor:    document.getElementById("siteAuthor").value,
+        siteTitle:     document.getElementById("siteTitle").value,
+        siteDesc:      document.getElementById("siteDesc").value,
+        primaryColor:  document.getElementById("primaryColor").value,
+        bismillahText:     document.getElementById("bismillahText").value,
+        bismillahSub:      document.getElementById("bismillahSub").value,
+        bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3,
+        updateText:        document.getElementById("updateText").value,
+        glowColor:       document.getElementById("glowColor").value,
+        glowSpeed:       parseFloat(document.getElementById("glowSpeed").value) || 4,
+        glowOpacity:     parseFloat(document.getElementById("glowOpacity").value) || 0.35,
+        glowBorderWidth: parseFloat(document.getElementById("glowBorderWidth").value) || 2,
+        glowBorderSpeed: parseFloat(document.getElementById("glowBorderSpeed").value) || 7
+    };
+    sessionStorage.setItem("siteInfoDraft", JSON.stringify(draft));
+}
 
 function saveSiteInfo() {
     var data = {
@@ -328,7 +351,7 @@ function saveSiteInfo() {
         headers: authHeaders(),
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
     }).then(function(r) { return r.json(); })
-    .then(function() { showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
+    .then(function() { sessionStorage.removeItem("_siteInfoLoaded"); sessionStorage.removeItem("siteInfoDraft"); showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 

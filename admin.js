@@ -254,9 +254,7 @@ function loadSiteInfo(force) {
             Object.keys(SITE_DEFAULTS).forEach(function(k) {
                 data[k] = (kvSettings[k] !== undefined && kvSettings[k] !== "") ? kvSettings[k] : SITE_DEFAULTS[k];
             });
-            // ئەگەر sessionStorage draft هەبوو (گۆڕانکاری پاشەکەوت نەکراو)، ئەوەی بخوێنەوە
-            var ss = sessionStorage.getItem("siteInfoDraft");
-            if (ss) { try { var draft = JSON.parse(ss); Object.keys(draft).forEach(function(k){ if(draft[k] !== "") data[k] = draft[k]; }); } catch(e) {} }
+
             document.getElementById("siteName").value         = data.siteName;
             document.getElementById("siteAuthor").value       = data.siteAuthor;
             document.getElementById("siteTitle").value        = data.siteTitle;
@@ -302,32 +300,10 @@ function loadSiteInfo(force) {
             document.documentElement.style.setProperty('--glow-border-speed', glowBorderSpeed + 's');
 
             // گوێگری زیاد بکە بۆ هەموو input-ەکان
-            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","bismillahDuration","updateText","glowColor","glowSpeed","glowOpacity","glowBorderWidth","glowBorderSpeed"].forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) el.addEventListener("input", saveSiteInfoDraft);
-            });
         });
 }
 
-function saveSiteInfoDraft() {
-    var draft = {
-        siteName:      document.getElementById("siteName").value,
-        siteAuthor:    document.getElementById("siteAuthor").value,
-        siteTitle:     document.getElementById("siteTitle").value,
-        siteDesc:      document.getElementById("siteDesc").value,
-        primaryColor:  document.getElementById("primaryColor").value,
-        bismillahText:     document.getElementById("bismillahText").value,
-        bismillahSub:      document.getElementById("bismillahSub").value,
-        bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3,
-        updateText:        document.getElementById("updateText").value,
-        glowColor:       document.getElementById("glowColor").value,
-        glowSpeed:       parseFloat(document.getElementById("glowSpeed").value) || 4,
-        glowOpacity:     parseFloat(document.getElementById("glowOpacity").value) || 0.35,
-        glowBorderWidth: parseFloat(document.getElementById("glowBorderWidth").value) || 2,
-        glowBorderSpeed: parseFloat(document.getElementById("glowBorderSpeed").value) || 7
-    };
-    sessionStorage.setItem("siteInfoDraft", JSON.stringify(draft));
-}
+
 
 function saveSiteInfo() {
     var data = {

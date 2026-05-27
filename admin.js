@@ -8,7 +8,7 @@ const ADMIN_USERNAME = "admin";
 
 // ---- توکنی Bearer لە sessionStorage ----
 function getAdminToken() {
-    return sessionStorage.getItem("adminToken") || "";
+    return localStorage.getItem("adminToken") || "";
 }
 
 function authHeaders() {
@@ -84,8 +84,8 @@ async function doLogin() {
         }
 
         // سێرڤەر ADMIN_TOKEN ی ڕاستەکەی گەڕاندەوە — پاشەکەوتی بکە
-        sessionStorage.setItem("adminToken", data.token);
-        sessionStorage.setItem("adminAuth", "1");
+        localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("adminAuth", "1");
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
         if (window.innerWidth > 768) {
@@ -100,8 +100,8 @@ async function doLogin() {
 }
 
 function doLogout() {
-    sessionStorage.removeItem("adminAuth");
-    sessionStorage.removeItem("adminToken");
+    localStorage.removeItem("adminAuth");
+    localStorage.removeItem("adminToken");
     document.getElementById("adminPanel").style.display = "none";
     document.getElementById("loginScreen").style.display = "flex";
     document.getElementById("loginUser").value = "";
@@ -193,8 +193,8 @@ function showTab(id) {
 
 function resetAdminPass() {
     if (confirm("دڵنیایت لە ڕیسێتکردنی پاسوۆرد؟\nئەدمین پاسوۆردی دیفۆڵت لە env دا دیاریکراوە.")) {
-        sessionStorage.removeItem("adminAuth");
-        sessionStorage.removeItem("adminToken");
+        localStorage.removeItem("adminAuth");
+        localStorage.removeItem("adminToken");
         var errEl = document.getElementById("loginError");
         if (errEl) {
             errEl.style.display = "flex";
@@ -352,7 +352,7 @@ function saveSiteInfo() {
         headers: authHeaders(),
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
     }).then(function(r) { return r.json(); })
-    .then(function() { sessionStorage.removeItem("siteInfoDraft"); showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
+    .then(function() { _siteInfoLoaded = false; sessionStorage.removeItem("siteInfoDraft"); showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 
@@ -1468,7 +1468,7 @@ function clearPreviewText() {
 
 // ---- پشاندانی پانێل ئەگەر پێشتر لۆگین کراوە ----
 window.addEventListener("DOMContentLoaded", function() {
-    if (sessionStorage.getItem("adminAuth") === "1") {
+    if (localStorage.getItem("adminAuth") === "1") {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
         if (window.innerWidth > 768) {

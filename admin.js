@@ -242,8 +242,9 @@ var SITE_DEFAULTS = {
     glowBorderSpeed: 7
 };
 
+var _siteInfoLoaded = false;
 function loadSiteInfo(force) {
-    if (sessionStorage.getItem("_siteInfoLoaded") && !force) return;
+    if (_siteInfoLoaded && !force) return;
     fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -271,7 +272,7 @@ function loadSiteInfo(force) {
             if (durEl) { durEl.value = dur; }
             if (durValEl) { durValEl.textContent = dur.toFixed(1) + " چرکە"; }
             document.getElementById("updateText").value       = data.updateText || "";
-            sessionStorage.setItem("_siteInfoLoaded", "1");
+            _siteInfoLoaded = true;
             // --- بارکردنی کۆنتڕۆڵەکانی گلۆ ---
             var glowColor = data.glowColor || "#4caf50";
             var glowColorEl = document.getElementById("glowColor");
@@ -351,7 +352,7 @@ function saveSiteInfo() {
         headers: authHeaders(),
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
     }).then(function(r) { return r.json(); })
-    .then(function() { sessionStorage.removeItem("_siteInfoLoaded"); sessionStorage.removeItem("siteInfoDraft"); showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
+    .then(function() { sessionStorage.removeItem("siteInfoDraft"); showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 

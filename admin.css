@@ -891,7 +891,6 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 /* stats charts overflow */
 #statsChartsWrap {
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
     max-width: 100%;
 }
 

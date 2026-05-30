@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-05",
-  "updatedAt": "2026-05-30T21:20:00.000Z",
+  "updatedAt": "2026-05-30T12:00:00.000Z",
   "days": [
     {
       "date": "2026-05-01",
@@ -716,44 +716,56 @@
     {
       "date": "2026-05-27",
       "generatedAt": "2026-05-27T21:20:00.000Z",
-      "totalVisits": 0,
-      "totalClicks": 0,
+      "totalVisits": 15,
+      "totalClicks": 138,
       "totalTextarea": 0,
       "clicks": {},
       "deviceStats": {
         "mobile": 0,
-        "desktop": 0,
+        "desktop": 15,
         "tablet": 0
       },
-      "cityStats": {}
+      "cityStats": {
+        "As Sulaymaniyah": 8,
+        "Sulaymaniyah": 4,
+        "Baghdad": 3
+      }
     },
     {
       "date": "2026-05-28",
       "generatedAt": "2026-05-28T21:20:00.000Z",
-      "totalVisits": 0,
-      "totalClicks": 0,
+      "totalVisits": 35,
+      "totalClicks": 133,
       "totalTextarea": 0,
       "clicks": {},
       "deviceStats": {
-        "mobile": 0,
-        "desktop": 0,
+        "mobile": 2,
+        "desktop": 33,
         "tablet": 0
       },
-      "cityStats": {}
+      "cityStats": {
+        "As Sulaymaniyah": 18,
+        "Sulaymaniyah": 10,
+        "Baghdad": 7
+      }
     },
     {
       "date": "2026-05-29",
       "generatedAt": "2026-05-29T21:20:00.000Z",
-      "totalVisits": 0,
-      "totalClicks": 0,
+      "totalVisits": 19,
+      "totalClicks": 18,
       "totalTextarea": 0,
       "clicks": {},
       "deviceStats": {
-        "mobile": 0,
-        "desktop": 0,
+        "mobile": 1,
+        "desktop": 18,
         "tablet": 0
       },
-      "cityStats": {}
+      "cityStats": {
+        "As Sulaymaniyah": 10,
+        "Sulaymaniyah": 5,
+        "Baghdad": 4
+      }
     }
   ]
 }

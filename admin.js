@@ -1662,6 +1662,8 @@ function renderStatsPeriod(period) {
     var wrap = document.getElementById("statsChartsWrap");
     if (!wrap) return;
 
+    if (period === "yearly") { renderYearlyView(); return; }
+
     var data, labelKey;
     if (period === "daily") {
         data = (_archiveIndex||[]).slice(0,30).reverse();
@@ -1669,9 +1671,6 @@ function renderStatsPeriod(period) {
     } else if (period === "weekly") {
         data = (_weeklyIndex||[]).slice(0,12).reverse();
         labelKey = "week";
-    } else if (period === "yearly") {
-        renderYearlyView();
-        return;
     } else {
         data = (_monthlyIndex||[]).slice(0,12).reverse();
         labelKey = "month";
@@ -1682,109 +1681,126 @@ function renderStatsPeriod(period) {
         return;
     }
 
-    // کۆی گشتی لە هەموو ئەرشیفکراوەکان — نەک تەنها ئەوەی لە چارتەکەدا دیاردەکرێت
     var _fullIndex = (period === "daily") ? (_archiveIndex||[])
                    : (period === "weekly") ? (_weeklyIndex||[])
-                   : (period === "yearly") ? (_yearlyIndex||[])
                    : (_monthlyIndex||[]);
     var sumVisits = _fullIndex.reduce(function(s,d){ return s+(d.totalVisits||0); },0);
     var sumClicks = _fullIndex.reduce(function(s,d){ return s+(d.totalClicks||0); },0);
     var _fullN    = _fullIndex.length || 1;
-    var maxV = Math.max.apply(null, data.map(function(d){ return d.totalVisits||0; })) || 1;
-    var maxC = Math.max.apply(null, data.map(function(d){ return d.totalClicks||0; })) || 1;
-    var maxVal = Math.max(maxV, maxC);
 
-    function niceMax(v) {
-        if (v <= 5)  return 5;
-        if (v <= 10) return 10;
-        if (v <= 20) return 20;
-        if (v <= 50) return 50;
-        var mag = Math.pow(10, Math.floor(Math.log10(v)));
-        return Math.ceil(v / mag) * mag;
-    }
-    var chartMax = niceMax(maxVal);
-
-    var n    = data.length;
-    var svgW = Math.max(n * 44 + 60, 400);
-    var svgH = 214;
-    var padL = 42;
-    var padR = 12;
-    var padT = 16;
-    var padB = 58;
-    var chartH = svgH - padT - padB;
-    var chartW = svgW - padL - padR;
-    var barW   = Math.min(13, (chartW / n) - 5);
-    var colW   = chartW / n;
-    var isDark = document.body.classList.contains("dark-mode");
-    var gridClr = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
-    var axisClr = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)";
-    var numClr  = isDark ? "#777" : "#aaa";
-    var lblClr  = isDark ? "#999" : "#777";
-
-    var svg = "";
-    var GRID = 4;
-
-    // خەتەکانی ئاسۆیی و ژمارەی لای چەپ
-    for (var g = 0; g <= GRID; g++) {
-        var gVal = Math.round(chartMax * g / GRID);
-        var gy   = padT + chartH - Math.round(chartH * g / GRID);
-        svg += '<line x1="'+padL+'" y1="'+gy+'" x2="'+(svgW-padR)+'" y2="'+gy+'" stroke="'+gridClr+'" stroke-width="1"/>';
-        svg += '<text x="'+(padL-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+numClr+'">'+gVal+'</text>';
-    }
-
-    // ستونەکان
-    data.forEach(function(d, i) {
-        var visits = d.totalVisits || 0;
-        var clicks = d.totalClicks || 0;
-        var cx = padL + i * colW + colW / 2;
-
-        var hV = Math.max(2, Math.round(chartH * visits / chartMax));
-        var hC = Math.max(2, Math.round(chartH * clicks / chartMax));
-        var yV = padT + chartH - hV;
-        var yC = padT + chartH - hC;
-
-        svg += '<rect x="'+(cx-barW-1)+'" y="'+yV+'" width="'+barW+'" height="'+hV+'" rx="3" fill="#42a5f5" opacity="0.88"><title>سەردان: '+visits+'</title></rect>';
-        svg += '<rect x="'+(cx+1)+'" y="'+yC+'" width="'+barW+'" height="'+hC+'" rx="3" fill="#4caf50" opacity="0.88"><title>کلیک: '+clicks+'</title></rect>';
-
-        if (hV > 14) svg += '<text x="'+(cx-barW/2-1)+'" y="'+(yV-3)+'" text-anchor="middle" font-size="9" fill="#42a5f5" font-weight="bold">'+visits+'</text>';
-        if (hC > 14) svg += '<text x="'+(cx+barW/2+1)+'" y="'+(yC-3)+'" text-anchor="middle" font-size="9" fill="#4caf50" font-weight="bold">'+clicks+'</text>';
-
-        // بەروار
+    // بەرواری لەیبلەکان
+    var kurdishDays = ["یەکشەممە","دووشەممە","سێشەممە","چوارشەممە","پێنجشەممە","هەینی","شەممە"];
+    var labels = data.map(function(d) {
         var raw = d[labelKey] || "";
-        var lbl = "";
         if (period === "daily") {
             var p = raw.replace(" ★","").split("-");
-            var kurdishDaysS = ["یەکشەممە","دووشەممە","سێشەممە","چوارشەممە","پێنجشەممە","هەینی","شەممە"];
-            var rawClean = raw.replace(" ★","");
-            var dayNameS = rawClean ? kurdishDaysS[new Date(rawClean).getDay()] : "";
-            lbl = (p[2]||"") + "/" + (p[1]||"");
-            svg += '<text x="'+cx+'" y="'+(svgH-padB+26)+'" text-anchor="middle" font-size="9" fill="'+lblClr+'" opacity="0.75">'+dayNameS+'</text>';
+            return (p[2]||"") + "/" + (p[1]||"");
         } else if (period === "weekly") {
             var ws = (raw.split("_")[0]||"").split("-");
             var we = (raw.split("_")[1]||"").split("-");
-            lbl = (ws[2]||"") + "-" + (we[2]||"") + "/" + (we[1]||"");
+            return (ws[2]||"") + "-" + (we[2]||"") + "/" + (we[1]||"");
         } else {
             var mp = raw.split("-");
-            var mn = ["","١","٢","٣","٤","٥","٦","٧","٨","٩","١٠","١١","١٢"];
-            lbl = mn[+(mp[1]||0)] + "/" + (mp[0]||"").slice(2);
+            return (mp[1]||"") + "/" + (mp[0]||"").slice(2);
         }
-        svg += '<text x="'+cx+'" y="'+(svgH-padB+14)+'" text-anchor="middle" font-size="10" fill="'+lblClr+'">'+lbl+'</text>';
+    });
+    var dayNames = data.map(function(d) {
+        if (period !== "daily") return "";
+        var raw = (d[labelKey]||"").replace(" ★","");
+        return raw ? kurdishDays[new Date(raw).getDay()] : "";
     });
 
-    // خەتی بنەوە
-    svg += '<line x1="'+padL+'" y1="'+(padT+chartH)+'" x2="'+(svgW-padR)+'" y2="'+(padT+chartH)+'" stroke="'+axisClr+'" stroke-width="1.5"/>';
+    var visits = data.map(function(d){ return d.totalVisits||0; });
+    var clicks  = data.map(function(d){ return d.totalClicks||0;  });
 
-    var fullSVG = '<svg width="'+svgW+'" height="'+svgH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svg+'</svg>';
+    // سڕینەوەی چارتی کۆن ئەگەر هەبوو
+    if (window._scChart && typeof window._scChart.destroy === "function") {
+        window._scChart.destroy();
+        window._scChart = null;
+    }
 
     wrap.innerHTML =
         '<div class="sc-summary">' +
-          '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumVisits+'</strong></span>' +
-          '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumClicks+'</strong></span>' +
-          '<span><i class="fas fa-chart-line"></i> تێکرا/رۆژ: <strong>'+Math.round(sumVisits/(_fullN||1))+'</strong></span>' +
+          '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>' + sumVisits + '</strong></span>' +
+          '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>' + sumClicks + '</strong></span>' +
+          '<span><i class="fas fa-chart-line"></i> تێکرا/رۆژ: <strong>' + Math.round(sumVisits/(_fullN||1)) + '</strong></span>' +
         '</div>' +
-        '<div class="sc-chart-wrap">'+fullSVG+'</div>' +
+        '<div style="position:relative;width:100%;height:220px"><canvas id="scLineCanvas"></canvas></div>' +
         '<div class="sc-legend">' +
-          '<span class="sc-leg-v"><span class="sc-dot" style="background:#42a5f5"></span> سەردان</span>' +
-          '<span class="sc-leg-c"><span class="sc-dot" style="background:#4caf50"></span> کلیک</span>' +
+          '<span class="sc-leg-v"><span class="sc-dot" style="background:#378add"></span> سەردان</span>' +
+          '<span class="sc-leg-c"><span class="sc-dot" style="background:#639922"></span> کلیک</span>' +
         '</div>';
+
+    var isDark = document.body.classList.contains("dark-mode");
+    var gridClr  = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+    var tickClr  = isDark ? "#888" : "#aaa";
+    var lblClr   = isDark ? "#999" : "#777";
+
+    var canvas = document.getElementById("scLineCanvas");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    window._scChart = new Chart(canvas, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "سەردان",
+                    data: visits,
+                    borderColor: "#378add",
+                    backgroundColor: "rgba(55,138,221,0.08)",
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                    fill: true
+                },
+                {
+                    label: "کلیک",
+                    data: clicks,
+                    borderColor: "#639922",
+                    backgroundColor: "rgba(99,153,34,0.06)",
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    callbacks: {
+                        title: function(items) {
+                            var idx = items[0].dataIndex;
+                            var dn = dayNames[idx] ? dayNames[idx] + " " : "";
+                            return dn + items[0].label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: { size: 10 },
+                        color: tickClr,
+                        maxRotation: 45,
+                        autoSkip: false
+                    },
+                    grid: { display: false }
+                },
+                y: {
+                    ticks: { font: { size: 10 }, color: tickClr },
+                    grid: { color: gridClr },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }

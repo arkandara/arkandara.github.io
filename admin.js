@@ -480,18 +480,18 @@ function loadButtons() {
     fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(d) {
-            var btns = (d.settings && d.settings.toolbarBtns) ? d.settings.toolbarBtns : BTN_DEFAULTS;
-            // ئۆتۆماتیک cls زیاد بکە ئەگەر نەبوو (KV کۆن)
-            btns = btns.map(function(b) {
-                if (!b.cls) b.cls = getClsFromAction(b.action);
-                return b;
+            // هەمیشە BTN_DEFAULTS بەکار بێنە بۆ ناوەکان — تەنیا urlەکانی پاشەکەوتکراو بخوێنەوە
+            var savedBtns = (d.settings && d.settings.toolbarBtns) ? d.settings.toolbarBtns : [];
+            var btns = BTN_DEFAULTS.map(function(def) {
+                var saved = savedBtns.find(function(s) { return s.label === def.label; });
+                return { label: def.label, color: def.color, action: def.action, group: def.group, fixed: def.fixed || false, cls: def.cls || "", url: (saved && saved.url) ? saved.url : "" };
             });
             var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url || ""); }); }
+            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url); }); }
         })
         .catch(function() {
             var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url || ""); }); }
+            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls || "", ""); }); }
         });
 }
 

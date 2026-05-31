@@ -518,11 +518,11 @@ function addBtnRow(label, color, action, group, fixed, cls, url) {
     row.innerHTML =
         '<input type="hidden" class="btn-group-val" value="' + escHtml(group) + '">' +
         '<input type="hidden" class="btn-fixed-val" value="' + (fixed ? "1" : "0") + '">' +
+        '<input type="hidden" class="btn-action" value="' + escHtml(action) + '">' +
         '<input type="color" value="' + escHtml(color) + '" class="btn-color-preview" title="ڕەنگ">' +
         groupBadge +
-        '<input type="text" placeholder="تێکستی دوگمە" value="' + escHtml(label) + '" class="btn-label" style="flex:1;">' +
-        '<input type="text" placeholder="فەنکشن (onclick)" value="' + escHtml(action) + '" class="btn-action" dir="ltr" style="font-family:monospace;font-size:0.82em;flex:1.2;">' +
-        '<input type="url" placeholder="URL (ئەختیاری)" value="' + escHtml(url) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.82em;flex:1.5;">' +
+        '<input type="text" placeholder="ناوی دوگمە" value="' + escHtml(label) + '" class="btn-label" style="flex:1;">' +
+        '<input type="url" placeholder="لینکی دوگمە — URL" value="' + escHtml(url) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.82em;flex:2;">' +
         delBtn;
     list.appendChild(row);
 }

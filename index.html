@@ -3414,70 +3414,31 @@ function akTrackClick(label) {
                 var toolbarBtns = s.toolbarBtns.filter(function(b) { return (b.group || "toolbar") === "toolbar"; });
                 var btnGroup = document.getElementById('mainBtnGroup');
                 if (btnGroup && toolbarBtns.length) {
-                    // دوگمەکانی ئێستا بسڕەوە — دوگمەکانی id دار (fixed) پارێزراون
-                    Array.from(btnGroup.querySelectorAll('button:not(#wordBtn):not(#geminiBtn):not(#sendAdminBtn)')).forEach(function(b) { b.remove(); });
-                    // دوگمەکانی نوێ زیاد بکە پێش wordBtn
-                    var wordBtn = document.getElementById('wordBtn');
-                    var geminiBtn = document.getElementById('geminiBtn');
-                    toolbarBtns.filter(function(b){ return !b.fixed; }).forEach(function(b) {
-                        // دوگمەی Gemini دەستکاری دەکرێت نەک دووبارە دروست دەبێت
-                        if (b.action && b.action.includes('sendToGemini') && geminiBtn) {
-                            if (b.color) geminiBtn.style.background = b.color;
-                            if (b.label) geminiBtn.textContent = b.label;
-                            return;
-                        }
-                        var el = document.createElement('button');
-                        // CSS class ئۆتۆماتیک دەدرێت بەپێی action — ئەگەر cls لە KV نەبوو
-                        var cls = b.cls;
-                        if (!cls) {
-                            var act = b.action || '';
-                            if (act.includes('toUni'))     cls = 'btn-uni';
-                            else if (act.includes('toAli')) cls = 'btn-ali';
-                            else if (act.includes('copyText')) cls = 'btn-copy';
-                            else if (act.includes('clearText')) cls = 'btn-clear';
-                            else cls = 'btn-nav';
-                        }
-                        el.className = cls;
-                        // ئەگەر ڕەنگ inline پێویستە (btn-nav)
-                        if (['btn-nav'].includes(cls) && b.color) el.style.background = b.color;
+                    var allBtns = Array.from(btnGroup.querySelectorAll('button'));
+                    toolbarBtns.forEach(function(b, i) {
+                        var el = allBtns[i];
+                        if (!el) return;
                         if (b.url) {
                             el.setAttribute('onclick', 'window.open(' + JSON.stringify(b.url) + ',\'_blank\')');
-                        } else {
-                            el.setAttribute('onclick', b.action || '');
                         }
-                        el.textContent = b.label;
-                        if (wordBtn) btnGroup.insertBefore(el, wordBtn);
-                        else btnGroup.appendChild(el);
+                        if (b.label) el.textContent = b.label;
+                        if (b.color) el.style.background = b.color;
                     });
-                    // ڕەنگی wordBtn
-                    var wb = s.toolbarBtns.find(function(b){ return b.fixed; });
-                    if (wb && wordBtn) {
-                        if (wb.color) wordBtn.style.background = wb.color;
-                        if (wb.label) wordBtn.textContent = wb.label;
-                    }
                 }
 
                 // ---- تیکەر (news-ticker) ----
                 var tickerBtns = s.toolbarBtns.filter(function(b) { return b.group === "ticker"; });
-                var tickerWrap = document.querySelector('.news-ticker-buttons') || document.querySelector('.ticker-btns');
-                if (!tickerWrap) {
-                    // بگەڕێ بە دوگمەی سڕینەوەی بۆشایی
-                    var firstTicker = document.querySelector('.news-ticker-btn[onclick*="removeEmpty"]');
-                    if (firstTicker) tickerWrap = firstTicker.parentNode;
-                }
+                var tickerWrap = document.querySelector('.news-ticker');
                 if (tickerWrap && tickerBtns.length) {
-                    Array.from(tickerWrap.querySelectorAll('.news-ticker-btn')).forEach(function(b){ b.remove(); });
-                    tickerBtns.forEach(function(b) {
-                        var el = document.createElement('button');
-                        el.className = 'news-ticker-btn';
-                        el.style.background = 'linear-gradient(135deg,' + (b.color || '#607d8b') + ',' + (b.color || '#607d8b') + 'cc)';
+                    var existingTickerBtns = Array.from(tickerWrap.querySelectorAll('.news-ticker-btn'));
+                    tickerBtns.forEach(function(b, i) {
+                        var el = existingTickerBtns[i];
+                        if (!el) return;
                         if (b.url) {
                             el.setAttribute('onclick', 'window.open(' + JSON.stringify(b.url) + ',\'_blank\')');
-                        } else {
-                            el.setAttribute('onclick', b.action || '');
                         }
-                        el.textContent = b.label;
-                        tickerWrap.appendChild(el);
+                        if (b.label) el.textContent = b.label;
+                        if (b.color) el.style.background = 'linear-gradient(135deg,' + b.color + ',' + b.color + 'cc)';
                     });
                 }
             }

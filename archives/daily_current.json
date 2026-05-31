@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-05",
-  "updatedAt": "2026-05-30T22:13:50.942Z",
+  "updatedAt": "2026-05-31T22:14:35.231Z",
   "days": [
     {
       "date": "2026-05-01",
@@ -792,6 +792,40 @@
       "cityStats": {
         "As Sulaymaniyah": 3,
         "Sulaymaniyah": 1
+      }
+    },
+    {
+      "date": "2026-05-31",
+      "generatedAt": "2026-05-31T22:14:35.231Z",
+      "totalVisits": 61,
+      "totalClicks": 193,
+      "totalTextarea": 76,
+      "clicks": {
+        "سڕینەوەی بۆشایی": 12,
+        "گۆڕین بۆ یونیکۆد": 27,
+        "کەتکردن": 14,
+        "هەواڵەکان": 18,
+        "داگرتنی ڤیدیۆ": 27,
+        "Gemini": 12,
+        "تەما": 4,
+        "دەربارە": 3,
+        "تێکستی ناو وێنه": 9,
+        "سڕینەوەی دەق": 7,
+        "گۆڕین بۆ عەلی کەی": 30,
+        "پاشەکەوت Word": 22,
+        "گەڕان و گۆڕین": 4,
+        "هێنانی Word": 4
+      },
+      "deviceStats": {
+        "mobile": 1,
+        "desktop": 60,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Baghdad": 14,
+        "Sulaymaniyah": 1,
+        "As Sulaymaniyah": 44,
+        "Mountain View": 2
       }
     }
   ]

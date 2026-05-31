@@ -515,14 +515,16 @@ function addBtnRow(label, color, action, group, fixed, cls, url) {
         ? '<span style="font-size:0.72em;color:#aaa;padding:0 8px;"><i class="fas fa-lock"></i></span>'
         : '<button class="del-btn" onclick="this.closest(\'.btn-row\').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
 
+    var BASE_URL = "https://arkandara.pages.dev/";
+    var urlPath = url.startsWith(BASE_URL) ? url.slice(BASE_URL.length) : url;
+
     row.innerHTML =
         '<input type="hidden" class="btn-group-val" value="' + escHtml(group) + '">' +
         '<input type="hidden" class="btn-fixed-val" value="' + (fixed ? "1" : "0") + '">' +
         '<input type="hidden" class="btn-action" value="' + escHtml(action) + '">' +
-        '<input type="color" value="' + escHtml(color) + '" class="btn-color-preview" title="ڕەنگ">' +
-        groupBadge +
-        '<input type="text" placeholder="ناوی دوگمە" value="' + escHtml(label) + '" class="btn-label" style="flex:1;">' +
-        '<input type="url" placeholder="لینکی دوگمە — URL" value="' + escHtml(url) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.82em;flex:2;">' +
+        '<span style="flex:1;font-size:0.95em;font-weight:600;padding:0 8px;display:flex;align-items:center;min-width:130px;color:var(--text);">' + escHtml(label) + '</span>' +
+        '<span style="font-size:0.78em;color:#aaa;white-space:nowrap;padding:0 3px;display:flex;align-items:center;direction:ltr;font-family:monospace;">arkandara.pages.dev/</span>' +
+        '<input type="text" placeholder="path" value="' + escHtml(urlPath) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.85em;flex:1.2;">' +
         delBtn;
     list.appendChild(row);
 }
@@ -536,8 +538,9 @@ function saveButtons() {
         var action = row.querySelector(".btn-action").value.trim();
         var group  = row.querySelector(".btn-group-val")  ? row.querySelector(".btn-group-val").value  : "toolbar";
         var fixed  = row.querySelector(".btn-fixed-val")  ? row.querySelector(".btn-fixed-val").value === "1" : false;
-        var urlEl  = row.querySelector(".btn-url");
-        var url    = urlEl ? urlEl.value.trim() : "";
+        var urlEl   = row.querySelector(".btn-url");
+        var urlPath = urlEl ? urlEl.value.trim() : "";
+        var url = urlPath ? "https://arkandara.pages.dev/" + urlPath.replace(/^\/+/, "") : "";
         if (label) btns.push({ label: label, color: color, action: action, group: group, fixed: fixed, cls: getClsFromAction(action), url: url });
     });
     fetch("/track", {

@@ -219,6 +219,48 @@ export async function onRequestPost(context) {
             const existing = safeJson(await env.STATS_DB.get("settings:site"), {});
             const merged   = Object.assign({}, existing, data);
             await env.STATS_DB.put("settings:site", JSON.stringify(merged));
+
+            // ئەگەر sitemapLastmod نوێکرا — فایلی sitemap.xml لە GitHub نوێ بکەوە
+            if (data.sitemapLastmod && env.GITHUB_TOKEN) {
+                try {
+                    const GITHUB_USER = "arkandara";
+                    const GITHUB_REPO = "arkandara.github.io";
+                    const FILE_PATH   = "sitemap.xml";
+                    const BRANCH      = "main";
+
+                    const newXml = `<?xml version="1.0" encoding="UTF-8"?>\r\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\r\n  <url>\r\n    <loc>https://arkandara.pages.dev/</loc>\r\n    <lastmod>${data.sitemapLastmod}</lastmod>\r\n    <changefreq>weekly</changefreq>\r\n    <priority>1.0</priority>\r\n  </url>\r\n</urlset>\r\n`;
+
+                    // SHA ی فایلی ئێستا بخوێنەوە
+                    const getRes = await fetch(
+                        `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?ref=${BRANCH}`,
+                        { headers: { "Authorization": `Bearer ${env.GITHUB_TOKEN}`, "User-Agent": "arkandara-admin" } }
+                    );
+                    const getJson = await getRes.json();
+                    const sha = getJson.sha || "";
+
+                    // فایلەکە نوێ بکەوە
+                    await fetch(
+                        `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+                                "Content-Type": "application/json",
+                                "User-Agent": "arkandara-admin"
+                            },
+                            body: JSON.stringify({
+                                message: `sitemap: update lastmod to ${data.sitemapLastmod}`,
+                                content: btoa(unescape(encodeURIComponent(newXml))),
+                                sha: sha,
+                                branch: BRANCH
+                            })
+                        }
+                    );
+                } catch (e) {
+                    // ئەگەر GitHub نوێکردنەوە شکستی هێنا، باز نەدە — KV پاشەکەوت کراوە
+                }
+            }
+
             return ok({ success: true }, CORS);
         }
 

@@ -511,10 +511,6 @@ function addBtnRow(label, color, action, group, fixed, cls, url) {
         ? '<span style="font-size:0.72em;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:4px;border:1px solid #ffe0b2;">تیکەر</span>'
         : '<span style="font-size:0.72em;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:4px;border:1px solid #c8e6c9;">تووڵبار</span>';
 
-    var delBtn = fixed
-        ? '<span style="font-size:0.72em;color:#aaa;padding:0 8px;"><i class="fas fa-lock"></i></span>'
-        : '<button class="del-btn" onclick="this.closest(\'.btn-row\').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
-
     var BASE_URL = "https://arkandara.pages.dev/";
     var urlPath = url.startsWith(BASE_URL) ? url.slice(BASE_URL.length) : url;
 
@@ -524,8 +520,7 @@ function addBtnRow(label, color, action, group, fixed, cls, url) {
         '<input type="hidden" class="btn-action" value="' + escHtml(action) + '">' +
         '<span style="flex:1;font-size:0.95em;font-weight:600;padding:0 8px;display:flex;align-items:center;min-width:130px;color:var(--text);">' + escHtml(label) + '</span>' +
         '<span style="font-size:0.78em;color:#aaa;white-space:nowrap;padding:0 3px;display:flex;align-items:center;direction:ltr;font-family:monospace;">arkandara.pages.dev/</span>' +
-        '<input type="text" placeholder="path" value="' + escHtml(urlPath) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.85em;flex:1.2;">' +
-        delBtn;
+        '<input type="text" placeholder="path" value="' + escHtml(urlPath) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.85em;flex:1.2;">';
     list.appendChild(row);
 }
 

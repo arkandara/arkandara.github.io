@@ -188,6 +188,7 @@ function showTab(id) {
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
     if (id === "tab-texts") loadTextsTab();
+    if (id === "tab-buttons") loadButtons();
 }
 
 
@@ -477,21 +478,33 @@ function getClsFromAction(action) {
 }
 
 function loadButtons() {
+    function renderBtns(savedBtns) {
+        var btns = BTN_DEFAULTS.map(function(def) {
+            var saved = savedBtns.find(function(s) { return s.label === def.label; });
+            return {
+                label:  def.label,
+                color:  def.color,
+                action: def.action,
+                group:  def.group,
+                fixed:  def.fixed || false,
+                cls:    def.cls   || "",
+                url:    (saved && saved.url) ? saved.url : ""
+            };
+        });
+        var list = document.getElementById("btnList");
+        if (!list) return;
+        list.innerHTML = "";
+        btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url); });
+    }
+
     fetch("/track", { headers: authHeaders() })
-        .then(function(r) { return r.json(); })
+        .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
         .then(function(d) {
-            // هەمیشە BTN_DEFAULTS بەکار بێنە بۆ ناوەکان — تەنیا urlەکانی پاشەکەوتکراو بخوێنەوە
-            var savedBtns = (d.settings && d.settings.toolbarBtns) ? d.settings.toolbarBtns : [];
-            var btns = BTN_DEFAULTS.map(function(def) {
-                var saved = savedBtns.find(function(s) { return s.label === def.label; });
-                return { label: def.label, color: def.color, action: def.action, group: def.group, fixed: def.fixed || false, cls: def.cls || "", url: (saved && saved.url) ? saved.url : "" };
-            });
-            var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url); }); }
+            var savedBtns = (d.settings && Array.isArray(d.settings.toolbarBtns)) ? d.settings.toolbarBtns : [];
+            renderBtns(savedBtns);
         })
         .catch(function() {
-            var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls || "", ""); }); }
+            renderBtns([]);
         });
 }
 

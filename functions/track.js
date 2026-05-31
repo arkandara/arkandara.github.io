@@ -221,7 +221,7 @@ export async function onRequestPost(context) {
             await env.STATS_DB.put("settings:site", JSON.stringify(merged));
 
             // ئەگەر sitemapLastmod نوێکرا — فایلی sitemap.xml لە GitHub نوێ بکەوە
-            if (data.sitemapLastmod && env.GITHUB_TOKEN) {
+            if (data.sitemapLastmod && env.GH_PAT) {
                 try {
                     const GITHUB_USER = "arkandara";
                     const GITHUB_REPO = "arkandara.github.io";
@@ -233,7 +233,7 @@ export async function onRequestPost(context) {
                     // SHA ی فایلی ئێستا بخوێنەوە
                     const getRes = await fetch(
                         `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?ref=${BRANCH}`,
-                        { headers: { "Authorization": `Bearer ${env.GITHUB_TOKEN}`, "User-Agent": "arkandara-admin" } }
+                        { headers: { "Authorization": `Bearer ${env.GH_PAT}`, "User-Agent": "arkandara-admin" } }
                     );
                     const getJson = await getRes.json();
                     const sha = getJson.sha || "";
@@ -244,7 +244,7 @@ export async function onRequestPost(context) {
                         {
                             method: "PUT",
                             headers: {
-                                "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+                                "Authorization": `Bearer ${env.GH_PAT}`,
                                 "Content-Type": "application/json",
                                 "User-Agent": "arkandara-admin"
                             },

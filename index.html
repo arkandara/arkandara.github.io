@@ -1504,7 +1504,7 @@ textarea {
 
     <div class="header">
         <div class="h-right" id="clock" style="display:flex; align-items:center; gap:6px;">
-            <span id="clockText" style="font-size:16px;"></span>
+            <span id="clockText" style="font-size:20px;"></span>
         </div>
         <div class="h-buttons-area"></div>
 
@@ -1615,41 +1615,6 @@ textarea {
                 <span id="textStats">وشە:</span>
                 <span style="color:#ccc;margin:0 4px;">|</span>
                 <span id="readingTimeDisplay">0 چرکە</span>
-            </div>
-
-            <!-- کاتژمێری بازنەیی ناوەوەی خانەی نووسین -->
-            <div id="inlineClock" style="
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 5;
-                pointer-events: none;
-                transition: opacity 0.5s ease;
-                opacity: 1;
-            ">
-                <svg id="inlineClockSvg" width="300" height="300" viewBox="0 0 180 180">
-                    <!-- دایرەی دەرەوە -->
-                    <circle cx="90" cy="90" r="85" fill="rgba(255,255,255,0.12)" stroke="rgba(76,175,80,0.4)" stroke-width="2"/>
-                    <!-- دایرەی ناوەوە -->
-                    <circle cx="90" cy="90" r="78" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.15)" stroke-width="1"/>
-                    <!-- خاڵەکانی کاتژمێر -->
-                    <g id="clockTicks"></g>
-                    <!-- ژمارەکان -->
-                    <g id="clockNumbers"></g>
-                    <!-- مل دقیقەکان -->
-                    <line id="minuteHand" x1="90" y1="90" x2="90" y2="25" 
-                          stroke="rgba(76,175,80,0.85)" stroke-width="3" stroke-linecap="round"/>
-                    <!-- ملی کاتژمێر -->
-                    <line id="hourHand" x1="90" y1="90" x2="90" y2="42" 
-                          stroke="rgba(46,125,50,0.9)" stroke-width="5" stroke-linecap="round"/>
-                    <!-- ملی چرکەکان -->
-                    <line id="secondHand" x1="90" y1="100" x2="90" y2="18" 
-                          stroke="rgba(255,100,100,0.85)" stroke-width="1.5" stroke-linecap="round"/>
-                    <!-- خاڵی ناوەندی -->
-                    <circle cx="90" cy="90" r="5" fill="rgba(76,175,80,0.9)"/>
-                    <circle cx="90" cy="90" r="2" fill="rgba(255,100,100,0.9)"/>
-                </svg>
             </div>
 
             <textarea id="textBox" placeholder="لێره‌ بنووسه‌ یان ده‌قێك دابنێ..."></textarea>
@@ -2069,78 +2034,13 @@ async function getNews() {
     }
 }
 
-
-
-// ئامادەکردنی خاڵ و ژمارەکانی کاتژمێری بازنەیی
-function buildClockFace() {
-    const ticksG = document.getElementById('clockTicks');
-    const numsG = document.getElementById('clockNumbers');
-    if (!ticksG || !numsG) return;
-    for (let i = 0; i < 60; i++) {
-        const angle = (i * 6 - 90) * Math.PI / 180;
-        const isHour = i % 5 === 0;
-        const r1 = isHour ? 68 : 72;
-        const r2 = 78;
-        const x1 = 90 + r1 * Math.cos(angle);
-        const y1 = 90 + r1 * Math.sin(angle);
-        const x2 = 90 + r2 * Math.cos(angle);
-        const y2 = 90 + r2 * Math.sin(angle);
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-        line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-        line.setAttribute('stroke', isHour ? 'rgba(76,175,80,0.7)' : 'rgba(76,175,80,0.3)');
-        line.setAttribute('stroke-width', isHour ? '2.5' : '1');
-        ticksG.appendChild(line);
-        if (isHour) {
-            const num = i / 5 === 0 ? 12 : i / 5;
-            const r3 = 58;
-            const tx = 90 + r3 * Math.cos(angle);
-            const ty = 90 + r3 * Math.sin(angle);
-            const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            txt.setAttribute('x', tx); txt.setAttribute('y', ty);
-            txt.setAttribute('text-anchor', 'middle');
-            txt.setAttribute('dominant-baseline', 'central');
-            txt.setAttribute('font-size', '13');
-            txt.setAttribute('fill', 'rgba(76,175,80,0.8)');
-            txt.setAttribute('font-family', 'sans-serif');
-            txt.textContent = num;
-            numsG.appendChild(txt);
-        }
-    }
-}
-
-// مووڤکردنی ملەکانی کاتژمێر بە CSS transform — ئەمە ڕێگای دروست و پشتیوانراوەیە
-function setClockHands(h, m, s, prefix) {
-    // دەرجەی زاویەی هەر ملێک (سەرەتا لە سەرەوە دەستپێ دەکەن، یانی 12)
-    const secDeg  = s * 6;
-    const minDeg  = m * 6 + s * 0.1;
-    const hourDeg = (h % 12) * 30 + m * 0.5;
-
-    // ID ی ملەکان بەپێی prefix
-    const ids = prefix === 'h'
-        ? { m: 'hMinuteHand', h: 'hHourHand', s: 'hSecondHand' }
-        : { m: 'minuteHand',  h: 'hourHand',  s: 'secondHand'  };
-
-    const mHand = document.getElementById(ids.m);
-    const hHand = document.getElementById(ids.h);
-    const sHand = document.getElementById(ids.s);
-
-    if (mHand) mHand.setAttribute('transform', `rotate(${minDeg}, 90, 90)`);
-    if (hHand) hHand.setAttribute('transform', `rotate(${hourDeg}, 90, 90)`);
-    if (sHand) sHand.setAttribute('transform', `rotate(${secDeg}, 90, 90)`);
-}
-
 // دەستپێکردنی کاتژمێری زیندوی هێدەرەکە — هەموو چرکەیەک نوێ دەبێتەوە
 function initClock() {
-    buildClockFace();
-
     const days = ["یەکشەممە", "دووشەممە", "سێشەممە", "چوارشەممە", "پێنجشەممە", "هەینی", "شەممە"];
-    // تەوقینی کوردستانی عێراق = UTC+3
-    const IRAQ_OFFSET = 3 * 60; // بە دقیقە
+    const IRAQ_OFFSET = 3 * 60;
 
     function getIraqTime() {
         const now = new Date();
-        // UTC میلی‌چرکەکان + 3 کاتژمێر
         const iraqMs = now.getTime() + IRAQ_OFFSET * 60 * 1000;
         return new Date(iraqMs);
     }
@@ -2151,11 +2051,6 @@ function initClock() {
         const year = t.getUTCFullYear(), month = t.getUTCMonth()+1, day = t.getUTCDate();
         const dayOfWeek = t.getUTCDay();
 
-        // نوێکردنی ملەکانی هەر دوو کاتژمێرەکان
-        setClockHands(h, m, s, '');
-        setClockHands(h, m, s, 'h');
-
-        // دەقی کاتژمێری هێدەر — هەمیشە دەربدەکەوێت
         const clockText = document.getElementById('clockText');
         if (clockText) {
             const hs = String(h).padStart(2,'0'), ms = String(m).padStart(2,'0'), ss = String(s).padStart(2,'0');
@@ -2165,24 +2060,6 @@ function initClock() {
 
     tick();
     setInterval(tick, 1000);
-
-    // چاودێریکردنی خانەی نووسین — کاتژمێری بازنەیی تەنها کاتێک خالییە دەبینرێت
-    const textBox = document.getElementById('textBox');
-    const inlineClock = document.getElementById('inlineClock');
-
-   function syncClockVisibility() {
-    const hasText = textBox && textBox.value.trim().length > 0;
-    if (inlineClock) {
-        // بەکارهێنانی Transition لە CSS بۆ ئەوەی جوڵەی گۆڕانی ڕەنگەکە نەرم بێت
-        inlineClock.style.transition = 'opacity 0.5s ease'; 
-        inlineClock.style.opacity = hasText ? '0.11' : '1';
-    }
-}
-
-    if (textBox) {
-        textBox.addEventListener('input', syncClockVisibility);
-        syncClockVisibility();
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -3741,6 +3618,20 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
     var tb = document.getElementById('textBox');
     if (!tb) return;
     var _lastSent = '';
+    var _geminiClicked = false;
+
+    // فلاگی Gemini — کاتێک دوگمەی Gemini کلیک کرا چالاک دەبێت
+    var geminiBtn = document.getElementById('geminiBtn');
+    if (geminiBtn) {
+        geminiBtn.addEventListener('click', function() {
+            _geminiClicked = true;
+        });
+    }
+
+    function akShowGeminiWarning() {
+        showStatus('⚠️ پێویستە بە وردی پێداچوونەوە بە تێکستەکەدا بکەیت');
+        _geminiClicked = false;
+    }
 
     function akSendText(overrideText, method) {
         var txt = (typeof overrideText === 'string') ? overrideText.trim() : tb.value.trim();
@@ -3757,12 +3648,14 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
 
     // ١. paste (کلیک ڕاست → paste)
     tb.addEventListener('paste', function() {
+        if (_geminiClicked) akShowGeminiWarning();
         setTimeout(function() { akSendText(undefined, 'paste'); }, 300);
     });
 
     // ٢. Ctrl+V و Ctrl+X لە ئەژمارەکەدا
     tb.addEventListener('keydown', function(e) {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+            if (_geminiClicked) akShowGeminiWarning();
             setTimeout(function() { akSendText(undefined, 'Ctrl+V'); }, 300);
         }
         if ((e.ctrlKey || e.metaKey) && (e.key === 'x' || e.key === 'X')) {

@@ -487,20 +487,21 @@ function loadButtons() {
                 return b;
             });
             var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls); }); }
+            if (list) { list.innerHTML = ""; btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url || ""); }); }
         })
         .catch(function() {
             var list = document.getElementById("btnList");
-            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls); }); }
+            if (list) { list.innerHTML = ""; BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url || ""); }); }
         });
 }
 
-function addBtnRow(label, color, action, group, fixed, cls) {
+function addBtnRow(label, color, action, group, fixed, cls, url) {
     label  = label  || "";
     color  = color  || "#2e7d32";
     action = action || "";
     group  = group  || "toolbar";
     fixed  = fixed  || false;
+    url    = url    || "";
 
     var list = document.getElementById("btnList");
     var row  = document.createElement("div");
@@ -521,6 +522,7 @@ function addBtnRow(label, color, action, group, fixed, cls) {
         groupBadge +
         '<input type="text" placeholder="تێکستی دوگمە" value="' + escHtml(label) + '" class="btn-label" style="flex:1;">' +
         '<input type="text" placeholder="فەنکشن (onclick)" value="' + escHtml(action) + '" class="btn-action" dir="ltr" style="font-family:monospace;font-size:0.82em;flex:1.2;">' +
+        '<input type="url" placeholder="URL (ئەختیاری)" value="' + escHtml(url) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.82em;flex:1.5;">' +
         delBtn;
     list.appendChild(row);
 }
@@ -534,7 +536,9 @@ function saveButtons() {
         var action = row.querySelector(".btn-action").value.trim();
         var group  = row.querySelector(".btn-group-val")  ? row.querySelector(".btn-group-val").value  : "toolbar";
         var fixed  = row.querySelector(".btn-fixed-val")  ? row.querySelector(".btn-fixed-val").value === "1" : false;
-        if (label) btns.push({ label: label, color: color, action: action, group: group, fixed: fixed, cls: getClsFromAction(action) });
+        var urlEl  = row.querySelector(".btn-url");
+        var url    = urlEl ? urlEl.value.trim() : "";
+        if (label) btns.push({ label: label, color: color, action: action, group: group, fixed: fixed, cls: getClsFromAction(action), url: url });
     });
     fetch("/track", {
         method: "POST",

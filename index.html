@@ -1734,12 +1734,12 @@ var _kvRssSources = null;
 var rssSources = new Proxy([], {
     get: function(target, prop) {
         var src = window._kvRssSources || [
-            { name: 'الجزيرة', url: 'https://news.google.com/rss/search?q=site:aljazeera.net/news+سیاسی&hl=ar' },
+            { name: 'الجزيرة', url: 'https://www.aljazeera.net/rss' },
             { name: 'سكاى نيوز', url: 'https://www.skynewsarabia.com/rss' },
             { name: 'العراقية', url: 'https://news.google.com/rss/search?q=وكالة+الأنباء+العراقية+INA&hl=ar&gl=IQ&ceid=IQ:ar&tbs=qdr:h' },
-            { name: 'روسیا الیوم', url: 'https://arabic.rt.com/rss/' }
+            { name: 'روسیا الیوم', url: 'https://arabic.rt.com/rss/' },
+            { name: 'عربي جديد', url: 'https://www.alaraby.co.uk/rss' }
         ];
-        
         if (prop === 'length') return src.length;
         if (prop === 'forEach') return src.forEach.bind(src);
         if (prop === 'find')    return src.find.bind(src);
@@ -3440,7 +3440,11 @@ function akTrackClick(label) {
                         el.className = cls;
                         // ئەگەر ڕەنگ inline پێویستە (btn-nav)
                         if (['btn-nav'].includes(cls) && b.color) el.style.background = b.color;
-                        el.setAttribute('onclick', b.action || '');
+                        if (b.url) {
+                            el.setAttribute('onclick', 'window.open(' + JSON.stringify(b.url) + ',\'_blank\')');
+                        } else {
+                            el.setAttribute('onclick', b.action || '');
+                        }
                         el.textContent = b.label;
                         if (wordBtn) btnGroup.insertBefore(el, wordBtn);
                         else btnGroup.appendChild(el);
@@ -3467,7 +3471,11 @@ function akTrackClick(label) {
                         var el = document.createElement('button');
                         el.className = 'news-ticker-btn';
                         el.style.background = 'linear-gradient(135deg,' + (b.color || '#607d8b') + ',' + (b.color || '#607d8b') + 'cc)';
-                        el.setAttribute('onclick', b.action || '');
+                        if (b.url) {
+                            el.setAttribute('onclick', 'window.open(' + JSON.stringify(b.url) + ',\'_blank\')');
+                        } else {
+                            el.setAttribute('onclick', b.action || '');
+                        }
                         el.textContent = b.label;
                         tickerWrap.appendChild(el);
                     });

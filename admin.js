@@ -448,7 +448,7 @@ function saveRss() {
 }
 
 // ===========================
-//  تاب ٣ — دوگمەکان (localStorage)
+//  تاب ٣ — دوگمەکان (Cloudflare KV)
 // ===========================
 
 var BTN_DEFAULTS = [
@@ -467,7 +467,7 @@ var BTN_DEFAULTS = [
     { label: "داگرتنی ڤیدیۆ",             color: "#1a73e8", action: "toggleDlModal()",                              group: "ticker" }
 ];
 
-// نقشەی action بۆ cls — بۆ ئەوەی KV کۆنەکە ئۆتۆماتیک درووست بێت
+// نقشەی action بۆ cls
 function getClsFromAction(action) {
     if (!action) return 'btn-nav';
     if (action.includes('toUni'))    return 'btn-uni';
@@ -478,33 +478,45 @@ function getClsFromAction(action) {
 }
 
 function loadButtons() {
-    function renderBtns(savedBtns) {
-        var btns = BTN_DEFAULTS.map(function(def) {
-            var saved = savedBtns.find(function(s) { return s.label === def.label; });
-            return {
-                label:  def.label,
-                color:  def.color,
-                action: def.action,
-                group:  def.group,
-                fixed:  def.fixed || false,
-                cls:    def.cls   || "",
-                url:    (saved && saved.url) ? saved.url : ""
-            };
-        });
-        var list = document.getElementById("btnList");
-        if (!list) return;
-        list.innerHTML = "";
-        btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url); });
-    }
-
     fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
         .then(function(d) {
             var savedBtns = (d.settings && Array.isArray(d.settings.toolbarBtns)) ? d.settings.toolbarBtns : [];
-            renderBtns(savedBtns);
+            // دوگمەکانی KV بخە پێشەوە، ئەگەر نەبوو default بەکاربهێنە
+            var btns = BTN_DEFAULTS.map(function(def) {
+                var saved = savedBtns.find(function(s) { return s.action === def.action; });
+                return {
+                    label:  saved ? saved.label  : def.label,
+                    color:  saved ? saved.color  : def.color,
+                    action: def.action,
+                    group:  saved ? saved.group  : def.group,
+                    fixed:  def.fixed || false,
+                    cls:    def.cls   || "",
+                    url:    (saved && saved.url) ? saved.url : ""
+                };
+            });
+            // ڕیزبەندی KV بپارێزە ئەگەر هەبوو
+            if (savedBtns.length) {
+                btns.sort(function(a, b) {
+                    var ai = savedBtns.findIndex(function(s) { return s.action === a.action; });
+                    var bi = savedBtns.findIndex(function(s) { return s.action === b.action; });
+                    if (ai === -1) ai = 999;
+                    if (bi === -1) bi = 999;
+                    return ai - bi;
+                });
+            }
+            var list = document.getElementById("btnList");
+            if (!list) return;
+            list.innerHTML = "";
+            btns.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed, b.cls, b.url); });
+            initBtnDrag();
         })
         .catch(function() {
-            renderBtns([]);
+            var list = document.getElementById("btnList");
+            if (!list) return;
+            list.innerHTML = "";
+            BTN_DEFAULTS.forEach(function(b) { addBtnRow(b.label, b.color, b.action, b.group, b.fixed || false, b.cls || "", ""); });
+            initBtnDrag();
         });
 }
 
@@ -518,48 +530,128 @@ function addBtnRow(label, color, action, group, fixed, cls, url) {
 
     var list = document.getElementById("btnList");
     if (!list) return;
-    var row  = document.createElement("div");
+    var row = document.createElement("div");
     row.className = "btn-row";
+    row.draggable = true;
 
     var BASE_URL = "https://arkandara.pages.dev/";
     var urlPath = url.startsWith(BASE_URL) ? url.slice(BASE_URL.length) : url;
 
-    var groupBadge = group === "ticker"
-        ? '<span style="font-size:0.72em;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:4px;border:1px solid #ffe0b2;white-space:nowrap;">تیکەر</span>'
-        : '<span style="font-size:0.72em;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:4px;border:1px solid #c8e6c9;white-space:nowrap;">تووڵبار</span>';
+    var groupSel =
+        '<select class="btn-group-sel" style="border:1px solid #e0e7e0;border-radius:7px;padding:5px 8px;font-family:inherit;font-size:0.85em;background:#fff;cursor:pointer;">' +
+        '<option value="toolbar"' + (group === "toolbar" ? " selected" : "") + '>تووڵبار</option>' +
+        '<option value="ticker"'  + (group === "ticker"  ? " selected" : "") + '>تیکەر</option>' +
+        '</select>';
+
+    var saveOneBtnHtml =
+        '<button onclick="saveSingleBtn(this)" title="پاشەکەوتکردن" ' +
+        'style="background:#e8f5e9;border:1px solid #c8e6c9;color:#2e7d32;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:0.85em;white-space:nowrap;">' +
+        '<i class="fas fa-save"></i></button>';
+
+    var moveHtml =
+        '<div style="display:flex;flex-direction:column;gap:2px;">' +
+        '<button onclick="moveBtnRow(this,-1)" title="بەرزکردنەوە" style="background:none;border:none;cursor:pointer;color:#888;padding:1px 4px;font-size:0.8em;line-height:1;">▲</button>' +
+        '<button onclick="moveBtnRow(this,1)"  title="دادەخستن"   style="background:none;border:none;cursor:pointer;color:#888;padding:1px 4px;font-size:0.8em;line-height:1;">▼</button>' +
+        '</div>';
+
+    var dragHandle =
+        '<span class="btn-drag-handle" title="drag" style="cursor:grab;color:#ccc;font-size:1.1em;padding:0 4px;user-select:none;">⠿</span>';
 
     row.innerHTML =
-        '<input type="hidden" class="btn-group-val"  value="' + escHtml(group)  + '">' +
         '<input type="hidden" class="btn-fixed-val"  value="' + (fixed ? "1" : "0") + '">' +
         '<input type="hidden" class="btn-action"     value="' + escHtml(action) + '">' +
-        '<input type="hidden" class="btn-color-preview" value="' + escHtml(color) + '">' +
-        '<input type="hidden" class="btn-label"      value="' + escHtml(label)  + '">' +
-        groupBadge +
-        '<span style="flex:1;font-size:0.97em;font-weight:600;padding:0 10px;display:flex;align-items:center;min-width:140px;">' + escHtml(label) + '</span>' +
-        '<span style="font-size:0.8em;color:#aaa;white-space:nowrap;padding:0 4px;display:flex;align-items:center;direction:ltr;font-family:monospace;">arkandara.pages.dev/</span>' +
-        '<input type="text" placeholder="path" value="' + escHtml(urlPath) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.85em;flex:1.2;">';
+        '<input type="hidden" class="btn-cls"        value="' + escHtml(cls)    + '">' +
+        dragHandle +
+        moveHtml +
+        '<input type="color" class="btn-color-input" value="' + escHtml(color) + '" ' +
+        'style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none;" title="ڕەنگ">' +
+        '<input type="text" class="btn-label-input" value="' + escHtml(label) + '" placeholder="ناوی دوگمە" ' +
+        'style="flex:2;border:1px solid #e0e7e0;border-radius:7px;padding:6px 10px;font-family:inherit;font-size:0.92em;background:#fff;">' +
+        groupSel +
+        saveOneBtnHtml;
+
     list.appendChild(row);
 }
 
-function saveButtons() {
+// جووڵاندنی ڕیزبەندی بە تیرەکان
+function moveBtnRow(btn, dir) {
+    var row = btn.closest(".btn-row");
+    var list = document.getElementById("btnList");
+    if (!row || !list) return;
+    var rows = Array.from(list.querySelectorAll(".btn-row"));
+    var idx = rows.indexOf(row);
+    var newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= rows.length) return;
+    if (dir === -1) {
+        list.insertBefore(row, rows[newIdx]);
+    } else {
+        list.insertBefore(row, rows[newIdx].nextSibling);
+    }
+}
+
+// drag & drop
+function initBtnDrag() {
+    var list = document.getElementById("btnList");
+    if (!list) return;
+    var dragging = null;
+    list.addEventListener("dragstart", function(e) {
+        dragging = e.target.closest(".btn-row");
+        if (dragging) dragging.style.opacity = "0.5";
+    });
+    list.addEventListener("dragend", function() {
+        if (dragging) dragging.style.opacity = "";
+        dragging = null;
+    });
+    list.addEventListener("dragover", function(e) {
+        e.preventDefault();
+        var target = e.target.closest(".btn-row");
+        if (target && target !== dragging) {
+            var rect = target.getBoundingClientRect();
+            var mid  = rect.top + rect.height / 2;
+            if (e.clientY < mid) {
+                list.insertBefore(dragging, target);
+            } else {
+                list.insertBefore(dragging, target.nextSibling);
+            }
+        }
+    });
+}
+
+// کۆکردنەوەی داتای هەموو ڕیزەکان
+function collectBtns() {
     var rows = document.querySelectorAll(".btn-row");
     var btns = [];
     rows.forEach(function(row) {
-        var label  = row.querySelector(".btn-label").value.trim();
-        var color  = row.querySelector(".btn-color-preview").value;
+        var label  = row.querySelector(".btn-label-input").value.trim();
+        var color  = row.querySelector(".btn-color-input").value;
         var action = row.querySelector(".btn-action").value.trim();
-        var group  = row.querySelector(".btn-group-val")  ? row.querySelector(".btn-group-val").value  : "toolbar";
-        var fixed  = row.querySelector(".btn-fixed-val")  ? row.querySelector(".btn-fixed-val").value === "1" : false;
-        var urlEl   = row.querySelector(".btn-url");
-        var urlPath = urlEl ? urlEl.value.trim() : "";
-        var url = urlPath ? "https://arkandara.pages.dev/" + urlPath.replace(/^\/+/, "") : "";
-        if (label) btns.push({ label: label, color: color, action: action, group: group, fixed: fixed, cls: getClsFromAction(action), url: url });
+        var cls    = row.querySelector(".btn-cls")    ? row.querySelector(".btn-cls").value    : "";
+        var fixed  = row.querySelector(".btn-fixed-val") ? row.querySelector(".btn-fixed-val").value === "1" : false;
+        var groupEl = row.querySelector(".btn-group-sel");
+        var group  = groupEl ? groupEl.value : "toolbar";
+        if (action) btns.push({ label: label, color: color, action: action, group: group, fixed: fixed, cls: cls || getClsFromAction(action) });
     });
+    return btns;
+}
+
+// پاشەکەوتکردنی یەک دوگمە بە تایبەتی
+function saveSingleBtn(btn) {
+    var btns = collectBtns();
     fetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", toolbarBtns: btns })
-    }).then(function() { showToast("✅ دوگمەکانی تووڵبار پاشەکەوت کران!"); })
+    }).then(function() { showToast("✅ پاشەکەوت کرا!"); })
+    .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
+}
+
+function saveButtons() {
+    var btns = collectBtns();
+    fetch("/track", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ type: "settings", toolbarBtns: btns })
+    }).then(function() { showToast("✅ دوگمەکان پاشەکەوت کران!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 

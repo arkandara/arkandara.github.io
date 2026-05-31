@@ -239,7 +239,8 @@ var SITE_DEFAULTS = {
     glowSpeed:       4,
     glowOpacity:     0.35,
     glowBorderWidth: 2,
-    glowBorderSpeed: 7
+    glowBorderSpeed: 7,
+    sitemapLastmod: new Date().toISOString().slice(0, 10)
 };
 
 var _siteInfoLoaded = false;
@@ -272,6 +273,9 @@ function loadSiteInfo(force) {
             if (durEl) { durEl.value = dur; }
             if (durValEl) { durValEl.textContent = dur.toFixed(1) + " چرکە"; }
             document.getElementById("updateText").value       = data.updateText || "";
+            // بارکردنی بەرواری sitemap lastmod
+            var sitemapEl = document.getElementById("sitemapLastmod");
+            if (sitemapEl) { sitemapEl.value = data.sitemapLastmod || new Date().toISOString().slice(0, 10); }
             _siteInfoLoaded = true;
             // --- بارکردنی کۆنتڕۆڵەکانی گلۆ ---
             var glowColor = data.glowColor || "#4caf50";
@@ -326,6 +330,8 @@ function saveSiteInfoDraft() {
         glowBorderWidth: parseFloat(document.getElementById("glowBorderWidth").value) || 2,
         glowBorderSpeed: parseFloat(document.getElementById("glowBorderSpeed").value) || 7
     };
+    var sitmapEl = document.getElementById("sitemapLastmod");
+    if (sitmapEl) draft.sitemapLastmod = sitmapEl.value;
     sessionStorage.setItem("siteInfoDraft", JSON.stringify(draft));
 }
 
@@ -341,11 +347,15 @@ function _postSettings(data, msg) {
 
 // بەشی ١ — زانیاری گشتی
 function saveGeneralInfo() {
+    var lastmod = "";
+    var lmEl = document.getElementById("sitemapLastmod");
+    if (lmEl) lastmod = lmEl.value;
     _postSettings({
         siteName:     document.getElementById("siteName").value.trim(),
         siteAuthor:   document.getElementById("siteAuthor").value.trim(),
         siteTitle:    document.getElementById("siteTitle").value.trim(),
-        siteDesc:     document.getElementById("siteDesc").value.trim()
+        siteDesc:     document.getElementById("siteDesc").value.trim(),
+        sitemapLastmod: lastmod
     }, "✅ زانیاری گشتی پاشەکەوت کرا!");
 }
 

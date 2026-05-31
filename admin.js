@@ -329,31 +329,53 @@ function saveSiteInfoDraft() {
     sessionStorage.setItem("siteInfoDraft", JSON.stringify(draft));
 }
 
-function saveSiteInfo() {
-    var data = {
-        siteName:      document.getElementById("siteName").value.trim(),
-        siteAuthor:    document.getElementById("siteAuthor").value.trim(),
-        siteTitle:     document.getElementById("siteTitle").value.trim(),
-        siteDesc:      document.getElementById("siteDesc").value.trim(),
-        updateText:    document.getElementById("updateText").value.trim(),
-        primaryColor:  document.getElementById("primaryColor").value,
-        bismillahText:     document.getElementById("bismillahText").value.trim(),
-        bismillahSub:      document.getElementById("bismillahSub").value.trim(),
-        bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3,
-        glowColor:       document.getElementById("glowColor").value,
-        glowSpeed:       parseFloat(document.getElementById("glowSpeed").value) || 4,
-        glowOpacity:     parseFloat(document.getElementById("glowOpacity").value) || 0.35,
-        glowBorderWidth: parseFloat(document.getElementById("glowBorderWidth").value) || 2,
-        glowBorderSpeed: parseFloat(document.getElementById("glowBorderSpeed").value) || 7
-    };
-    // پاشەکەوتکردن لە KV (جیهانی)
+function _postSettings(data, msg) {
     fetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
     }).then(function(r) { return r.json(); })
-    .then(function() { _siteInfoLoaded = false; sessionStorage.removeItem("siteInfoDraft"); showToast("✅ زانیاری سایت پاشەکەوت کرا!"); })
+    .then(function() { _siteInfoLoaded = false; sessionStorage.removeItem("siteInfoDraft"); showToast(msg || "✅ پاشەکەوت کرا!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
+}
+
+// بەشی ١ — زانیاری گشتی
+function saveGeneralInfo() {
+    _postSettings({
+        siteName:     document.getElementById("siteName").value.trim(),
+        siteAuthor:   document.getElementById("siteAuthor").value.trim(),
+        siteTitle:    document.getElementById("siteTitle").value.trim(),
+        siteDesc:     document.getElementById("siteDesc").value.trim()
+    }, "✅ زانیاری گشتی پاشەکەوت کرا!");
+}
+
+// بەشی ٢ — دیزاین و بسمیڵا
+function saveBismillahDesign() {
+    _postSettings({
+        primaryColor:      document.getElementById("primaryColor").value,
+        updateText:        document.getElementById("updateText").value.trim(),
+        bismillahText:     document.getElementById("bismillahText").value.trim(),
+        bismillahSub:      document.getElementById("bismillahSub").value.trim(),
+        bismillahDuration: parseFloat(document.getElementById("bismillahDuration").value) || 3.3
+    }, "✅ دیزاین و بسمیڵا پاشەکەوت کران!");
+}
+
+// بەشی ٣ — ڕووناکییەکی گلۆ
+function saveGlowSettings() {
+    _postSettings({
+        glowColor:       document.getElementById("glowColor").value,
+        glowSpeed:       parseFloat(document.getElementById("glowSpeed").value) || 4,
+        glowOpacity:     parseFloat(document.getElementById("glowOpacity").value) || 0.35,
+        glowBorderWidth: parseFloat(document.getElementById("glowBorderWidth").value) || 2,
+        glowBorderSpeed: parseFloat(document.getElementById("glowBorderSpeed").value) || 7
+    }, "✅ ڕووناکییەکە پاشەکەوت کرا!");
+}
+
+// پاشەکەوتکردنی هەموو بەشەکان یەکجار (هێشتا بەردەستە بۆ بەکارهێنانی ناوخۆیی)
+function saveSiteInfo() {
+    saveGeneralInfo();
+    saveBismillahDesign();
+    saveGlowSettings();
 }
 
 // ===========================

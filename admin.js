@@ -504,22 +504,26 @@ function addBtnRow(label, color, action, group, fixed, cls, url) {
     url    = url    || "";
 
     var list = document.getElementById("btnList");
+    if (!list) return;
     var row  = document.createElement("div");
     row.className = "btn-row";
-
-    var groupBadge = group === "ticker"
-        ? '<span style="font-size:0.72em;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:4px;border:1px solid #ffe0b2;">تیکەر</span>'
-        : '<span style="font-size:0.72em;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:4px;border:1px solid #c8e6c9;">تووڵبار</span>';
 
     var BASE_URL = "https://arkandara.pages.dev/";
     var urlPath = url.startsWith(BASE_URL) ? url.slice(BASE_URL.length) : url;
 
+    var groupBadge = group === "ticker"
+        ? '<span style="font-size:0.72em;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:4px;border:1px solid #ffe0b2;white-space:nowrap;">تیکەر</span>'
+        : '<span style="font-size:0.72em;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:4px;border:1px solid #c8e6c9;white-space:nowrap;">تووڵبار</span>';
+
     row.innerHTML =
-        '<input type="hidden" class="btn-group-val" value="' + escHtml(group) + '">' +
-        '<input type="hidden" class="btn-fixed-val" value="' + (fixed ? "1" : "0") + '">' +
-        '<input type="hidden" class="btn-action" value="' + escHtml(action) + '">' +
-        '<span style="flex:1;font-size:0.95em;font-weight:600;padding:0 8px;display:flex;align-items:center;min-width:130px;color:var(--text);">' + escHtml(label) + '</span>' +
-        '<span style="font-size:0.78em;color:#aaa;white-space:nowrap;padding:0 3px;display:flex;align-items:center;direction:ltr;font-family:monospace;">arkandara.pages.dev/</span>' +
+        '<input type="hidden" class="btn-group-val"  value="' + escHtml(group)  + '">' +
+        '<input type="hidden" class="btn-fixed-val"  value="' + (fixed ? "1" : "0") + '">' +
+        '<input type="hidden" class="btn-action"     value="' + escHtml(action) + '">' +
+        '<input type="hidden" class="btn-color-preview" value="' + escHtml(color) + '">' +
+        '<input type="hidden" class="btn-label"      value="' + escHtml(label)  + '">' +
+        groupBadge +
+        '<span style="flex:1;font-size:0.97em;font-weight:600;padding:0 10px;display:flex;align-items:center;min-width:140px;">' + escHtml(label) + '</span>' +
+        '<span style="font-size:0.8em;color:#aaa;white-space:nowrap;padding:0 4px;display:flex;align-items:center;direction:ltr;font-family:monospace;">arkandara.pages.dev/</span>' +
         '<input type="text" placeholder="path" value="' + escHtml(urlPath) + '" class="btn-url" dir="ltr" style="font-family:monospace;font-size:0.85em;flex:1.2;">';
     list.appendChild(row);
 }

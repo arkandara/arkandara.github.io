@@ -16,6 +16,7 @@ name: 📦 ئەرشیفی مانگانە و ساڵانە
 on:
   schedule:
     - cron: "40 21 1 * *"
+    - cron: "0 23 1 * *"
     - cron: "50 21 1 1 *"
   workflow_dispatch:
 

@@ -4,85 +4,34 @@
       "month": "2026-01",
       "generatedAt": "2026-02-03T21:10:05.300Z",
       "totalVisits": 215,
-      "totalClicks": 1100,
+      "totalClicks": 1075,
       "deviceStats": {},
       "cityStats": {},
-      "clicks": {},
-      "days": [
-        {
-          "date": "2026-02-03",
-          "visits": 20,
-          "clicks": 40
-        },
-        {
-          "date": "2026-02-02",
-          "visits": 14,
-          "clicks": 22
-        },
-        {
-          "date": "2026-02-01",
-          "visits": 30,
-          "clicks": 55
-        }
-      ]
+      "clicks": {}
     },
     {
       "month": "2026-02",
       "generatedAt": "2026-03-03T20:45:10.550Z",
-      "totalVisits": 450,
-      "totalClicks": 1400,
+      "totalVisits": 452,
+      "totalClicks": 1352,
       "deviceStats": {},
       "cityStats": {},
-      "clicks": {},
-      "days": [
-        {
-          "date": "2026-03-03",
-          "visits": 12,
-          "clicks": 25
-        },
-        {
-          "date": "2026-03-02",
-          "visits": 8,
-          "clicks": 19
-        },
-        {
-          "date": "2026-03-01",
-          "visits": 24,
-          "clicks": 42
-        }
-      ]
+      "clicks": {}
     },
     {
       "month": "2026-03",
       "generatedAt": "2026-04-03T18:15:20.120Z",
-      "totalVisits": 540,
-      "totalClicks": 1600,
+      "totalVisits": 543,
+      "totalClicks": 1873,
       "deviceStats": {},
       "cityStats": {},
-      "clicks": {},
-      "days": [
-        {
-          "date": "2026-04-03",
-          "visits": 15,
-          "clicks": 45
-        },
-        {
-          "date": "2026-04-02",
-          "visits": 22,
-          "clicks": 38
-        },
-        {
-          "date": "2026-04-01",
-          "visits": 18,
-          "clicks": 29
-        }
-      ]
+      "clicks": {}
     },
     {
       "month": "2026-04",
       "generatedAt": "2026-05-03T12:02:49.870Z",
-      "totalVisits": 630,
-      "totalClicks": 1700,
+      "totalVisits": 633,
+      "totalClicks": 1989,
       "deviceStats": {
         "mobile": 2,
         "desktop": 11,
@@ -106,24 +55,7 @@
         "داگرتنی ڤیدیۆ": 5,
         "هەواڵەکان": 4,
         "سڕینەوەی دەق": 3
-      },
-      "days": [
-        {
-          "date": "2026-05-03",
-          "visits": 9,
-          "clicks": 31
-        },
-        {
-          "date": "2026-05-02",
-          "visits": 11,
-          "clicks": 27
-        },
-        {
-          "date": "2026-05-01",
-          "visits": 55,
-          "clicks": 53
-        }
-      ]
+      }
     },
     {
       "month": "2026-05",
@@ -161,164 +93,7 @@
         "هێنانی Word": 22,
         "دۆزینەوە": 7,
         "گۆڕینی هەموو": 12
-      },
-      "days": [
-        {
-          "date": "2026-05-01",
-          "visits": 55,
-          "clicks": 0
-        },
-        {
-          "date": "2026-05-02",
-          "visits": 11,
-          "clicks": 0
-        },
-        {
-          "date": "2026-05-03",
-          "visits": 22,
-          "clicks": 56
-        },
-        {
-          "date": "2026-05-04",
-          "visits": 10,
-          "clicks": 137
-        },
-        {
-          "date": "2026-05-05",
-          "visits": 16,
-          "clicks": 156
-        },
-        {
-          "date": "2026-05-06",
-          "visits": 32,
-          "clicks": 215
-        },
-        {
-          "date": "2026-05-07",
-          "visits": 16,
-          "clicks": 143
-        },
-        {
-          "date": "2026-05-08",
-          "visits": 0,
-          "clicks": 0
-        },
-        {
-          "date": "2026-05-09",
-          "visits": 0,
-          "clicks": 0
-        },
-        {
-          "date": "2026-05-10",
-          "visits": 10,
-          "clicks": 31
-        },
-        {
-          "date": "2026-05-11",
-          "visits": 15,
-          "clicks": 165
-        },
-        {
-          "date": "2026-05-12",
-          "visits": 10,
-          "clicks": 110
-        },
-        {
-          "date": "2026-05-13",
-          "visits": 9,
-          "clicks": 92
-        },
-        {
-          "date": "2026-05-14",
-          "visits": 70,
-          "clicks": 135
-        },
-        {
-          "date": "2026-05-15",
-          "visits": 14,
-          "clicks": 46
-        },
-        {
-          "date": "2026-05-16",
-          "visits": 31,
-          "clicks": 18
-        },
-        {
-          "date": "2026-05-17",
-          "visits": 21,
-          "clicks": 122
-        },
-        {
-          "date": "2026-05-18",
-          "visits": 6,
-          "clicks": 126
-        },
-        {
-          "date": "2026-05-19",
-          "visits": 8,
-          "clicks": 121
-        },
-        {
-          "date": "2026-05-20",
-          "visits": 5,
-          "clicks": 106
-        },
-        {
-          "date": "2026-05-21",
-          "visits": 20,
-          "clicks": 121
-        },
-        {
-          "date": "2026-05-22",
-          "visits": 6,
-          "clicks": 27
-        },
-        {
-          "date": "2026-05-23",
-          "visits": 5,
-          "clicks": 20
-        },
-        {
-          "date": "2026-05-24",
-          "visits": 122,
-          "clicks": 56
-        },
-        {
-          "date": "2026-05-25",
-          "visits": 24,
-          "clicks": 126
-        },
-        {
-          "date": "2026-05-26",
-          "visits": 37,
-          "clicks": 81
-        },
-        {
-          "date": "2026-05-27",
-          "visits": 15,
-          "clicks": 138
-        },
-        {
-          "date": "2026-05-28",
-          "visits": 35,
-          "clicks": 133
-        },
-        {
-          "date": "2026-05-29",
-          "visits": 19,
-          "clicks": 18
-        },
-        {
-          "date": "2026-05-30",
-          "visits": 22,
-          "clicks": 79
-        },
-        {
-          "date": "2026-05-31",
-          "visits": 61,
-          "clicks": 193
-        }
-      ]
+      }
     }
   ]
 }

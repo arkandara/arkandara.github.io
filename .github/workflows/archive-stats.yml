@@ -116,13 +116,13 @@ jobs:
               fs.writeFileSync(archivePath, JSON.stringify(archive, null, 2), "utf8");
               console.log(`✅ مانگانە: ${monthLabel} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان) → monthly_archive.json`);
 
-              // سفرکردنەوەی داتای مانگی ڕابردوو — رۆژانەی مانگی نوێ دەمێننەوە
+              // سفرکردنەوەی daily_current.json بە تەواوی — مانگی نوێ خاوێن دەست پێدەکات
               const newMonth = todayStr.slice(0, 7);
-              current.days = (current.days || []).filter(d => (d.date || "").startsWith(newMonth));
+              current.days = [];
               current.month = newMonth;
               current.updatedAt = now.toISOString();
               fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
-              console.log("✅ daily_current.json نوێکرایەوە — رۆژانەی مانگی نوێ مانەوە:", current.days.length);
+              console.log("✅ daily_current.json سفر بووەوە — ئامادەی مانگی نوێ:", newMonth);
           } else {
               console.log("⚠️ هیچ داتایەکی مانگانە نەدۆزراوەتەوە");
           }

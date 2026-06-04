@@ -340,7 +340,7 @@ textarea:focus { outline: none; }
 
 
     
-    .btn-group { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; margin-top: 5px; }
+    .btn-group { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; margin-top: 5px; }
     
 button, .btn-file { 
         padding: 0 10px; height: 36px; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; 
@@ -401,7 +401,7 @@ button, .btn-file {
         .h-left { order: 3; flex-wrap: wrap; justify-content: center; gap: 10px; }
         .container { padding: 8px; }
         textarea { font-size: 18px; padding: 15px; min-height: 350px; }
-        .btn-group { grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .btn-group { grid-template-columns: repeat(4, 1fr); gap: 5px; }
     }
 
     @media (max-width: 480px) {
@@ -1625,6 +1625,7 @@ textarea {
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن</button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
             <button id="geminiBtn" class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
+            <button id="aiStudioBtn" class="btn-nav" style="background: #9334e6;" onclick="sendToAIStudio()">✦ G. AI Studio</button>
             <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;">💾 پاشه‌كه‌وتكردن</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
 <input type="file" id="fileInput" accept=".docx" style="display:none;">
@@ -2416,7 +2417,64 @@ function frReplaceAll() {
     }
 }
 
-// كۆدی تایبه‌تی Gemini
+// كۆدی تایبه‌تی AI Studio
+let aiStudioWin = null;
+
+async function sendToAIStudio() {
+    const textBox = document.getElementById('textBox');
+    if (!textBox || !textBox.value.trim()) {
+        showStatus("⚠️ خانەکە خاڵییە");
+        return;
+    }
+
+    const prompt = `You are an expert Kurdish journalist. Your task is to rewrite the text I give you as a professional, publication-ready Kurdish Sorani news article.
+
+Rules:
+1. Write in natural, fluent, literary Kurdish Sorani — NOT a translation, NOT robotic.
+2. Deeply understand the content and rewrite it as a journalist would — with insight, clarity, and professionalism.
+3. Start with a strong lead paragraph that summarizes the full story in under 32 words.
+4. Follow with 2–4 well-structured body paragraphs covering the full story.
+5. Be strictly neutral and unbiased — no opinions, no framing, no loaded language.
+6. Apply correct Kurdish Sorani grammar, punctuation, and spelling throughout.
+7. Output only the finished article — no titles, no labels, no explanation, no commentary.
+
+Text:
+`;
+
+    const start = textBox.selectionStart;
+    const finish = textBox.selectionEnd;
+    const fullText = textBox.value;
+    const selectedText = (start !== finish) ? fullText.substring(start, finish) : fullText;
+
+    const finalCopy = prompt + selectedText;
+
+    try {
+        await navigator.clipboard.writeText(finalCopy);
+
+        if (start !== finish) {
+            textBox.value = fullText.substring(0, start) + fullText.substring(finish);
+            textBox.setSelectionRange(start, start);
+        } else {
+            textBox.value = "";
+        }
+
+        updateStats();
+        localStorage.setItem('autosave_text', textBox.value);
+
+        if (aiStudioWin && !aiStudioWin.closed) {
+            aiStudioWin.focus();
+        } else {
+            aiStudioWin = window.open('https://aistudio.google.com/prompts/new_chat', 'AIStudioTab');
+        }
+
+        showStatus("✂️ پرۆمپت + دەق کۆپیکرا — AI Studio ئامادەیە");
+    } catch (err) {
+        showStatus("❌ هەڵەیەک ڕوویدا");
+    }
+}
+
+
+
 // ئەم گۆڕاوە لە دەرەوەی فانکشنەکە دابنێ
 let geminiWin = null;
 
@@ -2427,12 +2485,18 @@ async function sendToGemini() {
         return;
     }
 
-    const prompt = `وەک ڕۆژنامەنووسێکی پیشەگەر و ژیر لە میدیای کوردیدا مامەڵە بکە. ئەرکی تۆ داڕشتنەوەی ئەو دەقەیە کە بۆت دەنێرم بەپێی ئەم دوو بارودۆخەی خوارەوە:
-١. ئەگەر دەقەکە هەواڵێک بوو: بە زمانێکی ڕۆژنامەوانیی مۆدێرن و کوردییەکی پاراو دایبڕێژەرەوە (نەک وەرگێڕانی ئامێری). سەرەتا لیدێکی بۆ بنووسە کە هەموو ناوەڕۆکی هەواڵەکە لە کەمتر لە (32) وشەدا کۆبکاتەوە. پاشان ناوەڕۆکەکە لە چەند پەرەگرافێکی ڕێکخراودا دابڕێژەرەوە. پێویست ناکات ناونیشان بۆ لید و پەرەگرافەکان دابنێیت.
-٢. ئەگەر دەقەکە مانشێتی جیاواز بوو: ڕاستەوخۆ بە زمانی کوردی سۆرانی و بە شێوازێکی پیشەگەرانە دووبارە دایان بڕێژەرەوە و وەک مانشێتی جیاواز بۆم دابنێ. پێویست ناکات جیاکردنەوە یان ڕوونکردنەوەیان بۆ بنووسیت، یەکسەر مانشێتەکانم بۆ دابنێ.
-تێبینی: لە هەردوو بارەکەدا زمانێکی پوخت بەکاربهێنە کە شایستەی بڵاوکردنەوە بێت لە دەزگایەکی میدیایی فەرمی و له‌گه‌ڵ ئه‌وه‌شدا گرینگه‌ ڕه‌چاوی ڕێنووس بكه‌یت.
+    const prompt = `You are an expert Kurdish journalist. Your task is to rewrite the text I give you as a professional, publication-ready Kurdish Sorani news article.
 
-دەقەکە:
+Rules:
+1. Write in natural, fluent, literary Kurdish Sorani — NOT a translation, NOT robotic.
+2. Deeply understand the content and rewrite it as a journalist would — with insight, clarity, and professionalism.
+3. Start with a strong lead paragraph that summarizes the full story in under 32 words.
+4. Follow with 2–4 well-structured body paragraphs covering the full story.
+5. Be strictly neutral and unbiased — no opinions, no framing, no loaded language.
+6. Apply correct Kurdish Sorani grammar, punctuation, and spelling throughout.
+7. Output only the finished article — no titles, no labels, no explanation, no commentary.
+
+Text:
 `;
 
     const start = textBox.selectionStart;
@@ -3668,6 +3732,7 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
         "toggleAbout":       "دەربارە",
         "toggleT":           "تەما",
         "sendToGemini":      "Gemini",
+        "sendToAIStudio":    "AI Studio",
         "downloadAsWord":    "پاشەکەوت Word",
         "copyText":          "کەتکردن",
         "clearText":         "سڕینەوەی دەق",
@@ -3689,6 +3754,7 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
         else if (oc.includes("toggleAbout"))        label = btnMap["toggleAbout"];
         else if (oc.includes("toggleT()"))          label = btnMap["toggleT"];
         else if (oc.includes("sendToGemini"))       label = btnMap["sendToGemini"];
+        else if (oc.includes("sendToAIStudio"))     label = btnMap["sendToAIStudio"];
         else if (oc.includes("downloadAsWord"))     label = btnMap["downloadAsWord"];
         else if (oc.includes("copyText"))           label = btnMap["copyText"];
         else if (oc.includes("clearText"))          label = btnMap["clearText"];

@@ -475,7 +475,7 @@ function addCustomHeadlineRow(title, link) {
     row.innerHTML =
         '<input type="text" placeholder="مانشێتەکە بنووسە..." value="' + escHtml(title) + '" class="rss-name" style="flex:2;">' +
         '<input type="url" placeholder="لینکی هەواڵەکە (ئارەزووکراو)" value="' + escHtml(link) + '" class="url-input rss-url" dir="ltr" style="flex:2;">' +
-        '<button class="del-btn" onclick="this.closest('.rss-row').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
+        '<button class="del-btn" onclick="this.closest(&apos;.rss-row&apos;).remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
     list.appendChild(row);
 }
 

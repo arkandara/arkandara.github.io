@@ -444,8 +444,10 @@ function saveRss() {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", rssSources: sources })
-    }).then(function() { showToast("✅ سەرچاوەکانی هەواڵ پاشەکەوت کران!"); })
-    .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
+    }).then(function(r) {
+        if (r.ok) { showToast("✅ سەرچاوەکانی هەواڵ پاشەکەوت کران!"); }
+        else { showToast("⚠️ هەڵە لە پاشەکەوتکردن (" + r.status + ")", true); }
+    }).catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 
 // ===========================

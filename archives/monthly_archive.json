@@ -5,11 +5,7 @@
       "generatedAt": "2026-02-03T21:10:05.300Z",
       "totalVisits": 215,
       "totalClicks": 1075,
-      "deviceStats": {
-        "mobile": 17,
-        "desktop": 198,
-        "tablet": 0
-      },
+      "deviceStats": { "mobile": 17, "desktop": 198, "tablet": 0 },
       "cityStats": {
         "As Sulaymaniyah": 63,
         "Sulaymaniyah": 49,
@@ -20,7 +16,7 @@
         "IQ": 2
       },
       "clicks": {
-        "گۆڕین بۆ یونیکۆد": 214,
+        "گۆڕین بۆ یونیکۆد": 294,
         "گۆڕین بۆ عەلی کەی": 177,
         "پاشەکەوت Word": 130,
         "سڕینەوەی بۆشایی": 113,
@@ -43,11 +39,7 @@
       "generatedAt": "2026-03-03T20:45:10.550Z",
       "totalVisits": 452,
       "totalClicks": 1352,
-      "deviceStats": {
-        "mobile": 36,
-        "desktop": 416,
-        "tablet": 0
-      },
+      "deviceStats": { "mobile": 36, "desktop": 416, "tablet": 0 },
       "cityStats": {
         "As Sulaymaniyah": 132,
         "Sulaymaniyah": 102,
@@ -58,7 +50,7 @@
         "IQ": 2
       },
       "clicks": {
-        "گۆڕین بۆ یونیکۆد": 269,
+        "گۆڕین بۆ یونیکۆد": 367,
         "گۆڕین بۆ عەلی کەی": 222,
         "پاشەکەوت Word": 169,
         "سڕینەوەی بۆشایی": 139,
@@ -81,11 +73,7 @@
       "generatedAt": "2026-04-03T18:15:20.120Z",
       "totalVisits": 543,
       "totalClicks": 1873,
-      "deviceStats": {
-        "mobile": 43,
-        "desktop": 500,
-        "tablet": 0
-      },
+      "deviceStats": { "mobile": 43, "desktop": 500, "tablet": 0 },
       "cityStats": {
         "As Sulaymaniyah": 158,
         "Sulaymaniyah": 122,
@@ -96,7 +84,7 @@
         "IQ": 4
       },
       "clicks": {
-        "گۆڕین بۆ یونیکۆد": 373,
+        "گۆڕین بۆ یونیکۆد": 507,
         "گۆڕین بۆ عەلی کەی": 309,
         "پاشەکەوت Word": 235,
         "سڕینەوەی بۆشایی": 193,
@@ -119,11 +107,7 @@
       "generatedAt": "2026-05-03T12:02:49.870Z",
       "totalVisits": 633,
       "totalClicks": 1989,
-      "deviceStats": {
-        "mobile": 51,
-        "desktop": 582,
-        "tablet": 0
-      },
+      "deviceStats": { "mobile": 51, "desktop": 582, "tablet": 0 },
       "cityStats": {
         "As Sulaymaniyah": 186,
         "Sulaymaniyah": 144,
@@ -134,7 +118,7 @@
         "IQ": 3
       },
       "clicks": {
-        "گۆڕین بۆ یونیکۆد": 426,
+        "گۆڕین بۆ یونیکۆد": 453,
         "گۆڕین بۆ عەلی کەی": 352,
         "پاشەکەوت Word": 259,
         "سڕینەوەی بۆشایی": 222,
@@ -157,11 +141,7 @@
       "generatedAt": "2026-06-01T02:12:03.455Z",
       "totalVisits": 727,
       "totalClicks": 2771,
-      "deviceStats": {
-        "mobile": 58,
-        "desktop": 669,
-        "tablet": 0
-      },
+      "deviceStats": { "mobile": 58, "desktop": 669, "tablet": 0 },
       "cityStats": {
         "As Sulaymaniyah": 213,
         "Sulaymaniyah": 165,
@@ -172,7 +152,7 @@
         "IQ": 3
       },
       "clicks": {
-        "گۆڕین بۆ یونیکۆد": 595,
+        "گۆڕین بۆ یونیکۆد": 625,
         "گۆڕین بۆ عەلی کەی": 491,
         "پاشەکەوت Word": 361,
         "سڕینەوەی بۆشایی": 311,

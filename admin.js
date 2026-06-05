@@ -1177,11 +1177,12 @@ function loadArchiveList() {
         // ---- مانگانە ----
         html += '<div id="arc-monthly" class="arc-panel" style="display:none">';
         if (monthly.length) {
-            monthly.forEach(function(a) {
+            window._monthlyArchiveData = monthly;
+            monthly.forEach(function(a, idx) {
                 var mp = (a.month||"").split("-");
                 var mNames = ["","کانوونی دووەم","شوبات","ئازار","نیسان","ئایار","حوزەیران","تەممووز","ئاب","ئەیلوول","تشرینی یەکەم","تشرینی دووەم","کانوونی یەکەم"];
                 var mlabel = (mNames[+(mp[1]||0)]||mp[1]) + " " + (mp[0]||"");
-                html += '<div class="archive-row" onclick="showArchiveChart(\'monthly\','+JSON.stringify(a)+')" style="cursor:pointer">' +
+                html += '<div class="archive-row" onclick="showArchiveChart(\'monthly\',window._monthlyArchiveData['+idx+'])" style="cursor:pointer">' +
                     '<div class="archive-week"><i class="fas fa-calendar-alt"></i> ' + mlabel + '</div>' +
                     '<div class="archive-meta">' +
                         '<span><i class="fas fa-globe"></i> '+(a.totalVisits||0)+' سەردان</span>' +

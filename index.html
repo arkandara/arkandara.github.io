@@ -1333,6 +1333,75 @@ textarea {
 
 
 
+/* نۆتیفیکەیشنی دوگمەی هەواڵ */
+.news-badge-wrap {
+    position: relative;
+    flex: 0 0 auto;
+}
+.news-notif-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background: #e53935;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(229,57,53,0.5);
+    animation: notif-pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    z-index: 10;
+    pointer-events: none;
+    line-height: 1;
+}
+.news-notif-badge.show { display: flex; }
+@keyframes notif-pop {
+    0%   { transform: scale(0); opacity: 0; }
+    70%  { transform: scale(1.3); }
+    100% { transform: scale(1); opacity: 1; }
+}
+.news-notif-sources {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    border: 1px solid #eee;
+    padding: 8px 0;
+    min-width: 200px;
+    z-index: 9999;
+    display: none;
+    animation: frFadeIn 0.25s ease;
+}
+.dark-mode .news-notif-sources {
+    background: #1e1e1e;
+    border-color: #333;
+}
+.news-notif-sources.show { display: block; }
+.news-notif-src-item {
+    padding: 8px 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+    cursor: default;
+}
+.dark-mode .news-notif-src-item { color: #ddd; }
+.news-notif-src-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #e53935;
+    flex-shrink: 0;
+}
+
 /* نیشانده‌ری وشه‌ و چركه‌ له‌ قه‌راغ دوور ده‌خاته‌وه‌ */
 .textarea-stats {
     display: flex;
@@ -1591,8 +1660,11 @@ textarea {
     </div>
 
     <div class="news-ticker">
-        <span class="news-badge" onclick="toggleNewsModal()" style="cursor:pointer;" title="کلیک بکە بۆ بینینی هەموو هەواڵەکان">مانشێتی هه‌واڵه‌كان </span>
-        
+        <div class="news-badge-wrap">
+            <span class="news-badge" onclick="onNewsBadgeClick()" style="cursor:pointer;" title="کلیک بکە بۆ بینینی هەموو هەواڵەکان">مانشێتی هه‌واڵه‌كان </span>
+            <span class="news-notif-badge" id="newsNotifBadge"></span>
+            <div class="news-notif-sources" id="newsNotifSources"></div>
+        </div>
 
    
      <button class="news-ticker-btn" style="background:linear-gradient(135deg,#ff9800,#f57c00);" onclick="removeEmptyLines()">سڕینه‌وه‌ی‌ بۆشایی دێڕه‌كان </button>
@@ -1989,6 +2061,146 @@ async function handleFile(e) {
         showStatus("فایلی هەڵە هەڵبژێردرا ⚠️");
     }
 }
+
+
+// =================== سیستەمی نۆتیفیکەیشنی هەواڵ ===================
+(function initNewsNotifier() {
+    var _seenLinks = new Set();
+    var _newBySrc  = {};
+    var POLL_INTERVAL = 5 * 60 * 1000;
+
+    function getBadgeEl()   { return document.getElementById('newsNotifBadge'); }
+    function getSourcesEl() { return document.getElementById('newsNotifSources'); }
+
+    function refreshBadge() {
+        var badge = getBadgeEl();
+        if (!badge) return;
+        var total = Object.values(_newBySrc).reduce(function(s,v){ return s+v; }, 0);
+        if (total > 0) {
+            badge.textContent = total;
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+        }
+    }
+
+    function refreshSourcesList() {
+        var el = getSourcesEl();
+        if (!el) return;
+        var entries = Object.entries(_newBySrc).filter(function(e){ return e[1] > 0; });
+        if (!entries.length) { el.innerHTML = ''; return; }
+        el.innerHTML = entries.map(function(e){
+            return '<div class="news-notif-src-item"><span class="news-notif-src-dot"></span><span style="flex:1">' + e[0] + '</span><span style="background:#e53935;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:bold;">' + e[1] + '</span></div>';
+        }).join('');
+    }
+
+    function getSources() {
+        return window._kvRssSources || [
+            { name: '\u0627\u0644\u062c\u0632\u064a\u0631\u0629',    url: 'https://www.aljazeera.net/rss' },
+            { name: '\u0633\u0643\u0627\u0649 \u0646\u064a\u0648\u0632', url: 'https://www.skynewsarabia.com/rss' },
+            { name: '\u0627\u0644\u0639\u0631\u0627\u0642\u064a\u0629', url: 'https://news.google.com/rss/search?q=%D9%88%D9%83%D8%A7%D9%84%D8%A9+%D8%A7%D9%84%D8%A3%D9%86%D8%A8%D8%A7%D8%A1+%D8%A7%D9%84%D8%B9%D8%B1%D8%A7%D9%82%D9%8A%D8%A9+INA&hl=ar&gl=IQ&ceid=IQ:ar' },
+            { name: '\u0631\u0648\u0633\u06cc\u0627 \u0627\u0644\u06cc\u0648\u0645', url: 'https://arabic.rt.com/rss/' },
+            { name: '\u0639\u0631\u0628\u064a \u062c\u062f\u064a\u062f', url: 'https://www.alaraby.co.uk/rss' }
+        ];
+    }
+
+    async function initSeenLinks() {
+        var sources = getSources();
+        for (var i = 0; i < sources.length; i++) {
+            try {
+                var res  = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(sources[i].url));
+                var data = await res.json();
+                if (data.status !== 'ok' || !data.items) continue;
+                data.items.slice(0, 8).forEach(function(item) {
+                    var key = item.link || item.title;
+                    if (key) _seenLinks.add(key);
+                });
+            } catch(e) {}
+        }
+        schedulePolling();
+    }
+
+    function schedulePolling() {
+        setTimeout(function loop() {
+            pollNews();
+            setTimeout(loop, POLL_INTERVAL);
+        }, POLL_INTERVAL);
+    }
+
+    async function pollNews() {
+        var sources = getSources();
+        var anyNew = false;
+        for (var i = 0; i < sources.length; i++) {
+            var src = sources[i];
+            try {
+                var res  = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(src.url));
+                var data = await res.json();
+                if (data.status !== 'ok' || !data.items) continue;
+                for (var j = 0; j < Math.min(data.items.length, 8); j++) {
+                    var key = data.items[j].link || data.items[j].title;
+                    if (!key) continue;
+                    if (!_seenLinks.has(key)) {
+                        _seenLinks.add(key);
+                        _newBySrc[src.name] = (_newBySrc[src.name] || 0) + 1;
+                        anyNew = true;
+                    }
+                }
+            } catch(e) {}
+        }
+        if (anyNew) {
+            refreshBadge();
+            refreshSourcesList();
+        }
+    }
+
+    window.onNewsBadgeClick = function() {
+        var src   = getSourcesEl();
+        var total = Object.values(_newBySrc).reduce(function(s,v){ return s+v; }, 0);
+        if (total > 0 && src) {
+            refreshSourcesList();
+            var isOpen = src.classList.contains('show');
+            if (isOpen) {
+                src.classList.remove('show');
+            } else {
+                src.classList.add('show');
+                setTimeout(function() {
+                    document.addEventListener('click', function closeIt(e) {
+                        if (!src.contains(e.target) && !e.target.closest('.news-badge-wrap')) {
+                            src.classList.remove('show');
+                            document.removeEventListener('click', closeIt);
+                        }
+                    });
+                }, 50);
+            }
+        } else {
+            if (src) src.classList.remove('show');
+            toggleNewsModal();
+        }
+    };
+
+    var _origToggle = null;
+    function hookToggle() {
+        if (window.toggleNewsModal && !window._newsNotifHooked) {
+            window._newsNotifHooked = true;
+            _origToggle = window.toggleNewsModal;
+            window.toggleNewsModal = async function() {
+                Object.keys(_newBySrc).forEach(function(k){ delete _newBySrc[k]; });
+                refreshBadge();
+                var src = getSourcesEl();
+                if (src) src.classList.remove('show');
+                return _origToggle ? _origToggle() : undefined;
+            };
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            hookToggle();
+            initSeenLinks();
+        }, 3000);
+    });
+})();
+// ====================================================================
 
 // هێنانی مانشێتی هەواڵەکان لە سەرچاوەی RSS و پیشاندانیان لە تیکەرەکەدا
 async function getNews() {

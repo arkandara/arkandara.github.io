@@ -151,7 +151,7 @@ function initPanel() {
 
 const tabTitles = {
     "tab-site":     "زانیاری سایت",
-    "tab-news":     "سەرچاوەی هەواڵ",
+    "tab-news":     "هەواڵەکان",
     "tab-buttons":  "دوگمەکانی تووڵبار",
     "tab-stats":    "ئامارەکان",
     "tab-archive":  "ئەرشیفی هەفتانە",
@@ -189,6 +189,7 @@ function showTab(id) {
     if (id === "tab-preview") loadPreviewText();
     if (id === "tab-texts") loadTextsTab();
     if (id === "tab-buttons") loadButtons();
+    if (id === "tab-news") { loadRssSources(); loadCustomHeadlines(); }
 }
 
 
@@ -444,6 +445,53 @@ function saveRss() {
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", rssSources: sources })
     }).then(function() { showToast("✅ سەرچاوەکانی هەواڵ پاشەکەوت کران!"); })
+    .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
+}
+
+// ===========================
+//  مانشێتی دەستکرد
+// ===========================
+
+function loadCustomHeadlines() {
+    fetch("/track", { headers: authHeaders() })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            var items = (d.settings && d.settings.customHeadlines) ? d.settings.customHeadlines : [];
+            var list = document.getElementById("customHeadlineList");
+            if (!list) return;
+            list.innerHTML = "";
+            items.forEach(function(item) { addCustomHeadlineRow(item.title, item.link); });
+        })
+        .catch(function() {});
+}
+
+function addCustomHeadlineRow(title, link) {
+    title = title || "";
+    link  = link  || "";
+    var list = document.getElementById("customHeadlineList");
+    if (!list) return;
+    var row = document.createElement("div");
+    row.className = "rss-row";
+    row.innerHTML =
+        '<input type="text" placeholder="مانشێتەکە بنووسە..." value="' + escHtml(title) + '" class="rss-name" style="flex:2;">' +
+        '<input type="url" placeholder="لینکی هەواڵەکە (ئارەزووکراو)" value="' + escHtml(link) + '" class="url-input rss-url" dir="ltr" style="flex:2;">' +
+        '<button class="del-btn" onclick="this.closest('.rss-row').remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
+    list.appendChild(row);
+}
+
+function saveCustomHeadlines() {
+    var rows  = document.querySelectorAll("#customHeadlineList .rss-row");
+    var items = [];
+    rows.forEach(function(row) {
+        var title = row.querySelector(".rss-name").value.trim();
+        var link  = row.querySelector(".rss-url").value.trim();
+        if (title) items.push({ title: title, link: link || "#" });
+    });
+    fetch("/track", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ type: "settings", customHeadlines: items })
+    }).then(function() { showToast("✅ مانشێتەکان پاشەکەوت کران!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 

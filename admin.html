@@ -602,6 +602,29 @@
 
             </div>
 
+
+  <!-- نمودارەکانی رۆژانە /  / مانگانە -->
+            <div class="card">
+                <div class="card-header chart-period-header">
+                    <i class="fas fa-chart-bar"></i> ئامارەکانی سەردان و کلیک
+                </div>
+                <div class="chart-period-btns">
+                    <button id="btn-daily"   class="add-btn stats-period-active" onclick="renderStatsPeriod('daily')">رۆژانە</button>
+                    <button id="btn-monthly" class="add-btn" onclick="renderStatsPeriod('monthly')">مانگانە</button>
+                    <button id="btn-yearly"  class="add-btn" onclick="renderStatsPeriod('yearly')">ساڵانە</button>
+                </div>
+                <div class="card-body">
+                    <div id="statsChartsWrap" class="sc-wrap">
+                        <div class="no-data"><i class="fas fa-info-circle"></i> کلیک بکە بۆ بارکردن</div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+            
             <!-- دوایین سەردانەکان — شوێن و ئامێر -->
             <div class="card">
                 <div class="card-header"><i class="fas fa-users"></i> دوایین سەردانەکان — شوێن و ئامێر</div>
@@ -631,25 +654,7 @@
                 </div>
             </div>
 
-            <!-- نمودارەکانی رۆژانە /  / مانگانە -->
-            <div class="card">
-                <div class="card-header chart-period-header">
-                    <i class="fas fa-chart-bar"></i> ئامارەکانی سەردان و کلیک
-                </div>
-                <div class="chart-period-btns">
-                    <button id="btn-daily"   class="add-btn stats-period-active" onclick="renderStatsPeriod('daily')">رۆژانە</button>
-                    <button id="btn-monthly" class="add-btn" onclick="renderStatsPeriod('monthly')">مانگانە</button>
-                    <button id="btn-yearly"  class="add-btn" onclick="renderStatsPeriod('yearly')">ساڵانە</button>
-                </div>
-                <div class="card-body">
-                    <div id="statsChartsWrap" class="sc-wrap">
-                        <div class="no-data"><i class="fas fa-info-circle"></i> کلیک بکە بۆ بارکردن</div>
-                    </div>
-                </div>
-            </div>
-
-
-
+          
 
         </div>
 

@@ -1401,7 +1401,7 @@ function showArchiveChart(type, item) {
         return;
     }
 
-    // مانگی ئێستا — چارتی رۆژانە لە daily_current.json
+    // مانگی ئێستا — کۆی ئامار + چارتی وردی کلیکەکان لە daily_current.json
     var base2 = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
     inner.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> بارکردن...</div>';
     fetch(base2 + "daily_current.json")
@@ -1412,54 +1412,39 @@ function showArchiveChart(type, item) {
                 inner.innerHTML = '<div class="no-data">هیچ داتایەک نییە بۆ مانگی ئێستا</div>';
                 return;
             }
-            function niceMax(v) {
-                if (v<=5) return 5; if (v<=10) return 10; if (v<=20) return 20; if (v<=50) return 50;
-                var mag = Math.pow(10, Math.floor(Math.log10(v)));
-                return Math.ceil(v/mag)*mag;
-            }
-            var maxV = Math.max.apply(null, days.map(function(d){ return d.totalVisits||0; })) || 1;
-            var maxC = Math.max.apply(null, days.map(function(d){ return d.totalClicks||0; })) || 1;
-            var chartMax = niceMax(Math.max(maxV, maxC));
-            var n=days.length, svgW=Math.max(n*44+60,400), svgH=200;
-            var padL=42,padR=12,padT=16,padB=44;
-            var chartH=svgH-padT-padB, chartW=svgW-padL-padR;
-            var barW=Math.min(13,(chartW/n)-5), colW=chartW/n;
-            var isDark=document.body.classList.contains("dark-mode");
-            var gridClr=isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.07)";
-            var axisClr=isDark?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.15)";
-            var numClr=isDark?"#777":"#aaa", lblClr=isDark?"#999":"#777";
-            var svg="";
-            for (var g=0;g<=4;g++) {
-                var gVal=Math.round(chartMax*g/4);
-                var gy=padT+chartH-Math.round(chartH*g/4);
-                svg+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(svgW-padR)+'" y2="'+gy+'" stroke="'+gridClr+'" stroke-width="1"/>';
-                svg+='<text x="'+(padL-5)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+numClr+'">'+gVal+'</text>';
-            }
-            days.forEach(function(d,i) {
-                var visits=d.totalVisits||0, clicks=d.totalClicks||0;
-                var cx=padL+i*colW+colW/2;
-                var hV=Math.max(2,Math.round(chartH*visits/chartMax));
-                var hC=Math.max(2,Math.round(chartH*clicks/chartMax));
-                var yV=padT+chartH-hV, yC=padT+chartH-hC;
-                svg+='<rect x="'+(cx-barW-1)+'" y="'+yV+'" width="'+barW+'" height="'+hV+'" rx="3" fill="#42a5f5" opacity="0.88"><title>سەردان: '+visits+'</title></rect>';
-                svg+='<rect x="'+(cx+1)+'" y="'+yC+'" width="'+barW+'" height="'+hC+'" rx="3" fill="#4caf50" opacity="0.88"><title>کلیک: '+clicks+'</title></rect>';
-                if (hV>14) svg+='<text x="'+(cx-barW/2-1)+'" y="'+(yV-3)+'" text-anchor="middle" font-size="9" fill="#42a5f5" font-weight="bold">'+visits+'</text>';
-                if (hC>14) svg+='<text x="'+(cx+barW/2+1)+'" y="'+(yC-3)+'" text-anchor="middle" font-size="9" fill="#4caf50" font-weight="bold">'+clicks+'</text>';
-                var dp=(d.date||"").split("-");
-                var lbl=(dp[2]||"")+"/"+(dp[1]||"");
-                svg+='<text x="'+cx+'" y="'+(svgH-padB+14)+'" text-anchor="middle" font-size="10" fill="'+lblClr+'">'+lbl+'</text>';
+            // کۆکردنەوەی کلیکەکان لە هەموو رۆژەکان
+            var mergedClicks = {};
+            days.forEach(function(d) {
+                var dc = d.clicks || {};
+                Object.keys(dc).forEach(function(k) {
+                    mergedClicks[k] = (mergedClicks[k] || 0) + dc[k];
+                });
             });
-            svg+='<line x1="'+padL+'" y1="'+(padT+chartH)+'" x2="'+(svgW-padR)+'" y2="'+(padT+chartH)+'" stroke="'+axisClr+'" stroke-width="1.5"/>';
-            var sumV=days.reduce(function(s,d){return s+(d.totalVisits||0);},0);
-            var sumC=days.reduce(function(s,d){return s+(d.totalClicks||0);},0);
+            var sumV = days.reduce(function(s,d){ return s+(d.totalVisits||0); }, 0);
+            var sumC = days.reduce(function(s,d){ return s+(d.totalClicks||0); }, 0);
+            // کۆی ئامارە ئامێری/شارەکان لە کۆتا رۆژ
+            var lastDay = days[days.length - 1] || {};
+            var sortedClicks = Object.entries(mergedClicks).sort(function(a,b){ return b[1]-a[1]; });
+            var maxClk = sortedClicks.length ? sortedClicks[0][1] : 1;
+            var clickBarsHTML = sortedClicks.length ? sortedClicks.map(function(kv){
+                var pct = Math.round((kv[1]/maxClk)*100);
+                return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+                    '<div style="min-width:120px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+kv[0]+'">'+kv[0]+'</div>' +
+                    '<div style="flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;">' +
+                        '<div style="width:'+pct+'%;height:100%;background:#42a5f5;border-radius:4px;transition:width 0.4s;"></div>' +
+                    '</div>' +
+                    '<div style="min-width:28px;font-size:12px;font-weight:bold;color:#42a5f5;">'+kv[1]+'</div>' +
+                '</div>';
+            }).join('') : '<div class="no-data">هیچ کلیکێک تۆمار نەکراوە</div>';
             inner.innerHTML =
                 '<div class="sc-summary">' +
                   '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+sumV+'</strong></span>' +
                   '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+sumC+'</strong></span>' +
                   '<span style="font-size:11px;opacity:0.7"><i class="fas fa-info-circle"></i> مانگی ئێستا — هێشتا تەواو نەبووە</span>' +
                 '</div>' +
-                '<div class="sc-chart-wrap"><svg width="'+svgW+'" height="'+svgH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svg+'</svg></div>' +
-                '<div class="sc-legend"><span class="sc-leg-v"><span class="sc-dot" style="background:#42a5f5"></span>سەردان</span><span class="sc-leg-c"><span class="sc-dot" style="background:#4caf50"></span>کلیک</span></div>';
+                renderDeviceCityMeta(lastDay) +
+                (sortedClicks.length ? '<div style="margin-top:12px;font-size:12px;color:var(--text-muted);margin-bottom:6px;">زۆرترین کلیکەکان:</div>' : '') +
+                clickBarsHTML;
         })
         .catch(function() {
             inner.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-circle"></i> هەڵە لە بارکردن</div>';

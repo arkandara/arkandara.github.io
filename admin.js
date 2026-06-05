@@ -430,7 +430,7 @@ function addRssRow(name, url) {
 }
 
 function saveRss() {
-    var rows    = document.querySelectorAll(".rss-row");
+    var rows    = document.querySelectorAll("#rssList .rss-row");
     var sources = [];
     var valid   = true;
     rows.forEach(function(row) {

@@ -1373,13 +1373,29 @@ function showArchiveChart(type, item) {
     var isCurrentMonth = (item.month === thisMonth);
 
     if (!isCurrentMonth) {
-        // مانگی تەواوبوو — تەنها کۆی ئامار پیشاندەدرێت
+        // مانگی تەواوبوو — کۆی ئامار + چارتی وردی کلیکەکان
+        var clicks = item.clicks || {};
+        var sortedClicks = Object.entries(clicks).sort(function(a,b){ return b[1]-a[1]; });
+        var maxClk = sortedClicks.length ? sortedClicks[0][1] : 1;
+        var clickBarsHTML = sortedClicks.length ? sortedClicks.map(function(kv){
+            var pct = Math.round((kv[1]/maxClk)*100);
+            return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+                '<div style="min-width:120px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+kv[0]+'">'+kv[0]+'</div>' +
+                '<div style="flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;">' +
+                    '<div style="width:'+pct+'%;height:100%;background:#42a5f5;border-radius:4px;transition:width 0.4s;"></div>' +
+                '</div>' +
+                '<div style="min-width:28px;font-size:12px;font-weight:bold;color:#42a5f5;">'+kv[1]+'</div>' +
+            '</div>';
+        }).join('') : '<div class="no-data">هیچ کلیکێک تۆمار نەکراوە</div>';
+
         inner.innerHTML =
             '<div class="sc-summary">' +
               '<span><i class="fas fa-globe"></i> کۆی سەردان: <strong>'+(item.totalVisits||0)+'</strong></span>' +
               '<span><i class="fas fa-mouse-pointer"></i> کۆی کلیک: <strong>'+(item.totalClicks||0)+'</strong></span>' +
             '</div>' +
-            renderDeviceCityMeta(item);
+            renderDeviceCityMeta(item) +
+            (sortedClicks.length ? '<div style="margin-top:12px;font-size:12px;color:var(--text-muted);margin-bottom:6px;">زۆرترین کلیکەکان:</div>' : '') +
+            clickBarsHTML;
         area.style.display = "block";
         area.scrollIntoView({behavior:"smooth",block:"nearest"});
         return;

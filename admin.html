@@ -350,6 +350,9 @@
                 <button class="top-nav-btn active" onclick="showTab('tab-site')" id="tnav-site">
                     <i class="fas fa-globe"></i><span> زانیاری سایت</span>
                 </button>
+                <button class="top-nav-btn" onclick="showTab('tab-news')" id="tnav-news">
+                    <i class="fas fa-newspaper"></i><span> هەواڵەکان</span>
+                </button>
                 <button class="top-nav-btn" onclick="showTab('tab-buttons')" id="tnav-buttons">
                     <i class="fas fa-th-large"></i><span> دوگمەکان</span>
                 </button>
@@ -524,26 +527,44 @@
             </button>
         </div>
 
-        <!-- ===== تاب ٢: سەرچاوەی هەواڵ ===== -->
+        <!-- ===== تاب: هەواڵەکان ===== -->
         <div class="tab-content" id="tab-news">
             <div class="section-title">
-                <i class="fas fa-rss"></i> سەرچاوەکانی هەواڵ (RSS)
+                <i class="fas fa-newspaper"></i> بەڕێوەبردنی هەواڵەکان
             </div>
 
+            <!-- بەشی ١: سەرچاوەی RSS -->
             <div class="card">
                 <div class="card-header">
-                    <i class="fas fa-list"></i> لیستی سەرچاوەکان
+                    <i class="fas fa-rss"></i> سەرچاوەکانی هەواڵ (RSS)
                     <button class="add-btn" onclick="addRssRow()">
                         <i class="fas fa-plus"></i> زیادکردن
                     </button>
                 </div>
                 <div class="card-body">
+                    <p style="color:#888;font-size:13px;margin:0 0 12px;">هەر سەرچاوەیەک ناوێک و ئادرەسی RSS پێویستی هەیە.</p>
                     <div id="rssList" class="rss-list"></div>
                 </div>
             </div>
+            <button class="save-btn" onclick="saveRss()" style="margin-bottom:28px;">
+                <i class="fas fa-save"></i> پاشەکەوتکردنی سەرچاوەکان
+            </button>
 
-            <button class="save-btn" onclick="saveRss()">
-                <i class="fas fa-save"></i> پاشەکەوتکردن
+            <!-- بەشی ٢: مانشێتی دەستکرد -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-edit"></i> مانشێتی دەستکرد
+                    <button class="add-btn" onclick="addCustomHeadlineRow()">
+                        <i class="fas fa-plus"></i> زیادکردن
+                    </button>
+                </div>
+                <div class="card-body">
+                    <p style="color:#888;font-size:13px;margin:0 0 12px;">مانشێتێک بنووسە و لینکەکەی زیاد بکە — ئەوانە لە مۆداڵی هەواڵدا دەکەونەوە.</p>
+                    <div id="customHeadlineList" class="rss-list"></div>
+                </div>
+            </div>
+            <button class="save-btn" onclick="saveCustomHeadlines()">
+                <i class="fas fa-save"></i> پاشەکەوتکردنی مانشێتەکان
             </button>
         </div>
 

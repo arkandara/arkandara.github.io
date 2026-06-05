@@ -3202,6 +3202,18 @@ async function toggleNewsModal() {
     // بارکردنی هەواڵەکان لە هەموو سەرچاوەکان
     let allItems = []; // { title, link, pubDate, sourceName, timestamp }
 
+    // مانشێتی دەستکرد لە KV — لە سەرەوەدا دادەنرێن
+    var customHeads = window._kvCustomHeadlines || [];
+    customHeads.forEach(function(item) {
+        allItems.push({
+            title: item.title,
+            link: item.link || '#',
+            pubDate: '',
+            sourceName: '★ دەستکرد',
+            timestamp: Date.now() + 1000 // هەمیشە سەرەوە
+        });
+    });
+
     for (const source of rssSources) {
         try {
             const resp = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(source.url));
@@ -3614,6 +3626,11 @@ function akTrackClick(label) {
             // RSS سەرچاوەکان — گۆڕینی rssSources گلۆبەل
             if (s.rssSources && s.rssSources.length) {
                 window._kvRssSources = s.rssSources;
+            }
+
+            // مانشێتی دەستکرد لە KV
+            if (s.customHeadlines && s.customHeadlines.length) {
+                window._kvCustomHeadlines = s.customHeadlines;
             }
 
             // دوگمەکانی تووڵبار و تیکەر لە KV

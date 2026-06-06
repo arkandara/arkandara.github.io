@@ -2043,3 +2043,54 @@ function renderStatsPeriod(period) {
                     pointRadius: 3,
                     pointHoverRadius: 5,
                     borderWidth: 2,
+                    fill: true
+                },
+                {
+                    label: "کلیک",
+                    data: clicks,
+                    borderColor: "#639922",
+                    backgroundColor: "rgba(99,153,34,0.06)",
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    callbacks: {
+                        title: function(items) {
+                            var idx = items[0].dataIndex;
+                            var dn = dayNames[idx] ? dayNames[idx] + " " : "";
+                            return dn + items[0].label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: { size: 10 },
+                        color: tickClr,
+                        maxRotation: 45,
+                        autoSkip: false
+                    },
+                    grid: { display: false }
+                },
+                y: {
+                    ticks: { font: { size: 10 }, color: tickClr },
+                    grid: { color: gridClr },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}

@@ -454,6 +454,9 @@ function saveRss() {
 //  مانشێتی دەستکرد
 // ===========================
 
+// تیمەرەکانی countdown
+var _hlCountdowns = {};
+
 function loadCustomHeadlines() {
     fetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
@@ -462,23 +465,99 @@ function loadCustomHeadlines() {
             var list = document.getElementById("customHeadlineList");
             if (!list) return;
             list.innerHTML = "";
-            items.forEach(function(item) { addCustomHeadlineRow(item.title, item.link); });
+            // تیمەرەکانی کۆن پاک بکەرەوە
+            Object.values(_hlCountdowns).forEach(function(t) { clearInterval(t); });
+            _hlCountdowns = {};
+            items.forEach(function(item) { addCustomHeadlineRow(item.title, item.link, item.expiresAt); });
         })
         .catch(function() {});
 }
 
-function addCustomHeadlineRow(title, link) {
-    title = title || "";
-    link  = link  || "";
+function addCustomHeadlineRow(title, link, expiresAt) {
+    title     = title     || "";
+    link      = link      || "";
+    expiresAt = expiresAt || "";
     var list = document.getElementById("customHeadlineList");
     if (!list) return;
     var row = document.createElement("div");
     row.className = "rss-row";
+    row.style.cssText = "flex-wrap:wrap;gap:6px;";
+
+    // کات بۆ سەعات و خولەک جیا بکەرەوە
+    var initHrs = 0, initMins = 0;
+    if (expiresAt) {
+        var msLeft = new Date(expiresAt).getTime() - Date.now();
+        if (msLeft > 0) {
+            initHrs  = Math.floor(msLeft / 3600000);
+            initMins = Math.floor((msLeft % 3600000) / 60000);
+        }
+    }
+
+    var rowId = "hl_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    row.setAttribute("data-rowid", rowId);
+
     row.innerHTML =
-        '<input type="text" placeholder="مانشێتەکە بنووسە..." value="' + escHtml(title) + '" class="rss-name" style="flex:2;">' +
-        '<input type="url" placeholder="لینکی هەواڵەکە (ئارەزووکراو)" value="' + escHtml(link) + '" class="url-input rss-url" dir="ltr" style="flex:2;">' +
+        '<input type="text" placeholder="مانشێتەکە بنووسە..." value="' + escHtml(title) + '" class="rss-name" style="flex:2;min-width:140px;">' +
+        '<input type="url" placeholder="لینکی هەواڵەکە (ئارەزووکراو)" value="' + escHtml(link) + '" class="url-input rss-url" dir="ltr" style="flex:2;min-width:120px;">' +
+        '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">' +
+            '<input type="number" min="0" max="99" value="' + initHrs + '" class="hl-hours" style="width:52px;padding:6px 4px;border:1px solid #ddd;border-radius:8px;text-align:center;font-size:13px;" placeholder="سەعات">' +
+            '<span style="font-size:11px;color:#888;">س</span>' +
+            '<input type="number" min="0" max="59" value="' + initMins + '" class="hl-mins" style="width:52px;padding:6px 4px;border:1px solid #ddd;border-radius:8px;text-align:center;font-size:13px;" placeholder="خولەک">' +
+            '<span style="font-size:11px;color:#888;">خ</span>' +
+            '<span class="hl-countdown" style="font-size:11px;color:#e53935;font-weight:bold;min-width:50px;text-align:center;"></span>' +
+        '</div>' +
         '<button class="del-btn" onclick="this.closest(&apos;.rss-row&apos;).remove()" title="سڕینەوە"><i class="fas fa-trash"></i></button>';
+
     list.appendChild(row);
+
+    // ئەگەر کاتی تانازلی هەبوو، countdown دەستپێبکە
+    if (expiresAt) {
+        _startHlCountdown(row, expiresAt, rowId);
+    }
+}
+
+function _startHlCountdown(row, expiresAt, rowId) {
+    if (_hlCountdowns[rowId]) clearInterval(_hlCountdowns[rowId]);
+    var span = row.querySelector(".hl-countdown");
+    function tick() {
+        var msLeft = new Date(expiresAt).getTime() - Date.now();
+        if (!span) return;
+        if (msLeft <= 0) {
+            span.textContent = "⏰ تەواوبوو";
+            clearInterval(_hlCountdowns[rowId]);
+            // خودکار لە KV بسڕەرەوە
+            _removeExpiredHeadline(row);
+            return;
+        }
+        var h = Math.floor(msLeft / 3600000);
+        var m = Math.floor((msLeft % 3600000) / 60000);
+        var s = Math.floor((msLeft % 60000) / 1000);
+        span.textContent = (h ? h + "س " : "") + m + "خ " + s + "چ";
+    }
+    tick();
+    _hlCountdowns[rowId] = setInterval(tick, 1000);
+}
+
+function _removeExpiredHeadline(expiredRow) {
+    fetch("/track", { headers: authHeaders() })
+        .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(function(d) {
+            var items = (d.settings && d.settings.customHeadlines) ? d.settings.customHeadlines : [];
+            var title = expiredRow.querySelector(".rss-name") ? expiredRow.querySelector(".rss-name").value.trim() : "";
+            var filtered = items.filter(function(i) { return i.title !== title; });
+            return fetch("/track", {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ type: "settings", customHeadlines: filtered })
+            });
+        })
+        .then(function(r) {
+            if (r && r.ok) {
+                expiredRow.remove();
+                showToast("🗑️ مانشێتی کاتبەسەرچوو سڕایەوە");
+            }
+        })
+        .catch(function() {});
 }
 
 function saveCustomHeadlines() {
@@ -487,14 +566,29 @@ function saveCustomHeadlines() {
     rows.forEach(function(row) {
         var title = row.querySelector(".rss-name").value.trim();
         var link  = row.querySelector(".rss-url").value.trim();
-        if (title) items.push({ title: title, link: link || "#" });
+        if (!title) return;
+        var hrs  = parseInt(row.querySelector(".hl-hours").value) || 0;
+        var mins = parseInt(row.querySelector(".hl-mins").value)  || 0;
+        var item = { title: title, link: link || "#" };
+        var totalMs = (hrs * 3600 + mins * 60) * 1000;
+        if (totalMs > 0) {
+            item.expiresAt = new Date(Date.now() + totalMs).toISOString();
+            // countdown دووبارە دەستپێبکە بەپێی کاتی نوێ
+            var rowId = row.getAttribute("data-rowid");
+            if (rowId) _startHlCountdown(row, item.expiresAt, rowId);
+        } else {
+            item.expiresAt = "";
+        }
+        items.push(item);
     });
     fetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", customHeadlines: items })
-    }).then(function() { showToast("✅ مانشێتەکان پاشەکەوت کران!"); })
-    .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
+    }).then(function(r) {
+        if (r.ok) { showToast("✅ مانشێتەکان پاشەکەوت کران!"); }
+        else { showToast("⚠️ هەڵە لە پاشەکەوتکردن (" + r.status + ")", true); }
+    }).catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 
 // ===========================
@@ -1949,54 +2043,3 @@ function renderStatsPeriod(period) {
                     pointRadius: 3,
                     pointHoverRadius: 5,
                     borderWidth: 2,
-                    fill: true
-                },
-                {
-                    label: "کلیک",
-                    data: clicks,
-                    borderColor: "#639922",
-                    backgroundColor: "rgba(99,153,34,0.06)",
-                    tension: 0.35,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    borderWidth: 2,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    mode: "index",
-                    intersect: false,
-                    callbacks: {
-                        title: function(items) {
-                            var idx = items[0].dataIndex;
-                            var dn = dayNames[idx] ? dayNames[idx] + " " : "";
-                            return dn + items[0].label;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        font: { size: 10 },
-                        color: tickClr,
-                        maxRotation: 45,
-                        autoSkip: false
-                    },
-                    grid: { display: false }
-                },
-                y: {
-                    ticks: { font: { size: 10 }, color: tickClr },
-                    grid: { color: gridClr },
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}

@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-06",
-  "updatedAt": "2026-06-05T22:35:35.013Z",
+  "updatedAt": "2026-06-06T22:17:04.959Z",
   "days": [
     {
       "date": "2026-06-01",
@@ -145,6 +145,24 @@
         "As Sulaymaniyah": 25,
         "Mountain View": 2,
         "Baghdad": 2
+      }
+    },
+    {
+      "date": "2026-06-06",
+      "generatedAt": "2026-06-06T22:17:04.959Z",
+      "totalVisits": 10,
+      "totalClicks": 6,
+      "totalTextarea": 0,
+      "clicks": {
+        "هەواڵەکان": 6
+      },
+      "deviceStats": {
+        "mobile": 4,
+        "desktop": 6,
+        "tablet": 0
+      },
+      "cityStats": {
+        "As Sulaymaniyah": 10
       }
     }
   ]

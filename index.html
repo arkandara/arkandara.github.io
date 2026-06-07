@@ -2172,10 +2172,12 @@ async function handleFile(e) {
     async function poll() {
         var snapId = await fetchSnapshotId();
         if (snapId === null) return; // نەتوانی بخوێنێتەوە
+        if (snapId === '0') return;  // هیچ snapshot نییە هێشتا
         var seenSnapId = localStorage.getItem(LS_KEY) || '';
-        if (snapId !== '0' && snapId !== seenSnapId) {
-            // KV دەڵێت هەواڵی نوێ هەیە — RSS بخوێنەوە و badge نیشان بدە
-            await checkForNew(snapId);
+        if (snapId !== seenSnapId) {
+            // KV snapshotId گۆڕابوو — یەکسەر badge نیشان بدە
+            _newCount = 1;
+            showBadge('نوێ');
         }
     }
 
@@ -2192,9 +2194,9 @@ async function handleFile(e) {
         _newCount = 0;
         _newItems = [];
         hideBadge();
-        // snapshotId ی ئێستا پاشەکەوت بکە بۆ ئەم بەکارهێنەرە
+        // snapshotId ی ئێستا پاشەکەوت بکە بۆ ئەم بەکارهێنەرە — poll دەیزانێت بینراوە
         fetchSnapshotId().then(function(id) {
-            if (id) localStorage.setItem(LS_KEY, id);
+            if (id && id !== '0') localStorage.setItem(LS_KEY, id);
         });
     }
 

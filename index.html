@@ -2070,7 +2070,7 @@ async function handleFile(e) {
 (function initNewsNotifier() {
     // LS_KEY: کلیلی localStorage بۆ پاشەکەوتکردنی snapshotId ی بینراوی ئەم بەکارهێنەرە
     var LS_KEY       = 'news_seen_snapshot';
-    var POLL_MS      = 5 * 60 * 1000; // هەر ٥ خولەک
+    var POLL_MS      = 3 * 1000; // هەر ٣ چرکە — راستەوخۆ
     var _newCount    = 0;
     var _newItems    = []; // { title, link, sourceName, pubDate }
 

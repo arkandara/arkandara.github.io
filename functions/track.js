@@ -45,6 +45,14 @@ export async function onRequestGet(context) {
 
     // بەبێ توکن — forceReload و settings بگەڕێنە (بۆ سایتی سەرەکی)
     if (!await checkAuth(request, env)) {
+        const url = new URL(request.url);
+
+        // newscheck: snapshot ID ی هەواڵەکان بگەڕێنە
+        if (url.searchParams.get("newscheck") === "1") {
+            const snap = await env.STATS_DB.get("news:snapshot_id");
+            return new Response(JSON.stringify({ snapshotId: snap || "0" }), { status: 200, headers: CORS });
+        }
+
         const forceReload  = await env.STATS_DB.get("meta:force_reload");
         const settingsRaw  = await env.STATS_DB.get("settings:site");
         const settings     = settingsRaw ? JSON.parse(settingsRaw) : null;
@@ -262,6 +270,13 @@ export async function onRequestPost(context) {
             }
 
             return ok({ success: true }, CORS);
+        }
+
+        // ---- news_snapshot: نوێکردنەوەی snapshot_id کاتێک هەواڵی نوێ دەگات ----
+        if (type === "news_snapshot") {
+            const snapId = body.snapshotId || new Date().toISOString();
+            await env.STATS_DB.put("news:snapshot_id", snapId, { expirationTtl: 86400 });
+            return ok({ success: true, snapshotId: snapId }, CORS);
         }
 
         // ---- snapshots_replace (ئەدمین تەنها) ----

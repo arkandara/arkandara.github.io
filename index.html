@@ -3994,5 +3994,36 @@ function sendTextToAdmin() {
 
 </script>
 
+<script>
+// Routing بەپێی pathname — /hawall، /ocr، /downloadvedio
+(function() {
+    var path = window.location.pathname.replace(/\/$/, '').toLowerCase();
+    if (!path || path === '/index.html') return;
+
+    function waitAndRun(fn, tries) {
+        tries = tries || 0;
+        if (tries > 40) return;
+        setTimeout(function() {
+            try { fn(); } catch(e) { waitAndRun(fn, tries + 1); }
+        }, 300 + tries * 100);
+    }
+
+    if (path === '/hawall') {
+        waitAndRun(function() {
+            if (typeof onNewsBadgeClick === 'function') onNewsBadgeClick();
+            else if (typeof toggleNewsModal === 'function') toggleNewsModal();
+        });
+    } else if (path === '/ocr') {
+        waitAndRun(function() {
+            if (typeof triggerOcrInput === 'function') triggerOcrInput();
+        });
+    } else if (path === '/downloadvedio') {
+        waitAndRun(function() {
+            if (typeof toggleDlModal === 'function') toggleDlModal();
+        });
+    }
+})();
+</script>
+
 </body>
 </html>

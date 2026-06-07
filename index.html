@@ -1969,7 +1969,12 @@ function toggleAbout() {
 // کردنەوە و داخستنی پەنجەرەی داگرتنی ڤیدیۆ
 function toggleDlModal() {
     const m = document.getElementById("dlModal");
-    if(m) m.style.display = (m.style.display === "block") ? "none" : "block";
+    if(m) {
+        const opening = m.style.display !== "block";
+        m.style.display = opening ? "block" : "none";
+        if (opening) history.pushState(null, '', '/downloadvedio');
+        else history.pushState(null, '', '/');
+    }
 }
 
 // گۆڕینی نێوان دۆخی ڕۆژ (ڕووناک) و دۆخی شەو (تاریک) — بە ئەنیمەیشنی خۆرهەڵاتن/خۆڕاوابوون
@@ -2196,6 +2201,7 @@ async function handleFile(e) {
         if (_newCount > 0) {
             _markAsSeen();
         }
+        history.pushState(null, '', '/hawall');
         toggleNewsModal();
     };
 
@@ -3366,6 +3372,7 @@ async function toggleNewsModal() {
     };
 }
 function triggerOcrInput() {
+    history.pushState(null, '', '/ocr');
     const input = document.getElementById('ocrImageInput');
     if (input) input.click();
 }

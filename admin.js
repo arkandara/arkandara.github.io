@@ -395,11 +395,11 @@ function saveSiteInfo() {
 // ===========================
 
 var RSS_DEFAULTS = [
-    { name: "الجزيرة",     url: "https://www.aljazeera.net/rss" },
-    { name: "سكاى نيوز",   url: "https://www.skynewsarabia.com/rss" },
+    { name: "الجزيرة",     url: "https://news.google.com/rss/search?q=الجزيرة&hl=ar&gl=IQ&ceid=IQ:ar" },
+    { name: "سكاى نيوز",   url: "https://news.google.com/rss/search?q=سكاي+نيوز+عربية&hl=ar&gl=IQ&ceid=IQ:ar" },
     { name: "العراقية",    url: "https://news.google.com/rss/search?q=وكالة+الأنباء+العراقية+INA&hl=ar&gl=IQ&ceid=IQ:ar" },
-    { name: "روسیا الیوم", url: "https://arabic.rt.com/rss/" },
-    { name: "عربي جديد",   url: "https://www.alaraby.co.uk/rss" }
+    { name: "روسیا الیوم", url: "https://news.google.com/rss/search?q=روسيا+اليوم+عربي&hl=ar&gl=IQ&ceid=IQ:ar" },
+    { name: "عربي جديد",   url: "https://news.google.com/rss/search?q=العربي+الجديد&hl=ar&gl=IQ&ceid=IQ:ar" }
 ];
 
 function loadRssSources() {

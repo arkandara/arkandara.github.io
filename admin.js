@@ -586,7 +586,16 @@ function saveCustomHeadlines() {
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", customHeadlines: items })
     }).then(function(r) {
-        if (r.ok) { showToast("✅ مانشێتەکان پاشەکەوت کران!"); }
+        if (r.ok) {
+            showToast("✅ مانشێتەکان پاشەکەوت کران!");
+            // snapshot_id نوێ بنووسە KV بۆ ئەوەی سایتی سەرەکی نۆتیف بدات
+            var snapId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+            fetch("/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "news_snapshot", snapshotId: snapId })
+            }).catch(function() {});
+        }
         else { showToast("⚠️ هەڵە لە پاشەکەوتکردن (" + r.status + ")", true); }
     }).catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }

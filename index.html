@@ -1972,7 +1972,7 @@ function toggleDlModal() {
     if(m) {
         const opening = m.style.display !== "block";
         m.style.display = opening ? "block" : "none";
-        if (opening) history.pushState(null, '', '/downloadvedio');
+        if (opening) history.pushState(null, '', '/downloadvideo');
         else history.pushState(null, '', '/');
     }
 }
@@ -3372,7 +3372,7 @@ async function toggleNewsModal() {
     };
 }
 function triggerOcrInput() {
-    history.pushState(null, '', '/ocr');
+    history.pushState(null, '', '/i    imagetotext');
     const input = document.getElementById('ocrImageInput');
     if (input) input.click();
 }

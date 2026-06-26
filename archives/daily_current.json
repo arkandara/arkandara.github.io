@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-06",
-  "updatedAt": "2026-06-25T22:46:44.849Z",
+  "updatedAt": "2026-06-26T22:37:01.942Z",
   "days": [
     {
       "date": "2026-06-01",
@@ -668,6 +668,27 @@
       "cityStats": {
         "Sulaymaniyah": 2,
         "Karbala": 3
+      }
+    },
+    {
+      "date": "2026-06-26",
+      "generatedAt": "2026-06-26T22:37:01.942Z",
+      "totalVisits": 2,
+      "totalClicks": 8,
+      "totalTextarea": 5,
+      "clicks": {
+        "گۆڕین بۆ عەلی کەی": 4,
+        "گۆڕین بۆ یونیکۆد": 3,
+        "پاشەکەوت Word": 1
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 2,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Ashburn": 1,
+        "Sulaymaniyah": 1
       }
     }
   ]

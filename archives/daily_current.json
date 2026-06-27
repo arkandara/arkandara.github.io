@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-06",
-  "updatedAt": "2026-06-26T22:37:01.942Z",
+  "updatedAt": "2026-06-27T22:16:32.501Z",
   "days": [
     {
       "date": "2026-06-01",
@@ -689,6 +689,26 @@
       "cityStats": {
         "Ashburn": 1,
         "Sulaymaniyah": 1
+      }
+    },
+    {
+      "date": "2026-06-27",
+      "generatedAt": "2026-06-27T22:16:32.501Z",
+      "totalVisits": 2,
+      "totalClicks": 17,
+      "totalTextarea": 13,
+      "clicks": {
+        "گۆڕین بۆ یونیکۆد": 5,
+        "پاشەکەوت Word": 7,
+        "گۆڕین بۆ عەلی کەی": 5
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 2,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 2
       }
     }
   ]

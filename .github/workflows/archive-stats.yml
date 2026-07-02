@@ -135,17 +135,20 @@ jobs:
 
               fs.writeFileSync(archivePath, JSON.stringify(archive, null, 2), "utf8");
               console.log(`✅ مانگانە: ${monthLabel} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان) → monthly_archive.json`);
-            } else {
-              console.log(`⚠️ هیچ داتایەک بۆ ${monthLabel} لە daily_current.json نەدۆزراوەتەوە`);
-            }
 
-            // FIX: سفرکردنەوەی daily_current.json — مانگی نوێ
-            const newMonth = todayStr.slice(0, 7);
-            current.days      = [];
-            current.month     = newMonth;
-            current.updatedAt = now.toISOString();
-            fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
-            console.log("✅ daily_current.json سفر بووەوە — ئامادەی مانگی نوێ:", newMonth);
+              // FIX #7: تەنها ئەگەر ئەرشیف بەسەرکەوتووی دروستبوو، ئەوسا
+              // daily_current.json سفر بکەرەوە. ئەگەر نا (else-ی خوارەوە)،
+              // داتاکان دەست نەلێدرێن — بۆ هەوڵدانەوەی داهاتوو (cron یان
+              // workflow_dispatch) دەمێننەوە، بۆ ئەوەی داتا لەدەست نەچێت.
+              const newMonth = todayStr.slice(0, 7);
+              current.days      = [];
+              current.month     = newMonth;
+              current.updatedAt = now.toISOString();
+              fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
+              console.log("✅ daily_current.json سفر بووەوە — ئامادەی مانگی نوێ:", newMonth);
+            } else {
+              console.log(`⚠️ هیچ داتایەک بۆ ${monthLabel} لە daily_current.json نەدۆزراوەتەوە — daily_current.json ناسڕدرێتەوە، چاوەڕوانی هەوڵدانەوەی داهاتوو دەکرێت`);
+            }
           }
 
           // ================================================================

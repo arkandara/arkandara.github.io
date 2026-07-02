@@ -124,19 +124,20 @@ jobs:
 
             if (fs.existsSync(currentPath)) {
               try { current = JSON.parse(fs.readFileSync(currentPath, "utf8")); } catch(e) {}
-
-              // FIX #5: ئەگەر مانگی پرۆنەکە جیاوازە لە مانگی ئەمرۆ،
-              // سفر بکەرەوە بۆ مانگی نوێ.
-              // تێبینی: سفرکردنەوەی کوردی (ئەرشیفکردنی مانگی ڕابردوو)
-              // بەپێچەوانەوە archive-stats.yml دەکات لە 21:40،
-              // ٢٠ خولەک پاش ئەم جۆبە (21:20).
-              // بۆیە daily-clear هەرگیز نابێت سفری مانگی ڕابردوو بکات —
-              // ئەو کاری archive-stats-ە.
-              if (current.month !== thisMonth) {
-                console.log(`📅 مانگی نوێ دەست پێکرد (${current.month} → ${thisMonth}) — daily_current.json سفر دەبێتەوە`);
-                current = { type: "daily_current", month: thisMonth, updatedAt: "", days: [] };
-              }
             }
+
+            // FIX #6: daily-clear قەت نابێت days سفر بکاتەوە یان بیسڕێتەوە،
+            // تەنانەت ئەگەر current.month لەگەڵ thisMonth یەکسان نەبێت.
+            // ئەگەر ئەمرۆ ١ی مانگە، ڕۆژانی مانگی ڕابردوو (بۆ نموونە حوزەیران)
+            // هێشتا لە داخڵی daysماونەتەوە و پێویستە بمێننەوە، چونکە
+            // archive-stats.yml لە 21:40 (٢٠ خولەک دواتر) پێویستی پێیانە
+            // بۆ دروستکردنی ئەرشیفی مانگانە. ئەگەر لێرە بسڕدرێنەوە،
+            // archive-stats هیچ داتایەک بۆ مانگی ڕابردوو نادۆزێتەوە و
+            // ئەرشیفی مانگانە دروست نابێت.
+            // تەنها current.month نوێ دەکەینەوە (ئاماژەیە، کاریگەری
+            // لەسەر فلتەرکردنی archive-stats نییە چونکە ئەو خۆی
+            // بەپێی d.date فلتەر دەکات نەک بەپێی current.month).
+            current.month = thisMonth;
 
             // سرینەوەی ئەگەر ئەمرۆ پێشتر تۆماربووە (ئەگەر workflow_dispatch دووجار کراوەتەوە)
             current.days = (current.days || []).filter(d => d.date !== archiveDate);

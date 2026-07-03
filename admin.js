@@ -1183,7 +1183,7 @@ function loadTextsTab() {
         .then(function(r){ return r.json(); })
         .then(function(data) {
             var txItems = (data.textareaToday || []).map(function(s) {
-                var methodMap = { 'paste':'پەیستکراوە','Ctrl+V':'Ctrl+V پەیستکراوە','Ctrl+X':'Ctrl+X کەتکرا','کەتکردن':'کەتکرا','Word':'هێنانی Word' };
+                var methodMap = { 'paste':'پەیستکراوە','Ctrl+V':'Ctrl+V پەیستکراوە','Ctrl+X':'Ctrl+X کەتکرا','کەتکردن':'کەتکرا','Word':'هێنانی Word','WordExport':'پاشەکەوتکردن بە Word' };
                 return { time: s.time, label: methodMap[s.method] || s.method || 'پەیستکراوە', length: s.length, text: s.text };
             });
             var snapItems = (data.snapshots || []).filter(function(s){ return s.text && s.text.trim().length > 0; });

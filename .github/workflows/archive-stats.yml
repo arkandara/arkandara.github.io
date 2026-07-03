@@ -137,15 +137,16 @@ jobs:
               console.log(`✅ مانگانە: ${monthLabel} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان) → monthly_archive.json`);
 
               // FIX #7: تەنها ئەگەر ئەرشیف بەسەرکەوتووی دروستبوو، ئەوسا
-              // daily_current.json سفر بکەرەوە. ئەگەر نا (else-ی خوارەوە)،
-              // داتاکان دەست نەلێدرێن — بۆ هەوڵدانەوەی داهاتوو (cron یان
-              // workflow_dispatch) دەمێننەوە، بۆ ئەوەی داتا لەدەست نەچێت.
+              // ڕۆژانی ئەو مانگە لە daily_current.json بسڕەوە. تەنها ڕۆژانی
+              // ئەو مانگەی کە ئەرشیف کرا (monthLabel) لادەبرێت — نەک هەموو
+              // days، بۆ ئەوەی ئەگەر ڕۆژانی مانگێکی تر (بۆ نموونە لەبەر
+              // شکستی ئەرشیفکردنی پێشوو) لەناویدا مابوو، لەناونەچێت.
               const newMonth = todayStr.slice(0, 7);
-              current.days      = [];
+              current.days      = days.filter(d => (d.date || "").slice(0, 7) !== monthLabel);
               current.month     = newMonth;
               current.updatedAt = now.toISOString();
               fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
-              console.log("✅ daily_current.json سفر بووەوە — ئامادەی مانگی نوێ:", newMonth);
+              console.log("✅ daily_current.json سفر بووەوە بۆ مانگی", monthLabel, "— ئامادەی مانگی نوێ:", newMonth, "| ڕۆژی مایەوە (مانگی تر):", current.days.length);
             } else {
               console.log(`⚠️ هیچ داتایەک بۆ ${monthLabel} لە daily_current.json نەدۆزراوەتەوە — daily_current.json ناسڕدرێتەوە، چاوەڕوانی هەوڵدانەوەی داهاتوو دەکرێت`);
             }

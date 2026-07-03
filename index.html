@@ -11,8 +11,8 @@
     <meta property="og:title" content="سەکۆی ڕۆژنامەنووس، گۆڕینی فۆنتی عه‌لی كه‌ی بۆ یونیكۆد، یونیكۆد بۆ عه‌لی كه‌ی">
     <meta property="og:description" content="سەکۆی ڕۆژنامەنووس: گۆڕینی فۆنت، نووسینی هەواڵ بە AI، خوێندنەوەی دەقی ناو وێنە، و هێنانی مانشێتی هەواڵ — هەموو لەیەک شوێن بۆ ڕۆژنامەنووسانی کوردی.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://arkandara.github.io/preview.jpg">
-    <meta property="og:url" content="https://arkandara.github.io/">
+    <meta property="og:image" content="https://arkandara.pages.dev/preview.jpg">
+    <meta property="og:url" content="https://arkandara.pages.dev/">
     <meta property="og:site_name" content="سەکۆی ڕۆژنامەنووس">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="canonical" href="https://arkandara.pages.dev/">
@@ -1669,9 +1669,6 @@ textarea {
     </div>
 </div> 
 
-    </div>
-    </div>
-
     <div class="news-ticker">
         <div class="news-badge-wrap">
             <span class="news-badge" onclick="onNewsBadgeClick()" style="cursor:pointer;" title="هەواڵەکان">نوێترین هه‌واڵ <span class="news-notif-badge" id="newsNotifBadge"></span></span>
@@ -1694,6 +1691,8 @@ textarea {
 </div>
 
     <div class="container">
+        <h2 style="font-size:14px; font-weight:600; color:#555; margin:8px 15px 2px; text-align:right;">گۆڕینی فۆنت: یونیکۆد بۆ عەلی کەی و عەلی کەی بۆ یونیکۆد</h2>
+        <p style="font-size:12px; color:#888; margin:0 15px 8px; text-align:right; line-height:1.7;">نووسینەکەت لێرە بنووسە یان دایبنێ، پاشان دوگمەی «یونیكۆد - ڕێنووس» یان «عەلی کەی»ی خوارەوە بکەرەوە بۆ گۆڕینی فۆنتی کوردی بە خێرایی و بەخۆڕایی.</p>
         <div class="textarea-wrapper">
             <div class="textarea-stats">
                 <span id="textStats">وشە:</span>
@@ -1746,6 +1745,7 @@ textarea {
         </div>
     </div>
 </div>
+</div><!-- /container -->
 
 <script>
 
@@ -2406,6 +2406,7 @@ async function downloadAsWord() {
         showStatus("⚠️ سندوقی نووسینەکە بەتاڵە!");
         return;
     }
+    if (typeof window._akSendWordExportText === 'function') window._akSendWordExportText();
 
     showStatus("⏳ فایلی Word دروست دەکرێت...");
     try {
@@ -2850,6 +2851,17 @@ text = text.replace(/"\s+([،.؟:!])/g, '"$1');
 
     // ٣. نیشانەی ٪
     text = text.replace(/(\d|[٠-٩])\s+٪/g, "$1٪");
+
+    // ٣ب. FIX: ژمارە دەیی (وەک ٧.١ یان 7.1) لە ناو دەقی ڕاست‌بۆچەپ (RTL)دا هەندێک
+    // جار بە هەڵە پێچەوانە نیشان دەدرێت (بۆ نموونە ٧.١ وەک ١.٧ دەردەکەوێت)، لەبەر
+    // ئەلگۆریتمی BiDi‌ی وێبگەڕەکان کە ژمارەی ڕوونکراوی تەنیا لەناو دەقی RTL‌دا
+    // هەڵەی ئاراستە دەکات. داتای ڕاستەقینەی دەقەکە هەرگیز ناگۆڕدرێت — تەنها
+    // شێوەی پیشاندانە. چارەسەری ئەمە بریتییە لە پێچانەوەی ژمارەکان بە نیشانەی
+    // نادیاری LRM (U+200E) لە هەردوولا، بۆ ئەوەی وێبگەڕ زۆرەملێ ئاراستەی
+    // چەپ‌بۆڕاستی ژمارەکە دیاری بکات. سەرەتا هەر LRMێکی پێشووتر لادەبات
+    // بۆ ئەوەی دووبارە نەبنەوە ئەگەر چەند جار گۆڕانکاری بکرێت.
+    text = text.replace(/\u200E/g, "");
+    text = text.replace(/([٠-٩0-9]+(?:\.[٠-٩0-9]+)?)/g, "\u200E$1\u200E");
 
     // ٤. ســێ خاڵ
     text = text.replace(/\.{2,}/g, "...");
@@ -3919,6 +3931,9 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
 
     // ٤. ئاگادارکردنەوەی هێنانی Word
     window._akSendTextareaText = function() { akSendText(undefined, 'Word'); };
+
+    // ٥. ئاگادارکردنەوەی پاشەکەوتکردن بە Word (داونڵۆدکردنی دەق وەک .docx)
+    window._akSendWordExportText = function() { akSendText(undefined, 'WordExport'); };
 })();
 
 // ---- دەستپێکردنی چالاکی شوێنکەوتن ----

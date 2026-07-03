@@ -1294,6 +1294,7 @@ function loadArchiveList() {
         var html = '<div class="arc-tabs">' +
             '<button class="arc-tab arc-tab-active" onclick="switchArcTab(this,\'arc-daily\')"><i class="fas fa-calendar-day"></i> رۆژانە ('+daily.length+')</button>' +
             '<button class="arc-tab" onclick="switchArcTab(this,\'arc-monthly\')"><i class="fas fa-calendar-alt"></i> مانگانە ('+monthly.length+')</button>' +
+            '<button class="arc-tab" onclick="switchArcTab(this,\'arc-yearly\')"><i class="fas fa-calendar"></i> ساڵانە ('+yearly.length+')</button>' +
             '</div>';
 
         // ---- رۆژانە ----

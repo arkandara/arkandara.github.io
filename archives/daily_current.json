@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-07",
-  "updatedAt": "2026-07-02T22:19:20.777Z",
+  "updatedAt": "2026-07-03T22:16:12.125Z",
   "days": [
     {
       "date": "2026-07-02",
@@ -28,6 +28,31 @@
       "cityStats": {
         "Sulaymaniyah": 3,
         "Karbala": 5
+      }
+    },
+    {
+      "date": "2026-07-03",
+      "generatedAt": "2026-07-03T22:16:12.125Z",
+      "totalVisits": 17,
+      "totalClicks": 47,
+      "totalTextarea": 1,
+      "clicks": {
+        "گۆڕین بۆ یونیکۆد": 20,
+        "پاشەکەوت Word": 1,
+        "سڕینەوەی دەق": 3,
+        "دەربارە": 2,
+        "تەما": 4,
+        "گۆڕین بۆ عەلی کەی": 16,
+        "تێکستی ناو وێنه": 1
+      },
+      "deviceStats": {
+        "mobile": 2,
+        "desktop": 15,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Karbala": 13,
+        "Mountain View": 4
       }
     }
   ]

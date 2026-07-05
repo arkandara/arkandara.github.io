@@ -57,6 +57,7 @@ if (window.location.hostname === "arkandara.github.io") {
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lateef&family=Reem+Kufi&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
@@ -1710,7 +1711,7 @@ textarea {
             <button id="aiStudioBtn" class="btn-nav" style="background: #9334e6;" onclick="sendToAIStudio()"> AI Studio</button>
             <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
-<input type="file" id="fileInput" accept=".docx" style="display:none;">
+<input type="file" id="fileInput" accept=".doc,.docx" style="display:none;">
         </div><!-- /btn-group -->
 
 <div id="findReplaceModal">
@@ -2046,13 +2047,190 @@ function processDownload() {
     }, 1000);
 }
 
-// خوێندنەوەی فایلی Word (.docx) و دانانی دەقەکەی ناو خانەی نووسین
+// ==================== خوێندنەوەی وردی فایلی .doc (فۆرماتی Word 97-2003) ====================
+// ئەم بەشە فایلی .doc (کۆمپاوندێکی OLE) ڕاستەوخۆ شیدەکاتەوە بەپێی ستانداردی [MS-DOC]:
+// 1) دۆزینەوەی جۆگەی "WordDocument" و "0Table"/"1Table" لە ناو کۆنتەینەری OLE (بەکارهێنانی XLSX.CFB)
+// 2) خوێندنەوەی FIB (File Information Block) بۆ دۆزینەوەی شوێنی خشتەی پارچەکان (Clx/PlcPcd)
+// 3) گەڕان بەسەر هەموو پارچەکانی دەق و وەرگێڕانیان (ANSI-compressed یان UTF-16) بۆ ڕیزبەندی یەکسان
+// ئەمە زۆر وردتر و دروستترە لەوەی هەڵسەنگاندنی ڕیزە پیتی خوێندراو بەبێ ئاگاداری لە پێکهاتەی فایلەکە.
+
+const DOC_COMPRESSED_BYTE_MAP = {
+    0x82: 0x201A, 0x83: 0x0192, 0x84: 0x201E, 0x85: 0x2026, 0x86: 0x2020,
+    0x87: 0x2021, 0x88: 0x02C6, 0x89: 0x2030, 0x8A: 0x0160, 0x8B: 0x2039,
+    0x8C: 0x0152, 0x91: 0x2018, 0x92: 0x2019, 0x93: 0x201C, 0x94: 0x201D,
+    0x95: 0x2022, 0x96: 0x2013, 0x97: 0x2014, 0x98: 0x02DC, 0x99: 0x2122,
+    0x9A: 0x0161, 0x9B: 0x203A, 0x9C: 0x0153, 0x9F: 0x0178
+};
+
+function appendCharCodesInChunks(target, codeArray) {
+    const CHUNK = 8000;
+    for (let i = 0; i < codeArray.length; i += CHUNK) {
+        target.push(String.fromCharCode.apply(null, codeArray.slice(i, i + CHUNK)));
+    }
+}
+
+// خوێندنەوەی پارچەیەکی دەق کە بە شێوەی "compressed" (١ بایت بۆ هەر پیتێک) هەڵگیراوە
+function decodeDocCompressedRun(bytes, offset, count) {
+    const codes = new Array(count);
+    for (let i = 0; i < count; i++) {
+        const b = bytes[offset + i];
+        codes[i] = DOC_COMPRESSED_BYTE_MAP[b] !== undefined ? DOC_COMPRESSED_BYTE_MAP[b] : b;
+    }
+    return codes;
+}
+
+// خوێندنەوەی پارچەیەکی دەق کە بە UTF-16LE (٢ بایت بۆ هەر پیتێک) هەڵگیراوە
+function decodeDocUnicodeRun(bytes, offset, count) {
+    const codes = new Array(count);
+    for (let i = 0; i < count; i++) {
+        const lo = bytes[offset + i * 2];
+        const hi = bytes[offset + i * 2 + 1];
+        codes[i] = (hi << 8) | lo;
+    }
+    return codes;
+}
+
+// دۆزینەوەی جۆگەیەک لە کۆنتەینەری CFB بەپێی ناوی کۆتایی (بەبێ گوێدانە بەرزی/کەمی پیت)
+function findCfbEntry(cfb, entryNameLower) {
+    for (let i = 0; i < cfb.FullPaths.length; i++) {
+        const p = cfb.FullPaths[i].toLowerCase().replace(/^\/*/, '');
+        if (p === entryNameLower || p.endsWith('/' + entryNameLower)) {
+            const entry = cfb.FileIndex[i];
+            if (entry && entry.content) return entry;
+        }
+    }
+    return null;
+}
+
+function extractTextFromDocOle(arrayBuffer) {
+    if (typeof XLSX === 'undefined' || !XLSX.CFB) {
+        throw new Error('CFB_LIB_MISSING');
+    }
+    const fileBytes = new Uint8Array(arrayBuffer);
+    const cfb = XLSX.CFB.read(fileBytes, { type: 'array' });
+
+    const wordDocEntry = findCfbEntry(cfb, 'worddocument');
+    if (!wordDocEntry) throw new Error('NO_WORDDOCUMENT_STREAM');
+    const wordDoc = new Uint8Array(wordDocEntry.content);
+
+    // FIB header دەستپێدەکات لە بایتی سفر
+    const wIdent = wordDoc[0] | (wordDoc[1] << 8);
+    if (wIdent !== 0xA5EC) throw new Error('NOT_A_VALID_DOC');
+
+    const flags1 = wordDoc[0x0A] | (wordDoc[0x0B] << 8);
+    const fEncrypted = (flags1 >> 8) & 1;
+    if (fEncrypted) throw new Error('DOC_ENCRYPTED');
+
+    const fWhichTblStm = (flags1 >> 9) & 1;
+    const tableEntry = findCfbEntry(cfb, fWhichTblStm ? '1table' : '0table');
+    if (!tableEntry) throw new Error('NO_TABLE_STREAM');
+    const tableStream = new Uint8Array(tableEntry.content);
+
+    function readU32(arr, off) {
+        return (arr[off] | (arr[off + 1] << 8) | (arr[off + 2] << 16) | (arr[off + 3] << 24)) >>> 0;
+    }
+    function readU16(arr, off) {
+        return arr[off] | (arr[off + 1] << 8);
+    }
+
+    // fcClx / lcbClx لە navînga fibRgFcLcb97 (بەپێی [MS-DOC] FibRgFcLcb97)
+    const fcClx = readU32(wordDoc, 0x1A2);
+    const lcbClx = readU32(wordDoc, 0x1A6);
+    if (!lcbClx) throw new Error('NO_CLX');
+
+    // شیکردنەوەی Clx بۆ دۆزینەوەی PlcPcd (خشتەی پارچەکان)
+    let pos = fcClx;
+    const clxEnd = fcClx + lcbClx;
+    let plcPcdOffset = -1, plcPcdSize = 0;
+    while (pos < clxEnd) {
+        const clxt = tableStream[pos];
+        pos += 1;
+        if (clxt === 1) { // Prc
+            const cbGrpprl = readU16(tableStream, pos);
+            pos += 2 + cbGrpprl;
+        } else if (clxt === 2) { // Pcdt
+            const lcb = readU32(tableStream, pos);
+            pos += 4;
+            plcPcdOffset = pos;
+            plcPcdSize = lcb;
+            break;
+        } else {
+            break;
+        }
+    }
+    if (plcPcdOffset < 0) throw new Error('NO_PIECE_TABLE');
+
+    const n = Math.floor((plcPcdSize - 4) / 12); // ژمارەی پارچەکان
+    if (n <= 0) throw new Error('EMPTY_PIECE_TABLE');
+
+    const cps = new Array(n + 1);
+    for (let i = 0; i <= n; i++) {
+        cps[i] = readU32(tableStream, plcPcdOffset + i * 4);
+    }
+    const pcdArrayOffset = plcPcdOffset + 4 * (n + 1);
+
+    const parts = [];
+    for (let i = 0; i < n; i++) {
+        const pcdOffset = pcdArrayOffset + i * 8;
+        const fcRaw = readU32(tableStream, pcdOffset + 2);
+        const fCompressed = (fcRaw & 0x40000000) !== 0;
+        let fc = fcRaw & 0xBFFFFFFF;
+        const numChars = cps[i + 1] - cps[i];
+        if (numChars <= 0) continue;
+
+        let codes;
+        if (fCompressed) {
+            fc = Math.floor(fc / 2);
+            codes = decodeDocCompressedRun(wordDoc, fc, numChars);
+        } else {
+            codes = decodeDocUnicodeRun(wordDoc, fc, numChars);
+        }
+        appendCharCodesInChunks(parts, codes);
+    }
+
+    let text = parts.join('');
+    // هێماکانی تایبەت لە Word: پاراگراف (0x0D)، مارکی خانە/ڕیز (0x07)، شکاندنی دێڕ (0x0B)، شکاندنی پەڕە (0x0C)
+    text = text
+        .replace(/[\x07\x0B\x0C]/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/[\x00-\x06\x08\x0E-\x1F]/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+
+    return text;
+}
+
+// شێوازی یاریدەدەر (کاتێک شیکردنەوەی وردی سەرەوە سەرکەوتوو نەبێت):
+// ڕیزەکانی خوێندراو بە UTF-16LE دەردەهێنێت بەبێ شیکردنەوەی پێکهاتەی FIB/Clx.
+// دروستی کەمترە، بەڵام وەک پاشەکەوتێک بۆ فایلی ئاڵۆز یان ناسراو بەکاردێت.
+function extractTextFromDocHeuristic(arrayBuffer) {
+    const bytes = new Uint8Array(arrayBuffer);
+    const utf16Text = new TextDecoder('utf-16le', { fatal: false }).decode(bytes);
+    const chunks = utf16Text.match(/[\p{L}\p{N}\p{P}\s]{4,}/gu) || [];
+    let text = chunks.join('\n');
+    text = text.replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+    return text;
+}
+
+function extractTextFromDocBinary(arrayBuffer) {
+    try {
+        const text = extractTextFromDocOle(arrayBuffer);
+        if (text && text.trim()) return { text: text, accurate: true };
+        throw new Error('EMPTY_RESULT');
+    } catch (err) {
+        if (err && err.message === 'DOC_ENCRYPTED') throw err;
+        // شیکردنەوەی وردی سەرنەکەوت، بگەڕێوە بۆ شێوازی یاریدەدەر
+        return { text: extractTextFromDocHeuristic(arrayBuffer), accurate: false };
+    }
+}
+
+// خوێندنەوەی فایلی Word (.doc / .docx) و دانانی دەقەکەی ناو خانەی نووسین
 async function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const extension = file.name.split('.').pop().toLowerCase();
-    
+
     if (extension === 'docx') {
         showStatus("خەریکە فایلی Word دەخوێنمەوە... 🔄");
         try {
@@ -2071,8 +2249,32 @@ async function handleFile(e) {
             console.error(error);
             showStatus("هەڵەیەک ڕوویدا لە کاتی خوێندنەوەی وۆرد ❌");
         }
+    } else if (extension === 'doc') {
+        showStatus("خەریکە فایلی Word (.doc) دەخوێنمەوە... 🔄");
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = extractTextFromDocBinary(arrayBuffer);
+            const box = document.getElementById('textBox');
+            if (box) box.value = result.text;
+            updateStats();
+            if (result.text.trim()) {
+                showStatus(result.accurate
+                    ? "📝 فایلی Word (.doc) بە سەرکەوتوویی خوێندرایەوە"
+                    : "📝 فایلی Word (.doc) خوێندرایەوە (لەوانەیە هەندێک شێوازبەندی ون بووبێت)");
+            } else {
+                showStatus("⚠️ نەتوانرا دەقێک لە فایلی .doc دەرببرێت");
+            }
+            if (typeof window._akSendTextareaText === 'function') window._akSendTextareaText();
+        } catch (error) {
+            console.error(error);
+            if (error && error.message === 'DOC_ENCRYPTED') {
+                showStatus("🔒 ئەم فایلە بە وشەی نهێنی پارێزراوە، ناتوانرێت بخوێنرێتەوە");
+            } else {
+                showStatus("هەڵەیەک ڕوویدا لە کاتی خوێندنەوەی وۆرد ❌");
+            }
+        }
     } else {
-        alert("تکایە تەنها فایلی Word (.docx) هەڵبژێرە.");
+        alert("تکایە تەنها فایلی Word (.doc یان .docx) هەڵبژێرە.");
         e.target.value = ""; 
         showStatus("فایلی هەڵە هەڵبژێردرا ⚠️");
     }

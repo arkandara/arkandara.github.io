@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-07",
-  "updatedAt": "2026-07-05T22:13:45.089Z",
+  "updatedAt": "2026-07-06T22:38:33.043Z",
   "days": [
     {
       "date": "2026-07-01",
@@ -126,6 +126,32 @@
         "Baghdad": 6,
         "Springfield": 3,
         "Portland": 1
+      }
+    },
+    {
+      "date": "2026-07-06",
+      "generatedAt": "2026-07-06T22:38:33.043Z",
+      "totalVisits": 9,
+      "totalClicks": 122,
+      "totalTextarea": 86,
+      "clicks": {
+        "سڕینەوەی بۆشایی": 11,
+        "گۆڕین بۆ یونیکۆد": 27,
+        "Gemini": 5,
+        "کەتکردن": 11,
+        "گۆڕین بۆ عەلی کەی": 33,
+        "پاشەکەوت Word": 24,
+        "سڕینەوەی دەق": 7,
+        "هێنانی Word": 4
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 8,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Baghdad": 6,
+        "Sulaymaniyah": 2
       }
     }
   ]

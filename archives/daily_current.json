@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-07",
-  "updatedAt": "2026-07-10T22:16:32.821Z",
+  "updatedAt": "2026-07-11T22:08:11.666Z",
   "days": [
     {
       "date": "2026-07-01",
@@ -252,6 +252,22 @@
       },
       "cityStats": {
         "Sulaymaniyah": 10
+      }
+    },
+    {
+      "date": "2026-07-11",
+      "generatedAt": "2026-07-11T22:08:11.666Z",
+      "totalVisits": 3,
+      "totalClicks": 0,
+      "totalTextarea": 0,
+      "clicks": {},
+      "deviceStats": {
+        "mobile": 2,
+        "desktop": 1,
+        "tablet": 0
+      },
+      "cityStats": {
+        "نەناسراو": 3
       }
     }
   ]

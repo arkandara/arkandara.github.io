@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-07",
-  "updatedAt": "2026-07-13T22:10:11.176Z",
+  "updatedAt": "2026-07-14T22:13:10.496Z",
   "days": [
     {
       "date": "2026-07-01",
@@ -320,6 +320,34 @@
       },
       "cityStats": {
         "Sulaymaniyah": 4
+      }
+    },
+    {
+      "date": "2026-07-14",
+      "generatedAt": "2026-07-14T22:13:10.496Z",
+      "totalVisits": 19,
+      "totalClicks": 95,
+      "totalTextarea": 85,
+      "clicks": {
+        "سڕینەوەی بۆشایی": 10,
+        "Gemini": 7,
+        "گۆڕین بۆ یونیکۆد": 16,
+        "گۆڕین بۆ عەلی کەی": 31,
+        "پاشەکەوت Word": 22,
+        "سڕینەوەی دەق": 1,
+        "کەتکردن": 6,
+        "هەواڵەکان": 2
+      },
+      "deviceStats": {
+        "mobile": 1,
+        "desktop": 18,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Council Bluffs": 2,
+        "Santa Clara": 4,
+        "Ashburn": 1,
+        "Sulaymaniyah": 12
       }
     }
   ]

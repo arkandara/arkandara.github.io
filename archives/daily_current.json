@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-07",
-  "updatedAt": "2026-07-14T22:13:10.496Z",
+  "updatedAt": "2026-07-15T22:13:21.623Z",
   "days": [
     {
       "date": "2026-07-01",
@@ -348,6 +348,29 @@
         "Santa Clara": 4,
         "Ashburn": 1,
         "Sulaymaniyah": 12
+      }
+    },
+    {
+      "date": "2026-07-15",
+      "generatedAt": "2026-07-15T22:13:21.623Z",
+      "totalVisits": 5,
+      "totalClicks": 53,
+      "totalTextarea": 43,
+      "clicks": {
+        "گۆڕین بۆ یونیکۆد": 11,
+        "سڕینەوەی بۆشایی": 11,
+        "کەتکردن": 7,
+        "Gemini": 6,
+        "گۆڕین بۆ عەلی کەی": 2,
+        "سڕینەوەی دەق": 16
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 5,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 5
       }
     }
   ]

@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-07",
-  "updatedAt": "2026-07-21T22:12:18.270Z",
+  "updatedAt": "2026-07-22T22:16:08.165Z",
   "days": [
     {
       "date": "2026-07-01",
@@ -524,6 +524,32 @@
         "Sulaymaniyah": 4,
         "San Jose": 1,
         "نەناسراو": 1
+      }
+    },
+    {
+      "date": "2026-07-22",
+      "generatedAt": "2026-07-22T22:16:08.165Z",
+      "totalVisits": 7,
+      "totalClicks": 59,
+      "totalTextarea": 37,
+      "clicks": {
+        "Gemini": 13,
+        "سڕینەوەی بۆشایی": 11,
+        "کەتکردن": 8,
+        "گۆڕین بۆ عەلی کەی": 5,
+        "سڕینەوەی دەق": 2,
+        "گۆڕین بۆ یونیکۆد": 16,
+        "گەڕان و گۆڕین": 2,
+        "دۆزینەوە": 1,
+        "گۆڕینی هەموو": 1
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 7,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 7
       }
     }
   ]

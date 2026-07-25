@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-07",
-  "updatedAt": "2026-07-24T22:19:04.730Z",
+  "updatedAt": "2026-07-25T22:10:30.928Z",
   "days": [
     {
       "date": "2026-07-01",
@@ -597,6 +597,29 @@
       },
       "cityStats": {
         "Al Hindiyah": 3
+      }
+    },
+    {
+      "date": "2026-07-25",
+      "generatedAt": "2026-07-25T22:10:30.928Z",
+      "totalVisits": 2,
+      "totalClicks": 14,
+      "totalTextarea": 4,
+      "clicks": {
+        "گۆڕین بۆ یونیکۆد": 5,
+        "کەتکردن": 2,
+        "Gemini": 2,
+        "گۆڕین بۆ عەلی کەی": 1,
+        "دەربارە": 2,
+        "تەما": 2
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 2,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 2
       }
     }
   ]

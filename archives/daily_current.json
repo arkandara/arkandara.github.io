@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-07",
-  "updatedAt": "2026-07-30T22:19:05.735Z",
+  "updatedAt": "2026-07-31T22:15:46.373Z",
   "days": [
     {
       "date": "2026-07-01",
@@ -752,6 +752,25 @@
       "cityStats": {
         "Sulaymaniyah": 9,
         "نەناسراو": 1
+      }
+    },
+    {
+      "date": "2026-07-31",
+      "generatedAt": "2026-07-31T22:15:46.373Z",
+      "totalVisits": 3,
+      "totalClicks": 13,
+      "totalTextarea": 12,
+      "clicks": {
+        "گۆڕین بۆ عەلی کەی": 6,
+        "پاشەکەوت Word": 7
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 3,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 3
       }
     }
   ]

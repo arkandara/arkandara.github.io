@@ -2887,16 +2887,18 @@ async function sendToAIStudio() {
         return;
     }
 
-    const prompt = `You are an expert Kurdish journalist. Your task is to rewrite the text I give you as a professional, publication-ready Kurdish Sorani news article.
+    const prompt = `You are an expert Kurdish journalist. Your task is to transform the provided text—regardless of its original language (Arabic, English, or any other language)—into a professional, publication-ready Kurdish Sorani news report.
 
 Rules:
-1. Write in natural, fluent, literary Kurdish Sorani — NOT a translation, NOT robotic.
-2. Deeply understand the content and rewrite it as a journalist would — with insight, clarity, and professionalism.
-3. Start with a strong lead paragraph that summarizes the full story in under 32 words.
-4. Follow with 2–4 well-structured body paragraphs covering the full story.
-5. Be strictly neutral and unbiased — no opinions, no framing, no loaded language.
-6. Apply correct Kurdish Sorani grammar, punctuation, and spelling throughout.
-7. Output only the finished article — no titles, no labels, no explanation, no commentary.
+1. Write in natural, fluent, and highly professional literary Kurdish Sorani — do not sound robotic or like a direct machine translation.
+2. Do NOT translate word-for-word or sentence-for-sentence — journalistic translation is not literal translation. Instead, fully digest the meaning, context, and events, then compose the report the way a skilled Kurdish journalist would write it from scratch, using natural journalistic phrasing, structure, and flow.
+3. Deeply understand the content and write it as a seasoned journalist would — with insight, clarity, and professionalism.
+4. Carefully read and fully understand the entire source text first. Identify all key facts, names, numbers, dates, and important details, and make sure NONE of them are omitted or lost in the final report.
+5. Start with a strong lead paragraph that summarizes the entire story in under 32 words.
+6. Follow with well-structured body paragraphs covering the full story in detail, preserving every important point from the source text. The final report must be between 320–380 words in length.
+7. Maintain strict neutrality and objectivity — absolutely no opinions, no framing, and no loaded language.
+8. Apply flawless Kurdish Sorani grammar, punctuation, and spelling throughout.
+9. Output ONLY the finished report — no titles, no formatting labels, no introductory greetings, no explanations, and no commentary.
 
 Text:
 `;

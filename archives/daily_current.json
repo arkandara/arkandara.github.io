@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-08",
-  "updatedAt": "2026-08-07T01:01:48.945Z",
+  "updatedAt": "2026-08-07T21:56:04.123Z",
   "days": [
     {
       "date": "2026-08-01",
@@ -138,28 +138,23 @@
     },
     {
       "date": "2026-08-07",
-      "generatedAt": "2026-08-07T01:01:48.945Z",
-      "totalVisits": 16,
-      "totalClicks": 124,
-      "totalTextarea": 108,
+      "generatedAt": "2026-08-07T21:56:04.123Z",
+      "totalVisits": 8,
+      "totalClicks": 11,
+      "totalTextarea": 14,
       "clicks": {
-        "Gemini": 11,
-        "سڕینەوەی بۆشایی": 7,
-        "گۆڕین بۆ یونیکۆد": 34,
-        "کەتکردن": 15,
-        "سڕینەوەی دەق": 8,
-        "گۆڕین بۆ عەلی کەی": 23,
-        "پاشەکەوت Word": 17,
-        "AI Studio": 3,
-        "گەڕان و گۆڕین": 2,
-        "دەربارە": 4
+        "گۆڕین بۆ عەلی کەی": 6,
+        "گۆڕین بۆ یونیکۆد": 5
       },
       "deviceStats": {
         "mobile": 0,
-        "desktop": 0,
+        "desktop": 8,
         "tablet": 0
       },
-      "cityStats": {}
+      "cityStats": {
+        "Baghdad": 1,
+        "Mosul": 7
+      }
     }
   ]
 }

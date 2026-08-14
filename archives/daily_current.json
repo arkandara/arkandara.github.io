@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-08",
-  "updatedAt": "2026-08-13T22:03:31.931Z",
+  "updatedAt": "2026-08-14T21:41:25.488Z",
   "days": [
     {
       "date": "2026-08-01",
@@ -311,6 +311,29 @@
         "Sulaymaniyah": 10,
         "Koysinceq": 1,
         "Mosul": 2
+      }
+    },
+    {
+      "date": "2026-08-14",
+      "generatedAt": "2026-08-14T21:41:25.488Z",
+      "totalVisits": 4,
+      "totalClicks": 97,
+      "totalTextarea": 65,
+      "clicks": {
+        "گۆڕین بۆ عەلی کەی": 31,
+        "کەتکردن": 34,
+        "گۆڕین بۆ یونیکۆد": 26,
+        "AI Studio": 4,
+        "Gemini": 2
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 4,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Mosul": 1,
+        "Sulaymaniyah": 3
       }
     }
   ]

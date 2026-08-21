@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-08",
-  "updatedAt": "2026-08-20T21:44:04.595Z",
+  "updatedAt": "2026-08-21T21:39:15.954Z",
   "days": [
     {
       "date": "2026-08-01",
@@ -484,6 +484,24 @@
       },
       "cityStats": {
         "Sulaymaniyah": 7
+      }
+    },
+    {
+      "date": "2026-08-21",
+      "generatedAt": "2026-08-21T21:39:15.954Z",
+      "totalVisits": 1,
+      "totalClicks": 1,
+      "totalTextarea": 1,
+      "clicks": {
+        "پاشەکەوت Word": 1
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 1,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Qeredagh": 1
       }
     }
   ]

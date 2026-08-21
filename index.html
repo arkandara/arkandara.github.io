@@ -2614,12 +2614,15 @@ async function downloadAsWord() {
         const words = content.trim().split(/\s+/);
         const fileName = words.slice(0, 5).join(' ') + '.docx';
         const lines = content.split('\n');
-        // فۆنتی دروستی یونیکۆد وه‌رده‌گرین (هه‌مان فۆنتی به‌کارهاتوو له‌ سندوقی نووسینه‌که‌)
-        // تێبینی: پێویسته‌ فۆنتێکی یونیکۆدی ڕاستی بێت، نه‌ک فۆنتی کۆنی Ali_K
-        // (که‌ کۆدی ASCII وه‌ك ژماره‌كان ده‌گۆڕێت بۆ هێمای تر و ده‌بێته‌ هۆی
-        // ده‌رکه‌وتنی هێمای نادیار له‌جیاتی ژماره‌كان له‌ فایلی وۆردا).
+        // فۆنتی دروست وه‌رده‌گرین: ئه‌گه‌ر ده‌قه‌که‌ له‌ دۆخی عه‌لی که‌یدا بێت
+        // (دوای گۆڕین بۆ toAli)، به‌ فۆنتی Ali_K Alwand خه‌زن ده‌کرێت،
+        // وه‌رنا هه‌مان فۆنتی یونیکۆدی هه‌ڵبژێردراو له‌ سندوقی نووسینه‌که‌ به‌کاردێت.
+        const textBoxEl = document.getElementById('textBox');
+        const isAliKMode = !!(textBoxEl && textBoxEl.style.fontFamily && textBoxEl.style.fontFamily.includes('Ali_K'));
         const fontSelEl = document.getElementById('fontSelect');
-        const rawFont = fontSelEl && fontSelEl.value ? fontSelEl.value : "'Noto Sans Arabic', sans-serif";
+        const rawFont = isAliKMode
+            ? 'Ali_K Alwand'
+            : (fontSelEl && fontSelEl.value ? fontSelEl.value : "'Noto Sans Arabic', sans-serif");
         const exportFontName = rawFont.split(',')[0].replace(/['"]/g, '').trim() || 'Noto Sans Arabic';
         const paragraphs = lines.map(line => {
             if (!line.trim()) {

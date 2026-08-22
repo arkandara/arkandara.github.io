@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-08",
-  "updatedAt": "2026-08-21T21:39:15.954Z",
+  "updatedAt": "2026-08-22T21:35:51.807Z",
   "days": [
     {
       "date": "2026-08-01",
@@ -502,6 +502,29 @@
       },
       "cityStats": {
         "Qeredagh": 1
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "generatedAt": "2026-08-22T21:35:51.807Z",
+      "totalVisits": 12,
+      "totalClicks": 36,
+      "totalTextarea": 22,
+      "clicks": {
+        "گۆڕین بۆ یونیکۆد": 18,
+        "کەتکردن": 5,
+        "Gemini": 3,
+        "AI Studio": 3,
+        "گۆڕین بۆ عەلی کەی": 7
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 9,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 5,
+        "Groningen": 4
       }
     }
   ]

@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-08",
-  "updatedAt": "2026-08-22T21:35:51.807Z",
+  "updatedAt": "2026-08-23T21:36:18.363Z",
   "days": [
     {
       "date": "2026-08-01",
@@ -525,6 +525,31 @@
       "cityStats": {
         "Sulaymaniyah": 5,
         "Groningen": 4
+      }
+    },
+    {
+      "date": "2026-08-23",
+      "generatedAt": "2026-08-23T21:36:18.363Z",
+      "totalVisits": 3,
+      "totalClicks": 74,
+      "totalTextarea": 50,
+      "clicks": {
+        "سڕینەوەی بۆشایی": 12,
+        "گۆڕین بۆ یونیکۆد": 28,
+        "کەتکردن": 8,
+        "Gemini": 4,
+        "AI Studio": 1,
+        "گۆڕین بۆ عەلی کەی": 11,
+        "پاشەکەوت Word": 8,
+        "سڕینەوەی دەق": 2
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 3,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 3
       }
     }
   ]

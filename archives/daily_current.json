@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-08",
-  "updatedAt": "2026-08-29T03:10:50.936Z",
+  "updatedAt": "2026-08-29T23:21:07.178Z",
   "days": [
     {
       "date": "2026-08-01",
@@ -642,24 +642,26 @@
     },
     {
       "date": "2026-08-29",
-      "generatedAt": "2026-08-29T03:10:50.936Z",
-      "totalVisits": 7,
-      "totalClicks": 16,
-      "totalTextarea": 20,
+      "generatedAt": "2026-08-29T23:21:07.178Z",
+      "totalVisits": 11,
+      "totalClicks": 23,
+      "totalTextarea": 17,
       "clicks": {
-        "گۆڕین بۆ عەلی کەی": 6,
-        "گۆڕین بۆ یونیکۆد": 5,
-        "کەتکردن": 1,
-        "دەربارە": 2,
-        "تەما": 1,
-        "سڕینەوەی دەق": 1
+        "گۆڕین بۆ یونیکۆد": 9,
+        "کەتکردن": 5,
+        "گۆڕین بۆ عەلی کەی": 3,
+        "AI Studio": 4,
+        "Gemini": 2
       },
       "deviceStats": {
-        "mobile": 0,
-        "desktop": 0,
+        "mobile": 1,
+        "desktop": 10,
         "tablet": 0
       },
-      "cityStats": {}
+      "cityStats": {
+        "Ranyah": 1,
+        "Sulaymaniyah": 10
+      }
     }
   ]
 }

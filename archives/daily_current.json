@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
-  "month": "2026-08",
-  "updatedAt": "2026-08-30T23:30:47.382Z",
+  "month": "2026-09",
+  "updatedAt": "2026-09-01T00:37:21.852Z",
   "days": [
     {
       "date": "2026-08-01",
@@ -688,6 +688,32 @@
         "Sulaymaniyah": 8,
         "Samarra’": 2
       }
+    },
+    {
+      "date": "2026-09-01",
+      "generatedAt": "2026-09-01T00:37:21.852Z",
+      "totalVisits": 25,
+      "totalClicks": 216,
+      "totalTextarea": 134,
+      "clicks": {
+        "Gemini": 12,
+        "گۆڕین بۆ یونیکۆد": 71,
+        "گۆڕین بۆ عەلی کەی": 41,
+        "گەڕان و گۆڕین": 9,
+        "دۆزینەوە": 3,
+        "گۆڕینی هەموو": 3,
+        "کەتکردن": 19,
+        "سڕینەوەی بۆشایی": 14,
+        "پاشەکەوت Word": 29,
+        "سڕینەوەی دەق": 12,
+        "AI Studio": 3
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 0,
+        "tablet": 0
+      },
+      "cityStats": {}
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-09",
-  "updatedAt": "2026-09-01T23:31:30.260Z",
+  "updatedAt": "2026-09-02T23:19:34.282Z",
   "days": [
     {
       "date": "2026-09-01",
@@ -26,6 +26,36 @@
       "cityStats": {
         "Sulaymaniyah": 8,
         "Samarra’": 10
+      }
+    },
+    {
+      "date": "2026-09-02",
+      "generatedAt": "2026-09-02T23:19:34.282Z",
+      "totalVisits": 8,
+      "totalClicks": 150,
+      "totalTextarea": 97,
+      "clicks": {
+        "سڕینەوەی بۆشایی": 12,
+        "گۆڕین بۆ یونیکۆد": 51,
+        "سڕینەوەی دەق": 3,
+        "Gemini": 21,
+        "کەتکردن": 26,
+        "AI Studio": 12,
+        "گۆڕین بۆ عەلی کەی": 15,
+        "گەڕان و گۆڕین": 6,
+        "دۆزینەوە": 1,
+        "گۆڕینی هەموو": 1,
+        "هەواڵەکان": 2
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 8,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 2,
+        "Samarra’": 4,
+        "Erbil": 2
       }
     }
   ]

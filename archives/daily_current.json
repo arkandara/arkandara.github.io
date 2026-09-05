@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-09",
-  "updatedAt": "2026-09-04T23:03:05.001Z",
+  "updatedAt": "2026-09-05T22:54:56.233Z",
   "days": [
     {
       "date": "2026-09-01",
@@ -109,6 +109,24 @@
       },
       "cityStats": {
         "Samarra’": 2,
+        "Sulaymaniyah": 3
+      }
+    },
+    {
+      "date": "2026-09-05",
+      "generatedAt": "2026-09-05T22:54:56.233Z",
+      "totalVisits": 5,
+      "totalClicks": 0,
+      "totalTextarea": 0,
+      "clicks": {},
+      "deviceStats": {
+        "mobile": 1,
+        "desktop": 4,
+        "tablet": 0
+      },
+      "cityStats": {
+        "San Jose": 1,
+        "نەناسراو": 1,
         "Sulaymaniyah": 3
       }
     }

@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-09",
-  "updatedAt": "2026-09-10T23:11:27.458Z",
+  "updatedAt": "2026-09-11T23:16:37.513Z",
   "days": [
     {
       "date": "2026-09-01",
@@ -270,6 +270,29 @@
       "cityStats": {
         "Washington": 1,
         "Sulaymaniyah": 12
+      }
+    },
+    {
+      "date": "2026-09-11",
+      "generatedAt": "2026-09-11T23:16:37.513Z",
+      "totalVisits": 3,
+      "totalClicks": 26,
+      "totalTextarea": 15,
+      "clicks": {
+        "AI Studio": 2,
+        "Gemini": 3,
+        "گۆڕین بۆ یونیکۆد": 7,
+        "گۆڕین بۆ عەلی کەی": 7,
+        "سڕینەوەی دەق": 1,
+        "کەتکردن": 6
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 3,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 3
       }
     }
   ]

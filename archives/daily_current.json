@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-09",
-  "updatedAt": "2026-09-20T23:15:31.273Z",
+  "updatedAt": "2026-09-22T00:07:55.027Z",
   "days": [
     {
       "date": "2026-09-01",
@@ -519,6 +519,31 @@
       "cityStats": {
         "Sulaymaniyah": 4
       }
+    },
+    {
+      "date": "2026-09-22",
+      "generatedAt": "2026-09-22T00:07:55.027Z",
+      "totalVisits": 13,
+      "totalClicks": 112,
+      "totalTextarea": 84,
+      "clicks": {
+        "Gemini": 6,
+        "گۆڕین بۆ یونیکۆد": 20,
+        "کەتکردن": 5,
+        "سڕینەوەی بۆشایی": 11,
+        "پاشەکەوت Word": 28,
+        "سڕینەوەی دەق": 5,
+        "گۆڕین بۆ عەلی کەی": 33,
+        "گەڕان و گۆڕین": 2,
+        "دۆزینەوە": 1,
+        "گۆڕینی هەموو": 1
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 0,
+        "tablet": 0
+      },
+      "cityStats": {}
     }
   ]
 }

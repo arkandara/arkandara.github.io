@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-10",
-  "updatedAt": "2026-10-18T23:13:47.206Z",
+  "updatedAt": "2026-10-20T00:21:26.045Z",
   "days": [
     {
       "date": "2026-10-01",
@@ -382,6 +382,29 @@
         "Sulaymaniyah": 8,
         "Falkenstein/Vogtl.": 1
       }
+    },
+    {
+      "date": "2026-10-20",
+      "generatedAt": "2026-10-20T00:21:26.045Z",
+      "totalVisits": 7,
+      "totalClicks": 240,
+      "totalTextarea": 188,
+      "clicks": {
+        "سڕینەوەی بۆشایی": 20,
+        "Gemini": 11,
+        "گۆڕین بۆ یونیکۆد": 87,
+        "کەتکردن": 14,
+        "گۆڕین بۆ عەلی کەی": 55,
+        "پاشەکەوت Word": 38,
+        "سڕینەوەی دەق": 11,
+        "هێنانی Word": 4
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 0,
+        "tablet": 0
+      },
+      "cityStats": {}
     }
   ]
 }

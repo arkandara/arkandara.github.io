@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-10",
-  "updatedAt": "2026-10-20T00:21:26.045Z",
+  "updatedAt": "2026-10-20T23:53:50.949Z",
   "days": [
     {
       "date": "2026-10-01",
@@ -385,26 +385,32 @@
     },
     {
       "date": "2026-10-20",
-      "generatedAt": "2026-10-20T00:21:26.045Z",
-      "totalVisits": 7,
-      "totalClicks": 240,
-      "totalTextarea": 188,
+      "generatedAt": "2026-10-20T23:53:50.949Z",
+      "totalVisits": 16,
+      "totalClicks": 209,
+      "totalTextarea": 172,
       "clicks": {
-        "سڕینەوەی بۆشایی": 20,
-        "Gemini": 11,
-        "گۆڕین بۆ یونیکۆد": 87,
-        "کەتکردن": 14,
-        "گۆڕین بۆ عەلی کەی": 55,
-        "پاشەکەوت Word": 38,
-        "سڕینەوەی دەق": 11,
-        "هێنانی Word": 4
+        "گۆڕین بۆ یونیکۆد": 61,
+        "کەتکردن": 16,
+        "AI Studio": 2,
+        "گۆڕین بۆ عەلی کەی": 68,
+        "سڕینەوەی بۆشایی": 9,
+        "سڕینەوەی دەق": 7,
+        "هێنانی Word": 3,
+        "Gemini": 4,
+        "پاشەکەوت Word": 37,
+        "گەڕان و گۆڕین": 2
       },
       "deviceStats": {
-        "mobile": 0,
-        "desktop": 0,
+        "mobile": 1,
+        "desktop": 15,
         "tablet": 0
       },
-      "cityStats": {}
+      "cityStats": {
+        "Sulaymaniyah": 13,
+        "Groningen": 2,
+        "Washington": 1
+      }
     }
   ]
 }

@@ -3665,5 +3665,23 @@ function sendTextToAdmin() {
 })();
 </script>
 
+<script>
+// Drag & Drop بۆ دوگمەکانی «هێنانی Word» و «تێكستی ناو وێنه»
+(function() {
+    function bindDrop(btn, handler) {
+        if (!btn) return;
+        btn.addEventListener('dragover', function(ev) { ev.preventDefault(); });
+        btn.addEventListener('drop', function(ev) {
+            ev.preventDefault();
+            var f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+            if (!f) return;
+            handler({ target: { files: [f], value: '' } });
+        });
+    }
+    bindDrop(document.querySelector('button[onclick*="fileInput"]'), handleFile);
+    bindDrop(document.querySelector('button[onclick*="triggerOcrInput"]'), handleOcrImage);
+})();
+</script>
+
 </body>
 </html>

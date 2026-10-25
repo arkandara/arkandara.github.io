@@ -1318,9 +1318,9 @@ textarea {
             </div>
             <button onclick="toggleMoreApps()" style="
                 background: linear-gradient(135deg,#43a047,#2e7d32); border: none; color: #fff;
-                padding: 8px 14px; border-radius: 20px; cursor: pointer; font-family: inherit;
+                padding: 8px 14px; border-radius: 20px; cursor: pointer; font-family: inherit; 
                 font-size: 0.78em; font-weight: 700; align-items: center; justify-content: center; gap: 6px;
-                white-space: nowrap; flex-shrink: 0; margin: 0 8px;
+                white-space: nowrap; flex-shrink: 0; margin: 0 auto 0 30px;
                 box-shadow: 0 3px 10px rgba(46,125,50,0.25); transition: all 0.25s ease;
             "
             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(46,125,50,0.35)';"
@@ -1415,11 +1415,12 @@ textarea {
         height: auto !important;
         padding: 0 !important;
         border-radius: 22px !important;
-        overflow: hidden !important;
+        overflow-y: auto !important;
+              max-height: 94vh !important;
         box-shadow: 0 24px 50px rgba(0,0,0,0.18) !important;
         background: #fff !important;
         border: none !important;
-        margin: 12% auto !important;
+        margin: 3% auto !important;
     ">
         <div style="height: 4px; background: linear-gradient(90deg, #1b5e20, #81c784, #4caf50, #81c784, #1b5e20); background-size: 200% 100%; animation: shimmer 3s linear infinite;"></div>
 
@@ -1453,7 +1454,6 @@ textarea {
                     <div class="ma-name" style="font-weight:700; color:#1b5e20; font-size:1.05em; margin-bottom:4px;">ئه‌پڵیكه‌یشنی قورئان</div>
                     <div class="ma-desc" style="color:#666; font-size:0.82em;">بۆ مۆبایلی ئەندرۆید</div>
                 </div>
-                <div id="maShots" style="display:none; width:100%; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding:4px 2px 8px; -webkit-overflow-scrolling:touch;"></div>
                 <a href="https://github.com/arkandara/arkandara.github.io/releases/download/V.1/app-debug.apk" target="_blank" rel="noopener" style="
                     display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; box-sizing: border-box;
                     background: linear-gradient(135deg, #43a047, #2e7d32);
@@ -1473,43 +1473,9 @@ textarea {
     </div>
 </div>
 <script>
-var _maShotsLoaded = false;
-function loadMoreAppsShots() {
-    if (_maShotsLoaded) return;
-    _maShotsLoaded = true;
-    fetch('/track?appshots=1')
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            var box = document.getElementById('maShots');
-            var imgs = (d && d.images) || [];
-            if (!box || !imgs.length) return;
-            imgs.forEach(function(src) {
-                var im = document.createElement('img');
-                im.src = src;
-                im.style.cssText = 'height:220px; width:auto; border-radius:12px; flex-shrink:0; scroll-snap-align:center; cursor:zoom-in; box-shadow:0 3px 10px rgba(0,0,0,0.15);';
-                im.addEventListener('click', function() { openMaLightbox(src); });
-                box.appendChild(im);
-            });
-            box.style.display = 'flex';
-        })
-        .catch(function() { _maShotsLoaded = false; });
-}
-function openMaLightbox(src) {
-    var o = document.createElement('div');
-    o.style.cssText = 'position:fixed; inset:0; z-index:3200; background:rgba(0,0,0,0.88); display:flex; align-items:center; justify-content:center; cursor:zoom-out;';
-    var im = document.createElement('img');
-    im.src = src;
-    im.style.cssText = 'max-width:92%; max-height:90vh; border-radius:12px;';
-    o.appendChild(im);
-    o.addEventListener('click', function() { o.remove(); });
-    document.body.appendChild(o);
-}
 function toggleMoreApps() {
     var m = document.getElementById('moreAppsModal');
-    if (!m) return;
-    var opening = m.style.display !== 'block';
-    m.style.display = opening ? 'block' : 'none';
-    if (opening) loadMoreAppsShots();
+    if (m) m.style.display = (m.style.display === 'block') ? 'none' : 'block';
 }
 document.getElementById('moreAppsModal').addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';

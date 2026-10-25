@@ -3813,6 +3813,86 @@ function sendTextToAdmin() {
     bindDrop(document.querySelector('button[onclick*="triggerOcrInput"]'), handleOcrImage);
 })();
 </script>
+<script>
+// ئەنیمەیشنی دوگمەی دەربارە: ٣ جار وەک لێدانی دڵ + جوولەی کەم، دواتر هێڵێکی سوور بە دەوریدا دەخولێتەوە
+(function() {
+    var started = false;
+
+    function start() {
+        if (started) return;
+        started = true;
+        var btn = document.querySelector('.header-icon-btn[onclick*="toggleAbout"]');
+        if (!btn) return;
+        var r = btn.getBoundingClientRect();
+        if (!r.width) return;
+
+        // ===== ڕێکخستنەکان =====
+        var BEATS = 2;                 // ژمارەی لێدانی دڵ
+        var BEAT_MS = 650;             // ماوەی هەر لێدانێک
+        var LAPS = 2;                  // چەند جار هێڵەکە بە دەوری دوگمەکەدا بخولێتەوە
+        var LAP_MS = 900;              // ماوەی هەر خولێک
+        var COLOR = '#e53935', WIDTH = 3;
+
+        // ١. لێدانی دڵ + جوولەی کەم لە شوێنی خۆی
+        var beatsMs = BEATS * BEAT_MS;
+        btn.animate([
+            { transform: 'scale(1) rotate(0deg)',      offset: 0 },
+            { transform: 'scale(1.25) rotate(-7deg)',  offset: 0.15 },
+            { transform: 'scale(1) rotate(0deg)',      offset: 0.3 },
+            { transform: 'scale(1.15) rotate(6deg)',   offset: 0.45 },
+            { transform: 'scale(1) rotate(0deg)',      offset: 0.7 },
+            { transform: 'scale(1) rotate(0deg)',      offset: 1 }
+        ], { duration: BEAT_MS, iterations: BEATS, easing: 'ease-in-out' });
+
+        // ٢. هێڵی سوور بە دەوری دوگمەکەدا
+        var cs = getComputedStyle(btn);
+        var gap = 1, pad = 7;
+        var w = r.width + gap * 2, h = r.height + gap * 2;
+        var rad = Math.min((parseFloat(cs.borderTopLeftRadius) || 0) + gap, Math.min(w, h) / 2);
+        var NS = 'http://www.w3.org/2000/svg';
+
+        var svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('width', w + pad * 2);
+        svg.setAttribute('height', h + pad * 2);
+        svg.style.cssText = 'position:fixed; left:' + (r.left - gap - pad) + 'px; top:' + (r.top - gap - pad) + 'px; ' +
+                            'z-index:2400; pointer-events:none; overflow:visible; opacity:0;';
+
+        var rect = document.createElementNS(NS, 'rect');
+        rect.setAttribute('x', pad);
+        rect.setAttribute('y', pad);
+        rect.setAttribute('width', w);
+        rect.setAttribute('height', h);
+        rect.setAttribute('rx', rad);
+        rect.setAttribute('ry', rad);
+        rect.setAttribute('fill', 'none');
+        rect.setAttribute('stroke', COLOR);
+        rect.setAttribute('stroke-width', WIDTH);
+        rect.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(rect);
+        document.body.appendChild(svg);
+
+        var len = rect.getTotalLength();
+        var dash = len * 0.28;                       // درێژی هێڵە سورەکە
+        rect.style.strokeDasharray = dash + ' ' + (len - dash);
+
+        var spinMs = LAPS * LAP_MS;
+        svg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, delay: beatsMs, fill: 'forwards' });
+        rect.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: -len * LAPS }],
+                     { duration: spinMs, delay: beatsMs, easing: 'linear', fill: 'forwards' });
+        svg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, delay: beatsMs + spinMs, fill: 'forwards' });
+        setTimeout(function() { svg.remove(); }, beatsMs + spinMs + 400);
+    }
+
+    // لەگەڵ ئەوەی شاشەی بسمیڵا دەست دەکات بە نەمان، ئەنیمەیشنەکە دەست پێدەکات
+    var s = document.getElementById('bismillah-screen');
+    if (!s || s.classList.contains('hidden')) {
+        start();
+    } else {
+        s.addEventListener('animationstart', function(e) { if (e.animationName === 'bsm-fadeout') start(); });
+        setTimeout(start, 8000);
+    }
+})();
+</script>
 
 </body>
 </html>

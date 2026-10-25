@@ -356,6 +356,9 @@
                 <button class="top-nav-btn" onclick="showTab('tab-buttons')" id="tnav-buttons">
                     <i class="fas fa-th-large"></i><span> دوگمەکان</span>
                 </button>
+                <button class="top-nav-btn" onclick="showTab('tab-appshots')" id="tnav-appshots">
+                    <i class="fas fa-images"></i><span> وێنەی ئەپ</span>
+                </button>
                 <button class="top-nav-btn" onclick="showTab('tab-stats')" id="tnav-stats">
                     <i class="fas fa-chart-bar"></i><span> ئامارەکان</span>
                 </button>
@@ -585,6 +588,27 @@
             </div>
 
             <button class="save-btn" onclick="saveButtons()">
+                <i class="fas fa-save"></i> پاشەکەوتکردن
+            </button>
+        </div>
+
+        <!-- ===== تاب: وێنەی ئەپ ===== -->
+        <div class="tab-content" id="tab-appshots">
+            <div class="section-title">
+                <i class="fas fa-images"></i> وێنەی ئەپڵیکەیشن
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-mobile-alt"></i> وێنەکانی مۆداڵی «بەرهەمی دیکە» (تا ٥ وێنە)
+                </div>
+                <div class="card-body">
+                    <div id="appShotsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px;"></div>
+                    <input type="file" id="appShotsInput" accept="image/*" multiple style="display:none">
+                </div>
+            </div>
+
+            <button class="save-btn" onclick="saveAppShots()">
                 <i class="fas fa-save"></i> پاشەکەوتکردن
             </button>
         </div>

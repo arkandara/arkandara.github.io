@@ -153,6 +153,7 @@ const tabTitles = {
     "tab-site":     "زانیاری سایت",
     "tab-news":     "هەواڵەکان",
     "tab-buttons":  "دوگمەکانی تووڵبار",
+    "tab-appshots": "وێنەی ئەپڵیکەیشن",
     "tab-stats":    "ئامارەکان",
     "tab-archive":  "ئەرشیفی هەفتانە",
     "tab-password": "گۆڕینی پاسوۆرد",
@@ -189,6 +190,7 @@ function showTab(id) {
     if (id === "tab-preview") loadPreviewText();
     if (id === "tab-texts") loadTextsTab();
     if (id === "tab-buttons") loadButtons();
+    if (id === "tab-appshots") loadAppShots();
     if (id === "tab-news") { loadRssSources(); loadCustomHeadlines(); }
 }
 
@@ -2103,4 +2105,88 @@ function renderStatsPeriod(period) {
             }
         }
     });
+}
+
+
+// ===========================
+//  وێنەکانی ئەپڵیکەیشن (مۆداڵی «بەرهەمی دیکە»)
+// ===========================
+
+var appShots = [];
+
+function loadAppShots() {
+    fetch("/track?appshots=1")
+        .then(function(r) { return r.json(); })
+        .then(function(d) { appShots = (d && d.images) || []; renderAppShots(); })
+        .catch(function() { renderAppShots(); });
+}
+
+function renderAppShots() {
+    var grid = document.getElementById("appShotsGrid");
+    if (!grid) return;
+    var html = "";
+    appShots.forEach(function(src, i) {
+        html += '<div style="position:relative; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:#fafafa;">' +
+                '<img src="' + src + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
+                '<button onclick="removeAppShot(' + i + ')" style="position:absolute; top:6px; left:6px; width:28px; height:28px; border:none; border-radius:50%; background:rgba(229,57,53,0.92); color:#fff; cursor:pointer;"><i class="fas fa-trash" style="font-size:12px;"></i></button>' +
+                '</div>';
+    });
+    if (appShots.length < 5) {
+        html += '<div onclick="document.getElementById(\'appShotsInput\').click()" style="height:200px; border:2px dashed var(--accent); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--primary); cursor:pointer; background:var(--primary-light);">' +
+                '<i class="fas fa-plus" style="font-size:22px;"></i><span>زیادکردنی وێنە (' + appShots.length + '/5)</span></div>';
+    }
+    grid.innerHTML = html;
+}
+
+function removeAppShot(i) {
+    appShots.splice(i, 1);
+    renderAppShots();
+}
+
+function resizeAppShot(file) {
+    return new Promise(function(resolve, reject) {
+        var img = new Image();
+        var url = URL.createObjectURL(file);
+        img.onload = function() {
+            var k = Math.min(1, 900 / Math.max(img.width, img.height));
+            var c = document.createElement("canvas");
+            c.width = Math.round(img.width * k);
+            c.height = Math.round(img.height * k);
+            var ctx = c.getContext("2d");
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            URL.revokeObjectURL(url);
+            resolve(c.toDataURL("image/jpeg", 0.8));
+        };
+        img.onerror = function() { URL.revokeObjectURL(url); reject(); };
+        img.src = url;
+    });
+}
+
+document.addEventListener("change", function(e) {
+    if (!e.target || e.target.id !== "appShotsInput") return;
+    var files = Array.from(e.target.files || []).filter(function(f) { return f.type.indexOf("image/") === 0; });
+    e.target.value = "";
+    var room = 5 - appShots.length;
+    if (files.length > room) showToast("تەنها " + room + " وێنەی تر دەتوانرێت زیاد بکرێت", true);
+    files.slice(0, Math.max(room, 0)).reduce(function(chain, f) {
+        return chain.then(function() {
+            return resizeAppShot(f).then(function(d) { appShots.push(d); });
+        }).catch(function() { showToast("وێنەیەک نەخوێندرایەوە", true); });
+    }, Promise.resolve()).then(renderAppShots);
+});
+
+function saveAppShots() {
+    fetch("/track", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ type: "app_screenshots_set", images: appShots })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, d: d }; }); })
+    .then(function(res) {
+        if (res.ok) showToast("✅ وێنەکان پاشەکەوت کران");
+        else showToast((res.d && res.d.error) || "هەڵەیەک ڕوویدا", true);
+    })
+    .catch(function() { showToast("هەڵە لە پەیوەندی", true); });
 }

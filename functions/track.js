@@ -43,6 +43,12 @@ export async function onRequestGet(context) {
     const origin = request.headers.get("Origin") || ALLOWED_ORIGIN;
     const CORS = corsHeaders(origin);
 
+    // وێنەکانی ئەپ — گشتی (بۆ مۆداڵی «بەرهەمی دیکە»)
+    if (new URL(request.url).searchParams.get("appshots") === "1") {
+        const raw = await env.STATS_DB.get("settings:app_screenshots");
+        return new Response(JSON.stringify({ images: safeJson(raw, []) }), { status: 200, headers: CORS });
+    }
+
     // بەبێ توکن — forceReload و settings بگەڕێنە (بۆ سایتی سەرەکی)
     if (!await checkAuth(request, env)) {
         const url = new URL(request.url);
@@ -270,6 +276,19 @@ export async function onRequestPost(context) {
             }
 
             return ok({ success: true }, CORS);
+        }
+
+        // ---- وێنەکانی ئەپ (ئەدمین تەنها) ----
+        if (type === "app_screenshots_set") {
+            const imgs = Array.isArray(body.images) ? body.images : [];
+            if (imgs.length > 5) return bad("زیاتر لە ٥ وێنە ڕێگەپێنەدراوە", CORS);
+            for (const im of imgs) {
+                if (typeof im !== "string" || !/^data:image\/(jpeg|png|webp);base64,/.test(im) || im.length > 900000) {
+                    return bad("وێنەکە دروست نییە یان زۆر گەورەیە", CORS);
+                }
+            }
+            await env.STATS_DB.put("settings:app_screenshots", JSON.stringify(imgs));
+            return ok({ success: true, count: imgs.length }, CORS);
         }
 
         // ---- news_snapshot: نوێکردنەوەی snapshot_id کاتێک هەواڵی نوێ دەگات ----

@@ -1316,6 +1316,18 @@ textarea {
                     <div style="font-size: 0.72em; color: #888; margin-top:1px;">سەکۆی ڕۆژنامەنووس</div>
                 </div>
             </div>
+            <button onclick="toggleMoreApps()" style="
+                background: linear-gradient(135deg,#43a047,#2e7d32); border: none; color: #fff;
+                padding: 8px 14px; border-radius: 20px; cursor: pointer; font-family: inherit;
+                font-size: 0.78em; font-weight: 700; align-items: center; justify-content: center; gap: 6px;
+                white-space: nowrap; flex-shrink: 0; margin: 0 8px;
+                box-shadow: 0 3px 10px rgba(46,125,50,0.25); transition: all 0.25s ease;
+            "
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(46,125,50,0.35)';"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(46,125,50,0.25)';">
+                <i class="fas fa-layer-group" style="font-size:12px;"></i>
+                به‌رهه‌می دیكه‌
+            </button>
             <button onclick="toggleAbout()" style="
                 background: #f5f5f5; border: none; width: 32px; height: 32px;
                 border-radius: 50%; cursor: pointer; display: flex;
@@ -1385,6 +1397,89 @@ textarea {
 </div>
 
 
+
+
+
+<style>
+.dark-mode #moreAppsModal .modal-content { background: #1e1e1e !important; box-shadow: 0 24px 50px rgba(0,0,0,0.45) !important; }
+.dark-mode #moreAppsModal .ma-title { color: #eee !important; }
+.dark-mode #moreAppsModal .ma-card { background: #2a2a2a !important; border-color: rgba(255,255,255,0.06) !important; }
+.dark-mode #moreAppsModal .ma-name { color: #eee !important; }
+.dark-mode #moreAppsModal .ma-desc { color: #999 !important; }
+.dark-mode #moreAppsModal .ma-close { background: #2c2c2c !important; color: #888 !important; }
+</style>
+<div id="moreAppsModal" class="modal" style="z-index: 3100;">
+    <div class="modal-content" style="
+        width: 600px !important;
+        max-width: 92% !important;
+        height: auto !important;
+        padding: 0 !important;
+        border-radius: 22px !important;
+        overflow: hidden !important;
+        box-shadow: 0 24px 50px rgba(0,0,0,0.18) !important;
+        background: #fff !important;
+        border: none !important;
+        margin: 12% auto !important;
+    ">
+        <div style="height: 4px; background: linear-gradient(90deg, #1b5e20, #81c784, #4caf50, #81c784, #1b5e20); background-size: 200% 100%; animation: shimmer 3s linear infinite;"></div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:36px; height:36px; border-radius:10px; background: linear-gradient(135deg,#e8f5e9,#c8e6c9); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(46,125,50,0.15);">
+                    <i class="fas fa-layer-group" style="color:#2e7d32; font-size:16px;"></i>
+                </div>
+                <div class="ma-title" style="font-weight: 700; color: #1a1a1a; font-size: 1em; line-height:1.2;">به‌رهه‌می دیكه‌</div>
+            </div>
+            <button class="ma-close" onclick="toggleMoreApps()" style="
+                background: #f5f5f5; border: none; width: 32px; height: 32px;
+                border-radius: 50%; cursor: pointer; display: flex;
+                align-items: center; justify-content: center;
+                color: #888; font-size: 13px; transition: all 0.25s ease; flex-shrink:0;
+            "
+            onmouseover="this.style.background='#ffebee'; this.style.color='#ef5350'; this.style.transform='rotate(90deg)';"
+            onmouseout="this.style.background='#f5f5f5'; this.style.color='#888'; this.style.transform='rotate(0deg)';">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div style="height:1px; background: linear-gradient(90deg, transparent, #e0e0e0, transparent); margin: 0 20px;"></div>
+
+        <div style="padding: 16px 20px 20px;">
+            <div class="ma-card" style="background: linear-gradient(135deg, #f1f8e9, #e8f5e9); border-radius: 16px; padding: 18px 16px; border: 1px solid #c8e6c9; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;">
+                <div style="width:64px; height:64px; border-radius:18px; background: linear-gradient(135deg,#43a047,#1b5e20); display:flex; align-items:center; justify-content:center; box-shadow: 0 6px 16px rgba(46,125,50,0.3);">
+                    <i class="fas fa-quran" style="color:#fff; font-size:28px;"></i>
+                </div>
+                <div>
+                    <div class="ma-name" style="font-weight:700; color:#1b5e20; font-size:1.05em; margin-bottom:4px;">ئه‌پڵیكه‌یشنی قورئان</div>
+                    <div class="ma-desc" style="color:#666; font-size:0.82em;">بۆ مۆبایلی ئەندرۆید</div>
+                </div>
+                <a href="https://github.com/arkandara/arkandara.github.io/releases/download/V.1/app-debug.apk" target="_blank" rel="noopener" style="
+                    display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; box-sizing: border-box;
+                    background: linear-gradient(135deg, #43a047, #2e7d32);
+                    color: #fff; text-decoration: none;
+                    padding: 12px 16px; border-radius: 13px;
+                    font-weight: 700; font-size: 0.92em;
+                    transition: all 0.25s ease;
+                    box-shadow: 0 4px 14px rgba(46,125,50,0.25);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(46,125,50,0.35)';"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px rgba(46,125,50,0.25)';">
+                    <i class="fab fa-android" style="font-size:16px;"></i>
+                    داگرتنی ئه‌پڵیكه‌یشنه‌كه‌
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function toggleMoreApps() {
+    var m = document.getElementById('moreAppsModal');
+    if (m) m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+}
+document.getElementById('moreAppsModal').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+});
+</script>
 
 
 

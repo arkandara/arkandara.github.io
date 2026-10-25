@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-10",
-  "updatedAt": "2026-10-24T23:16:32.712Z",
+  "updatedAt": "2026-10-25T23:16:57.264Z",
   "days": [
     {
       "date": "2026-10-01",
@@ -484,6 +484,39 @@
       "cityStats": {
         "Sulaymaniyah": 2,
         "Dihok": 1
+      }
+    },
+    {
+      "date": "2026-10-25",
+      "generatedAt": "2026-10-25T23:16:57.264Z",
+      "totalVisits": 33,
+      "totalClicks": 170,
+      "totalTextarea": 86,
+      "clicks": {
+        "گۆڕین بۆ یونیکۆد": 32,
+        "سڕینەوەی بۆشایی": 6,
+        "کەتکردن": 15,
+        "گۆڕین بۆ عەلی کەی": 32,
+        "پاشەکەوت Word": 17,
+        "تەما": 12,
+        "دەربارە": 39,
+        "سڕینەوەی دەق": 1,
+        "گەڕان و گۆڕین": 4,
+        "دۆزینەوە": 2,
+        "گۆڕینی هەموو": 2,
+        "داگرتنی ڤیدیۆ": 3,
+        "Gemini": 4,
+        "AI Studio": 1
+      },
+      "deviceStats": {
+        "mobile": 5,
+        "desktop": 28,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 11,
+        "Dihok": 21,
+        "San Jose": 1
       }
     }
   ]

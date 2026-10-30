@@ -41,8 +41,8 @@ main { width: 100%; max-width: 42rem; text-align: center; overflow-wrap: anywher
 h1 { margin: 0 0 1rem; font-size: clamp(1.5rem, 5vw, 2rem); line-height: 1.6; }
 p { margin: 0.75rem 0; line-height: 1.8; }
 </style></head>
-<body><main><h1>دەستگەیشتن ڕێگەپێنەدراوە</h1>
-<p>دەستگەیشتنی ئەم وێبگەڕە بۆ سایت ڕاگیراوە.</p>
+<body><main><h1>دەستگەیشتنت به‌م سایته‌ ڕێگەپێنەدراوە</h1>
+<p>ڕاگیراوه‌، یان ئایپییه‌كه‌ت بلۆككراوه‌</p>
 <p dir="ltr">403 — Access Denied</p></main></body></html>`;
     return new Response(request.method === "HEAD" ? null : html, {
         status: 403,

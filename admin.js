@@ -186,6 +186,7 @@ function showTab(id) {
             }
         }, 120000);
     }
+    if (id === "tab-site") loadSiteInfo();
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
     if (id === "tab-texts") loadTextsTab();
@@ -248,10 +249,14 @@ var SITE_DEFAULTS = {
 };
 
 var _siteInfoLoaded = false;
+var _siteInfoLoading = false;
 function loadSiteInfo(force) {
-    if (_siteInfoLoaded && !force) return;
+    if ((_siteInfoLoaded && !force) || _siteInfoLoading) return;
+    _siteInfoLoading = true;
+    // Always populate editable controls immediately, even if the API is unavailable.
+    applySiteInfoSettings(SITE_DEFAULTS);
     fetch("/track", { headers: authHeaders() })
-        .then(function(r) { return r.json(); })
+        .then(function(r) { if (!r.ok) throw new Error("Settings HTTP " + r.status); return r.json(); })
         .then(function(d) {
             var kvSettings = d.settings || {};
             // تەنها fieldە خاڵییەکان لە SITE_DEFAULTS بگرێت
@@ -262,6 +267,20 @@ function loadSiteInfo(force) {
             // ئەگەر sessionStorage draft هەبوو (گۆڕانکاری پاشەکەوت نەکراو)، ئەوەی بخوێنەوە
             var ss = sessionStorage.getItem("siteInfoDraft");
             if (ss) { try { var draft = JSON.parse(ss); Object.keys(draft).forEach(function(k){ if(draft[k] !== "") data[k] = draft[k]; }); } catch(e) {} }
+            applySiteInfoSettings(data);
+            _siteInfoLoaded = true;
+            // گوێگری زیاد بکە بۆ هەموو input-ەکان
+            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","bismillahDuration","updateText","glowColor","glowSpeed","glowOpacity","glowBorderWidth","glowBorderSpeed"].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el && !el.dataset.siteDraftBound) { el.addEventListener("input", saveSiteInfoDraft); el.dataset.siteDraftBound = "1"; }
+            });
+        })
+        .catch(function(err) { console.error("loadSiteInfo:", err); showToast("⚠️ بارکردنی زانیاری لە سێرڤەر سەرکەوتوو نەبوو؛ نرخە بنەڕەتییەکان پیشان دەدرێن", true); })
+        .finally(function() { _siteInfoLoading = false; });
+}
+
+// Shared renderer for site information and design; keep the controls editable.
+function applySiteInfoSettings(data) {
             document.getElementById("siteName").value         = data.siteName;
             document.getElementById("siteAuthor").value       = data.siteAuthor;
             document.getElementById("siteTitle").value        = data.siteTitle;
@@ -280,7 +299,6 @@ function loadSiteInfo(force) {
             // بارکردنی بەرواری sitemap lastmod
             var sitemapEl = document.getElementById("sitemapLastmod");
             if (sitemapEl) { sitemapEl.value = data.sitemapLastmod || new Date().toISOString().slice(0, 10); }
-            _siteInfoLoaded = true;
             // --- بارکردنی کۆنتڕۆڵەکانی گلۆ ---
             var glowColor = data.glowColor || "#4caf50";
             var glowColorEl = document.getElementById("glowColor");
@@ -309,14 +327,9 @@ function loadSiteInfo(force) {
             if (glowBorderSpeedEl) { glowBorderSpeedEl.value = glowBorderSpeed; document.getElementById("glowBorderSpeedVal").textContent = glowBorderSpeed.toFixed(1) + " چرکە"; }
             document.documentElement.style.setProperty('--glow-border-speed', glowBorderSpeed + 's');
 
-            // گوێگری زیاد بکە بۆ هەموو input-ەکان
-            ["siteName","siteAuthor","siteTitle","siteDesc","primaryColor","bismillahText","bismillahSub","bismillahDuration","updateText","glowColor","glowSpeed","glowOpacity","glowBorderWidth","glowBorderSpeed"].forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) el.addEventListener("input", saveSiteInfoDraft);
-            });
-        });
 }
 
+// Refill controls from local defaults before the network request completes.
 function saveSiteInfoDraft() {
     var draft = {
         siteName:      document.getElementById("siteName").value,
@@ -344,8 +357,8 @@ function _postSettings(data, msg) {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
-    }).then(function(r) { return r.json(); })
-    .then(function() { _siteInfoLoaded = false; sessionStorage.removeItem("siteInfoDraft"); showToast(msg || "✅ پاشەکەوت کرا!"); })
+    }).then(function(r) { if (!r.ok) throw new Error("Save HTTP " + r.status); return r.json(); })
+    .then(function(result) { if (!result || result.success !== true) throw new Error("Settings save not confirmed"); _siteInfoLoaded = false; sessionStorage.removeItem("siteInfoDraft"); showToast(msg || "✅ پاشەکەوت کرا!"); })
     .catch(function() { showToast("⚠️ هەڵە لە پاشەکەوتکردن", true); });
 }
 

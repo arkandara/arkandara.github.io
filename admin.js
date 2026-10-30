@@ -100,6 +100,7 @@ async function doLogin() {
 }
 
 function doLogout() {
+    resetVisitorPanel();
     localStorage.removeItem("adminAuth");
     localStorage.removeItem("adminToken");
     document.getElementById("adminPanel").style.display = "none";
@@ -138,7 +139,9 @@ function initPanel() {
 
     // ---- بپشکنە URL: ئەگەر ?tab=preview بوو → تابی preview ----
     var urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("tab") === "preview") {
+    if (urlParams.get("tab") === "visitors") {
+        showTab("tab-visitors");
+    } else if (urlParams.get("tab") === "preview") {
         showTab("tab-preview");
     } else {
         showTab("tab-stats");
@@ -156,6 +159,7 @@ const tabTitles = {
     "tab-appshots": "وێنەی ئەپڵیکەیشن",
     "tab-stats":    "ئامارەکان",
     "tab-archive":  "ئەرشیفی هەفتانە",
+    "tab-visitors": "Visitor ID و بلۆککردن",
     "tab-password": "گۆڕینی پاسوۆرد",
     "tab-preview":  "بینینی دەقی سایت"
 };
@@ -186,6 +190,7 @@ function showTab(id) {
             }
         }, 120000);
     }
+    if (id === "tab-visitors") loadVisitorPanel();
     if (id === "tab-site") loadSiteInfo();
     if (id === "tab-archive") loadArchiveList();
     if (id === "tab-preview") loadPreviewText();
@@ -2202,4 +2207,196 @@ function saveAppShots() {
         else showToast((res.d && res.d.error) || "هەڵەیەک ڕوویدا", true);
     })
     .catch(function() { showToast("هەڵە لە پەیوەندی", true); });
+}
+
+// ===========================
+// Visitor ID and GitHub blocklist (independent of stats and archives)
+// ===========================
+var visitorState = { ownId: "", ids: [], ready: false, busy: false, generation: 0 };
+var visitorIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+function visitorMessage(text, error) {
+    var el = document.getElementById("visitorActionStatus");
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = error ? "#b71c1c" : "var(--primary)";
+}
+function visitorControlsState() {
+    var controls = document.getElementById("visitorControls");
+    var refresh = document.getElementById("visitorRefreshBtn");
+    if (controls) controls.disabled = !visitorState.ready || visitorState.busy;
+    if (refresh) refresh.disabled = visitorState.busy || !getAdminToken();
+}
+function resetVisitorPanel() {
+    visitorState.generation++;
+    visitorState.ownId = "";
+    visitorState.ids = [];
+    visitorState.ready = false;
+    visitorState.busy = false;
+    var own = document.getElementById("visitorOwnId");
+    if (own) own.textContent = "—";
+    var list = document.getElementById("visitorBlockedList");
+    if (list) list.textContent = "لیستەکە هێشتا بار نەکراوە.";
+    visitorMessage("");
+    visitorControlsState();
+}
+function visitorErrorMessage(code) {
+    var messages = {
+        unauthorized: "چوونەژوورەوەکەت بەسەرچووە یان دەسەڵاتت نییە؛ دووبارە بچۆ ژوورەوە.",
+        github_not_configured: "پەیوەندی بە لیستی بلۆک هێشتا ڕێک نەخراوە.",
+        blocklist_conflict_retry: "لیستەکە لە شوێنێکی دیکە گۆڕاوە؛ نوێی بکەرەوە و دووبارە هەوڵ بدەرەوە.",
+        blocklist_full: "لیستی بلۆک پڕە؛ ناسنامەیەکی کۆن لە بلۆک دەربهێنە.",
+        invalid_action_or_id: "ناسنامەکە نادروستە؛ Visitor ID ـی تەواو بنووسە.",
+        visitor_not_configured: "سیستەمی Visitor ID هێشتا ڕێک نەخراوە.",
+        origin_not_allowed: "ئەم بەشە لە هەمان ناونیشانی سایتی سەرەکی بکەرەوە."
+    };
+    return messages[code] || "داواکارییەکە پشتڕاست نەکرایەوە؛ لیستەکە نوێ بکەرەوە پێش دووبارەکردنەوە.";
+}
+async function visitorRequest(path, options, token) {
+    var controller = new AbortController();
+    var timer = setTimeout(function() { controller.abort(); }, 25000);
+    try {
+        var response = await fetch(path, Object.assign({
+            cache: "no-store", credentials: "same-origin", signal: controller.signal
+        }, options || {}, { headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        } }));
+        var data = await response.json();
+        if (!response.ok) throw new Error(visitorErrorMessage(data && data.error));
+        return data;
+    } finally { clearTimeout(timer); }
+}
+function renderVisitorBlocklist() {
+    var list = document.getElementById("visitorBlockedList");
+    if (!list) return;
+    list.replaceChildren();
+    if (!visitorState.ready) {
+        list.textContent = "لیستەکە هێشتا پشتڕاست نەکراوەتەوە؛ نوێکردنەوە بکە.";
+        return;
+    }
+    if (!visitorState.ids.length) {
+        list.textContent = "هیچ ناسنامەیەک لە لیستی بلۆکدا نییە.";
+        return;
+    }
+    var rows = document.createDocumentFragment();
+    visitorState.ids.forEach(function(id) {
+        var row = document.createElement("div");
+        row.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);";
+        var label = document.createElement("code");
+        label.dir = "ltr";
+        label.textContent = id;
+        label.style.cssText = "flex:1;overflow-wrap:anywhere;";
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "add-btn";
+        button.textContent = "هەڵبژاردن";
+        button.disabled = visitorState.busy;
+        button.addEventListener("click", function() {
+            if (visitorState.busy) return;
+            var input = document.getElementById("visitorTargetId");
+            if (input) { input.value = id; input.focus(); }
+        });
+        row.append(label, button);
+        rows.append(row);
+    });
+    list.append(rows);
+}
+function bindVisitorControls() {
+    var controls = document.getElementById("visitorControls");
+    if (!controls || controls.dataset.visitorBound) return;
+    controls.dataset.visitorBound = "1";
+    document.getElementById("visitorBlockBtn").addEventListener("click", function() { changeVisitorBlock("block"); });
+    document.getElementById("visitorUnblockBtn").addEventListener("click", function() { changeVisitorBlock("unblock"); });
+    document.getElementById("visitorRefreshBtn").addEventListener("click", loadVisitorPanel);
+}
+async function loadVisitorPanel() {
+    if (!document.getElementById("visitorControls") || visitorState.busy) return;
+    bindVisitorControls();
+    var token = getAdminToken();
+    if (!token) { resetVisitorPanel(); visitorMessage(visitorErrorMessage("unauthorized"), true); return; }
+    var generation = ++visitorState.generation;
+    visitorState.busy = true;
+    visitorState.ready = false;
+    visitorControlsState();
+    visitorMessage("چاوەڕێ بکە...");
+    try {
+        var results = await Promise.all([
+            visitorRequest("/visitor", null, token),
+            visitorRequest("/visitor?admin=blocklist", null, token)
+        ]);
+        if (generation !== visitorState.generation || token !== getAdminToken()) return;
+        var identity = results[0], list = results[1];
+        if (!visitorIdPattern.test(identity.visitorId || "") || identity.blocked !== false ||
+            !Array.isArray(list.blocked) || list.blocked.length > 5000 ||
+            !list.blocked.every(function(id) { return typeof id === "string" && visitorIdPattern.test(id); })) {
+            throw new Error("وەڵامی سێرڤەر نادروستە؛ دووبارە هەوڵ بدەرەوە.");
+        }
+        visitorState.ownId = identity.visitorId;
+        visitorState.ids = Array.from(new Set(list.blocked));
+        visitorState.ready = true;
+        document.getElementById("visitorOwnId").textContent = identity.visitorId;
+        document.getElementById("visitorIntegrationNotice").textContent =
+            "ناسنامەی مەبەست بنووسە یان لە لیستی بلۆککراوەکان هەڵیبژێرە.";
+        visitorMessage("لیستی بلۆککراوەکان بار کرا.");
+    } catch (error) {
+        if (generation === visitorState.generation && token === getAdminToken()) {
+            visitorState.ids = [];
+            visitorMessage(error.name === "AbortError" ? "کاتی داواکاری تەواو بوو؛ لیستەکە نوێ بکەرەوە." : error.message, true);
+        }
+    } finally {
+        if (generation === visitorState.generation) {
+            visitorState.busy = false;
+            visitorControlsState();
+            renderVisitorBlocklist();
+        }
+    }
+}
+async function changeVisitorBlock(action) {
+    if (!visitorState.ready || visitorState.busy || !["block", "unblock"].includes(action)) return;
+    var input = document.getElementById("visitorTargetId");
+    var id = (input.value || "").trim().toLowerCase();
+    if (!visitorIdPattern.test(id)) {
+        visitorMessage(visitorErrorMessage("invalid_action_or_id"), true);
+        input.focus();
+        return;
+    }
+    var selfBlock = action === "block" && id === visitorState.ownId;
+    var question = selfBlock
+        ? "ئاگاداربە: ئەمە ناسنامەی ئەم وێبگەڕەی خۆتە. بلۆککردنی دەستگەیشتنت بە سایت و پانێل ڕادەگرێت. بەردەوام دەبیت؟"
+        : (action === "block" ? "ئەم ناسنامەیە بلۆک دەکەیت؟" : "بلۆکی ئەم ناسنامەیە لادەبەیت؟");
+    if (!window.confirm(question + "\n" + id)) return;
+    var token = getAdminToken();
+    if (!token) { resetVisitorPanel(); visitorMessage(visitorErrorMessage("unauthorized"), true); return; }
+    var generation = ++visitorState.generation;
+    visitorState.busy = true;
+    visitorControlsState();
+    renderVisitorBlocklist();
+    visitorMessage("چاوەڕێ بکە؛ گۆڕانکارییەکە پاشەکەوت دەکرێت...");
+    try {
+        var result = await visitorRequest("/visitor", {
+            method: "POST", body: JSON.stringify({ action: action, visitorId: id })
+        }, token);
+        if (generation !== visitorState.generation || token !== getAdminToken()) return;
+        if (result.success !== true || result.visitorId !== id || result.blocked !== (action === "block")) {
+            throw new Error("گۆڕانکارییەکە پشتڕاست نەکرایەوە؛ لیستەکە نوێ بکەرەوە.");
+        }
+        visitorState.ids = visitorState.ids.filter(function(value) { return value !== id; });
+        if (result.blocked) visitorState.ids.push(id);
+        visitorState.ids.sort();
+        visitorMessage((result.blocked ? "ناسنامەکە بلۆک کرا." : "بلۆکی ناسنامەکە لابرا.") +
+            " نوێبوونەوەی دۆخی بلۆک لە سایت دەکرێت کەمێک دوا بکەوێت.");
+    } catch (error) {
+        if (generation === visitorState.generation && token === getAdminToken()) {
+            // A timed-out write may have reached GitHub; require a fresh read.
+            visitorState.ready = false;
+            visitorMessage(error.name === "AbortError" ? "وەڵام نەگەیشت؛ پێش دووبارەکردنەوە لیستەکە نوێ بکەرەوە." : error.message, true);
+        }
+    } finally {
+        if (generation === visitorState.generation) {
+            visitorState.busy = false;
+            visitorControlsState();
+            renderVisitorBlocklist();
+        }
+    }
 }

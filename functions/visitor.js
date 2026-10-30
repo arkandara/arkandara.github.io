@@ -2,7 +2,8 @@
 // No KV, archive access, or GitHub writes. VISITOR_DB is the D1 binding.
 // Existing GitHub blocks are imported once, atomically, using server-side GH_PAT.
 // After import, all block reads/writes use D1 directly without CDN caching.
-// Registry stores UUID + first/last seen only; last seen is throttled to 15 minutes.
+// Registry stores UUID + first/last seen; separate private admin labels survive reset.
+// Last seen is throttled to 15 minutes. Labels are never returned publicly.
 // Daily Baghdad reset at 23:50 preserves blocked rows; recording resumes 23:55.
 // Visibility changes by server time; physical cleanup is lazy on the next DB use.
 // Admin actions require env.ADMIN_TOKEN; no password-hash fallback.
@@ -163,12 +164,33 @@ async function manageBlocklist(request, env) {
                 !== "application/json") return reply({ error: "json_required" }, 415);
             try { change = await readBoundedJson(request, 1024); }
             catch { return reply({ error: "invalid_body" }, 400); }
-            if (!change || !["block", "unblock"].includes(change.action) ||
+            if (!change || !["block", "unblock", "label"].includes(change.action) ||
                 typeof change.visitorId !== "string" || !UUID.test(change.visitorId)) {
                 return reply({ error: "invalid_action_or_id" }, 400);
             }
         }
+        if (change && change.action === "label") {
+            if (typeof change.name !== "string" || Array.from(change.name).length > 100 ||
+                Array.from(change.name).some(character => character.codePointAt(0) < 32 || character.codePointAt(0) === 127)) {
+                return reply({ error: "invalid_visitor_name" }, 400);
+            }
+            change.name = change.name.trim();
+        }
         const db = await blockDatabase(env);
+        if (change && change.action === "label") {
+            if (!change.name) {
+                const result = await db.prepare("DELETE FROM visitor_labels WHERE id = ?").bind(change.visitorId).run();
+                if (!result.success) throw new Error("label_write");
+            } else {
+                const known = await db.prepare("SELECT id FROM visitor_registry WHERE id = ? UNION SELECT id FROM visitor_blocks WHERE id = ? UNION SELECT id FROM visitor_labels WHERE id = ? LIMIT 1")
+                    .bind(change.visitorId, change.visitorId, change.visitorId).first();
+                if (!known) return reply({ error: "visitor_not_found" }, 404);
+                const result = await db.prepare("INSERT INTO visitor_labels (id, name) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET name = excluded.name")
+                    .bind(change.visitorId, change.name).run();
+                if (!result.success) throw new Error("label_write");
+            }
+            return reply({ success: true, visitorId: change.visitorId, displayName: change.name });
+        }
         if (!change) {
             const result = await db.prepare("SELECT id FROM visitor_blocks ORDER BY id").all();
             if (!result.success) throw new Error("query");
@@ -199,7 +221,8 @@ async function visitorDatabase(env) {
             db.prepare("CREATE TABLE IF NOT EXISTS visitor_registry (id TEXT PRIMARY KEY, first_seen INTEGER NOT NULL, last_seen INTEGER NOT NULL)"),
             db.prepare("CREATE INDEX IF NOT EXISTS visitor_registry_recent ON visitor_registry(last_seen DESC, id DESC)"),
             db.prepare("CREATE TABLE IF NOT EXISTS visitor_blocks (id TEXT PRIMARY KEY)"),
-            db.prepare("CREATE TABLE IF NOT EXISTS visitor_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+            db.prepare("CREATE TABLE IF NOT EXISTS visitor_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"),
+            db.prepare("CREATE TABLE IF NOT EXISTS visitor_labels (id TEXT PRIMARY KEY, name TEXT NOT NULL)")
         ]).catch(error => { registryReady.delete(db); throw error; });
         registryReady.set(db, ready);
     }
@@ -281,14 +304,14 @@ async function listVisitors(request, env) {
         await resetAllowedVisitors(db, window.cutoff);
         const visible = "(last_seen >= ? OR EXISTS (SELECT 1 FROM visitor_blocks WHERE visitor_blocks.id = visitor_registry.id))";
         const statement = cursor
-            ? db.prepare("SELECT id, first_seen, last_seen FROM visitor_registry WHERE " + visible + " AND (last_seen < ? OR (last_seen = ? AND id < ?)) ORDER BY last_seen DESC, id DESC LIMIT 101").bind(window.cutoff, cursor[1], cursor[1], cursor[2])
-            : db.prepare("SELECT id, first_seen, last_seen FROM visitor_registry WHERE " + visible + " ORDER BY last_seen DESC, id DESC LIMIT 101").bind(window.cutoff);
+            ? db.prepare("SELECT visitor_registry.id AS id, first_seen, last_seen, COALESCE(visitor_labels.name, '') AS display_name FROM visitor_registry LEFT JOIN visitor_labels ON visitor_labels.id = visitor_registry.id WHERE " + visible + " AND (last_seen < ? OR (last_seen = ? AND visitor_registry.id < ?)) ORDER BY last_seen DESC, visitor_registry.id DESC LIMIT 101").bind(window.cutoff, cursor[1], cursor[1], cursor[2])
+            : db.prepare("SELECT visitor_registry.id AS id, first_seen, last_seen, COALESCE(visitor_labels.name, '') AS display_name FROM visitor_registry LEFT JOIN visitor_labels ON visitor_labels.id = visitor_registry.id WHERE " + visible + " ORDER BY last_seen DESC, visitor_registry.id DESC LIMIT 101").bind(window.cutoff);
         const result = await statement.all();
         if (!result.success || !Array.isArray(result.results)) throw new Error("query");
         const rows = result.results.slice(0, 100);
         const last = rows[rows.length - 1];
         return reply({
-            visitors: rows.map(row => ({ visitorId: row.id,
+            visitors: rows.map(row => ({ visitorId: row.id, displayName: row.display_name,
                 firstSeen: new Date(row.first_seen * 1000).toISOString(),
                 lastSeen: new Date(row.last_seen * 1000).toISOString() })),
             nextCursor: result.results.length > 100 && last ? btoa(JSON.stringify([window.cutoff, last.last_seen, last.id])) : null,

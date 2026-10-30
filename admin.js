@@ -89,7 +89,8 @@ async function doLogin() {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
         if (window.innerWidth > 768) {
-            document.getElementById("sidebar").classList.add("open");
+            var sidebar = document.getElementById("sidebar");
+            if (sidebar) sidebar.classList.add("open");
         }
         initPanel();
 
@@ -1792,7 +1793,8 @@ window.addEventListener("DOMContentLoaded", function() {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("adminPanel").style.display = "flex";
         if (window.innerWidth > 768) {
-            document.getElementById("sidebar").classList.add("open");
+            var sidebar = document.getElementById("sidebar");
+            if (sidebar) sidebar.classList.add("open");
         }
         initPanel();
     }

@@ -25,7 +25,22 @@ function denied(request) {
     const html = `<!doctype html>
 <html lang="ckb" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>دەستگەیشتن ڕێگەپێنەدراوە</title></head>
+<title>دەستگەیشتن ڕێگەپێنەدراوە</title>
+<style>
+html { min-height: 100%; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    box-sizing: border-box;
+    padding: 24px;
+    display: grid;
+    place-items: center;
+}
+main { width: 100%; max-width: 42rem; text-align: center; overflow-wrap: anywhere; }
+h1 { margin: 0 0 1rem; font-size: clamp(1.5rem, 5vw, 2rem); line-height: 1.6; }
+p { margin: 0.75rem 0; line-height: 1.8; }
+</style></head>
 <body><main><h1>دەستگەیشتن ڕێگەپێنەدراوە</h1>
 <p>دەستگەیشتنی ئەم وێبگەڕە بۆ سایت ڕاگیراوە.</p>
 <p dir="ltr">403 — Access Denied</p></main></body></html>`;
@@ -34,7 +49,7 @@ function denied(request) {
         headers: {
             "Content-Type": "text/html; charset=utf-8",
             "Cache-Control": "no-store",
-            "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+            "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
             "X-Content-Type-Options": "nosniff",
             "Referrer-Policy": "no-referrer",
             "Vary": "Cookie"

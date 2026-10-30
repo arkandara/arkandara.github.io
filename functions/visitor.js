@@ -50,7 +50,8 @@ async function blockedIds() {
         // No application cache: GitHub/CDN propagation can still delay updates.
         const response = await fetch(LIST_URL, {
             headers: { "Accept": "application/json", "Cache-Control": "no-cache" },
-            redirect: "error", signal: controller.signal, cache: "no-store"
+            // Workers supports manual/follow only; non-2xx redirects fail below.
+            redirect: "manual", signal: controller.signal, cache: "no-store"
         });
         if (!response.ok || !response.body) throw new Error("unavailable");
         // Bound bytes while streaming, including chunked responses.

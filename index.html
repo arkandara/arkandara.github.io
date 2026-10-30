@@ -3367,15 +3367,17 @@ function akTrackClick(label) {
 // ==============================
 (function applySettings() {
     fetch('/track')
-        .then(function(r) { return r.json(); })
+        .then(function(r) { if (!r.ok) throw new Error('Settings HTTP ' + r.status); return r.json(); })
         .then(function(d) {
-            var s = d.settings;
-            if (!s) return;
+            // Keep built-in page values when Cloudflare has no saved settings.
+            var s = (d && d.settings) || {};
 
             // ناوی سایت (H1)
             if (s.siteName) {
                 var h1 = document.querySelector('.h-center h1');
                 if (h1) h1.textContent = s.siteName;
+                var ogSiteName = document.querySelector('meta[property="og:site_name"]');
+                if (ogSiteName) ogSiteName.setAttribute('content', s.siteName);
             }
 
             // تایتڵی تاب + og:title + twitter:title

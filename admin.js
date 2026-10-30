@@ -2234,7 +2234,10 @@ function visitorControlsState() {
     var more = document.getElementById("visitorMoreBtn");
     if (more) { more.hidden = !visitorState.nextCursor; more.disabled = visitorState.busy; }
 }
+var visitorResetTimer = null;
 function resetVisitorPanel() {
+    if (visitorResetTimer) clearTimeout(visitorResetTimer);
+    visitorResetTimer = null;
     visitorState.generation++;
     visitorState.ownId = "";
     visitorState.ids = [];
@@ -2253,6 +2256,7 @@ function resetVisitorPanel() {
 }
 function visitorErrorMessage(code) {
     var messages = {
+        registry_period_changed: "لیستی ڕۆژەکە سفر بووەتەوە؛ نوێکردنەوە بکە.",
         registry_not_configured: "لیستی سەردانکەران هێشتا پەیوەست نەکراوە.",
         registry_unavailable: "لیستی سەردانکەران بەردەست نییە؛ دووبارە نوێکردنەوە بکە.",
         unauthorized: "چوونەژوورەوەکەت بەسەرچووە یان دەسەڵاتت نییە؛ دووبارە بچۆ ژوورەوە.",
@@ -2413,7 +2417,7 @@ async function changeVisitorBlock(action) {
             " دۆخەکە لە داواکاریی داهاتووی ئەو وێبگەڕەدا جێبەجێ دەبێت.");
     } catch (error) {
         if (generation === visitorState.generation && token === getAdminToken()) {
-            // A timed-out write may have reached GitHub; require a fresh read.
+            // A timed-out write may have reached D1; require a fresh read.
             visitorState.ready = false;
             visitorMessage(error.name === "AbortError" ? "وەڵام نەگەیشت؛ پێش دووبارەکردنەوە لیستەکە نوێ بکەرەوە." : error.message, true);
         }
@@ -2488,6 +2492,7 @@ async function fetchVisitorRegistry(token, generation, append) {
         visitorState.visitors = Array.from(rows.values());
         visitorState.nextCursor = result.nextCursor;
         visitorState.registryError = "";
+        scheduleVisitorReset(result);
     } catch (error) {
         if (generation !== visitorState.generation || token !== getAdminToken()) return;
         visitorState.registryError = error.name === "AbortError" ? "کاتی داواکاری تەواو بوو؛ نوێکردنەوە بکە." : error.message;
@@ -2506,3 +2511,37 @@ async function loadMoreVisitors() {
         visitorState.busy = false; visitorControlsState(); renderVisitorRegistry();
     }
 }
+
+function scheduleVisitorReset(result) {
+    if (visitorResetTimer) clearTimeout(visitorResetTimer);
+    var notice = document.getElementById("visitorRegistrySchedule");
+    if (!notice) {
+        var list = document.getElementById("visitorRegistryList");
+        if (list && list.parentNode) {
+            notice = document.createElement("p");
+            notice.id = "visitorRegistrySchedule";
+            notice.setAttribute("role", "status");
+            notice.style.cssText = "color:var(--text-muted);line-height:1.9;";
+            list.parentNode.insertBefore(notice, list);
+        }
+    }
+    if (notice) notice.textContent = result.recordingPaused
+        ? "تۆمارکردن کاتێکی کورت ڕاگیراوە؛ کاتژمێر ٢٣:٥٥ بە کاتی بەغدا دەست پێ دەکاتەوە. بلۆککراوەکان دەمێننەوە."
+        : "ڕێگەپێدراوەکان ڕۆژانە ٢٣:٥٠ بە کاتی بەغدا سفر دەبنەوە؛ تۆمارکردن ٢٣:٥٥ دەست پێ دەکاتەوە. بلۆککراوەکان دەمێننەوە.";
+    if (!Number.isFinite(result.nextTransition) || !Number.isFinite(result.serverTime)) return;
+    var delay = Math.max(1000, (result.nextTransition - result.serverTime) * 1000 + 250);
+    visitorResetTimer = setTimeout(function refreshAtBoundary() {
+        var tab = document.getElementById("tab-visitors");
+        if (!tab || !tab.classList.contains("active") || !getAdminToken()) return;
+        if (visitorState.busy) {
+            visitorResetTimer = setTimeout(refreshAtBoundary, 1000);
+            return;
+        }
+        loadVisitorPanel();
+    }, delay);
+}
+document.addEventListener("visibilitychange", function() {
+    var tab = document.getElementById("tab-visitors");
+    if (document.visibilityState === "visible" && tab && tab.classList.contains("active") &&
+        getAdminToken() && !visitorState.busy) loadVisitorPanel();
+});

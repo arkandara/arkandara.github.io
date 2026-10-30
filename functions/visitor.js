@@ -3,6 +3,8 @@
 // Existing GitHub blocks are imported once, atomically, using server-side GH_PAT.
 // After import, all block reads/writes use D1 directly without CDN caching.
 // Registry stores UUID + first/last seen only; last seen is throttled to 15 minutes.
+// Daily Baghdad reset at 23:50 preserves blocked rows; recording resumes 23:55.
+// Visibility changes by server time; physical cleanup is lazy on the next DB use.
 // Admin actions require env.ADMIN_TOKEN; no password-hash fallback.
 // Required secret: VISITOR_SIGNING_SECRET (32+ random bytes, kept stable).
 // Blocklist/database failure returns 503; registry recording failure is nonfatal.
@@ -204,18 +206,53 @@ async function visitorDatabase(env) {
     await ready;
     return db;
 }
+
+const registryCleanup = new WeakMap();
+// Baghdad is UTC+03:00, without daylight-saving changes.
+function registryWindow(now = Math.floor(Date.now() / 1000)) {
+    const local = now + 10800;
+    const day = Math.floor(local / 86400) * 86400 - 10800;
+    const reset = day + 23 * 3600 + 50 * 60;
+    const resume = reset + 5 * 60;
+    const paused = now >= reset && now < resume;
+    return { now, cutoff: now >= reset ? reset : reset - 86400, paused,
+        nextTransition: paused ? resume : (now < reset ? reset : reset + 86400) };
+}
+async function resetAllowedVisitors(db, cutoff) {
+    let state = registryCleanup.get(db);
+    if (!state || state.cutoff !== cutoff) {
+        const promise = (async () => {
+            const marker = await db.prepare("SELECT value FROM visitor_meta WHERE key = 'registry_daily_reset'").first();
+            if (marker && Number(marker.value) >= cutoff) return;
+            // Cleanup runs on first DB use after the boundary. The list's SQL
+            // visibility filter enforces the exact boundary even before cleanup.
+            await db.batch([
+                db.prepare("DELETE FROM visitor_registry WHERE last_seen < ? AND NOT EXISTS (SELECT 1 FROM visitor_blocks WHERE visitor_blocks.id = visitor_registry.id)").bind(cutoff),
+                db.prepare("INSERT INTO visitor_meta (key, value) VALUES ('registry_daily_reset', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value WHERE CAST(visitor_meta.value AS INTEGER) < CAST(excluded.value AS INTEGER)").bind(String(cutoff))
+            ]);
+        })().catch(error => { registryCleanup.delete(db); throw error; });
+        state = { cutoff, promise };
+        registryCleanup.set(db, state);
+    }
+    await state.promise;
+}
+
 // Only a signed server-issued identity reaches this helper. No client-supplied
 // IP, user agent, location, page path, text, or name is collected.
 export async function recordVisitor(env, id) {
     if (!UUID.test(id)) return false;
     try {
         const db = await visitorDatabase(env);
-        const now = Math.floor(Date.now() / 1000);
+        const window = registryWindow();
+        await resetAllowedVisitors(db, window.cutoff);
+        if (window.paused) return false;
+        const now = window.now;
         await db.prepare(
             "INSERT INTO visitor_registry (id, first_seen, last_seen) VALUES (?, ?, ?) " +
-            "ON CONFLICT(id) DO UPDATE SET last_seen = excluded.last_seen " +
-            "WHERE visitor_registry.last_seen < excluded.last_seen - 900"
-        ).bind(id, now, now).run();
+            "ON CONFLICT(id) DO UPDATE SET first_seen = CASE WHEN visitor_registry.last_seen < ? " +
+            "THEN excluded.first_seen ELSE visitor_registry.first_seen END, last_seen = excluded.last_seen " +
+            "WHERE visitor_registry.last_seen < excluded.last_seen - 900 OR visitor_registry.last_seen < ?"
+        ).bind(id, now, now, window.cutoff, window.cutoff).run();
         return true;
     } catch {
         // Registry outages must not take down the site or alter blocking.
@@ -226,21 +263,26 @@ async function listVisitors(request, env) {
     try {
         if (!await isAdmin(request, env)) return reply({ error: "unauthorized" }, 401);
         if (!env.VISITOR_DB) return reply({ error: "registry_not_configured" }, 503);
+        const window = registryWindow();
         let cursor = null;
         const raw = new URL(request.url).searchParams.get("cursor");
         if (raw) {
             try {
                 if (raw.length > 200) throw new Error("cursor");
                 cursor = JSON.parse(atob(raw));
-                if (!Array.isArray(cursor) || cursor.length !== 2 ||
+                if (!Array.isArray(cursor) || cursor.length !== 3 ||
                     !Number.isSafeInteger(cursor[0]) || cursor[0] < 0 ||
-                    typeof cursor[1] !== "string" || !UUID.test(cursor[1])) throw new Error("cursor");
+                    !Number.isSafeInteger(cursor[1]) || cursor[1] < 0 ||
+                    typeof cursor[2] !== "string" || !UUID.test(cursor[2])) throw new Error("cursor");
             } catch { return reply({ error: "invalid_cursor" }, 400); }
         }
-        const db = await visitorDatabase(env);
+        if (cursor && cursor[0] !== window.cutoff) return reply({ error: "registry_period_changed" }, 409);
+        const db = await blockDatabase(env);
+        await resetAllowedVisitors(db, window.cutoff);
+        const visible = "(last_seen >= ? OR EXISTS (SELECT 1 FROM visitor_blocks WHERE visitor_blocks.id = visitor_registry.id))";
         const statement = cursor
-            ? db.prepare("SELECT id, first_seen, last_seen FROM visitor_registry WHERE last_seen < ? OR (last_seen = ? AND id < ?) ORDER BY last_seen DESC, id DESC LIMIT 101").bind(cursor[0], cursor[0], cursor[1])
-            : db.prepare("SELECT id, first_seen, last_seen FROM visitor_registry ORDER BY last_seen DESC, id DESC LIMIT 101");
+            ? db.prepare("SELECT id, first_seen, last_seen FROM visitor_registry WHERE " + visible + " AND (last_seen < ? OR (last_seen = ? AND id < ?)) ORDER BY last_seen DESC, id DESC LIMIT 101").bind(window.cutoff, cursor[1], cursor[1], cursor[2])
+            : db.prepare("SELECT id, first_seen, last_seen FROM visitor_registry WHERE " + visible + " ORDER BY last_seen DESC, id DESC LIMIT 101").bind(window.cutoff);
         const result = await statement.all();
         if (!result.success || !Array.isArray(result.results)) throw new Error("query");
         const rows = result.results.slice(0, 100);
@@ -249,8 +291,10 @@ async function listVisitors(request, env) {
             visitors: rows.map(row => ({ visitorId: row.id,
                 firstSeen: new Date(row.first_seen * 1000).toISOString(),
                 lastSeen: new Date(row.last_seen * 1000).toISOString() })),
-            nextCursor: result.results.length > 100 && last ? btoa(JSON.stringify([last.last_seen, last.id])) : null,
-            lastSeenResolutionSeconds: 900
+            nextCursor: result.results.length > 100 && last ? btoa(JSON.stringify([window.cutoff, last.last_seen, last.id])) : null,
+            serverTime: window.now, resetCutoff: window.cutoff,
+            recordingPaused: window.paused, nextTransition: window.nextTransition,
+            timeZone: "Asia/Baghdad", lastSeenResolutionSeconds: 900
         });
     } catch { return reply({ error: "registry_unavailable" }, 503); }
 }

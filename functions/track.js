@@ -61,7 +61,7 @@ export async function onRequestGet(context) {
 
         const forceReload  = await env.STATS_DB.get("meta:force_reload");
         const settingsRaw  = await env.STATS_DB.get("settings:site");
-        const settings     = settingsRaw ? JSON.parse(settingsRaw) : null;
+        const settings     = safeJson(settingsRaw, null);
         return new Response(JSON.stringify({ forceReload: forceReload || null, settings }), { status: 200, headers: CORS });
     }
 
@@ -231,7 +231,8 @@ export async function onRequestPost(context) {
             allowed.forEach(k => { if (body[k] !== undefined) data[k] = body[k]; });
             if (!Object.keys(data).length) return bad("داتا بۆشایە", CORS);
             const existing = safeJson(await env.STATS_DB.get("settings:site"), {});
-            const merged   = Object.assign({}, existing, data);
+            // Preserve unrelated sections while updating only submitted settings.
+            const merged   = Object.assign({}, existing && typeof existing === "object" && !Array.isArray(existing) ? existing : {}, data);
             await env.STATS_DB.put("settings:site", JSON.stringify(merged));
 
             // ئەگەر sitemapLastmod نوێکرا — فایلی sitemap.xml لە GitHub نوێ بکەوە

@@ -2214,7 +2214,8 @@ function saveAppShots() {
 // ===========================
 // Visitor ID and GitHub blocklist (independent of stats and archives)
 // ===========================
-var visitorState = { ownId: "", ids: [], ready: false, busy: false, generation: 0 };
+var visitorState = { ownId: "", ids: [], ready: false, busy: false, generation: 0,
+    visitors: [], nextCursor: null, registryError: "" };
 var visitorIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 function visitorMessage(text, error) {
@@ -2228,11 +2229,18 @@ function visitorControlsState() {
     var refresh = document.getElementById("visitorRefreshBtn");
     if (controls) controls.disabled = !visitorState.ready || visitorState.busy;
     if (refresh) refresh.disabled = visitorState.busy || !getAdminToken();
+    var registryRefresh = document.getElementById("visitorRegistryRefreshBtn");
+    if (registryRefresh) registryRefresh.disabled = visitorState.busy || !getAdminToken();
+    var more = document.getElementById("visitorMoreBtn");
+    if (more) { more.hidden = !visitorState.nextCursor; more.disabled = visitorState.busy; }
 }
 function resetVisitorPanel() {
     visitorState.generation++;
     visitorState.ownId = "";
     visitorState.ids = [];
+    visitorState.visitors = [];
+    visitorState.nextCursor = null;
+    visitorState.registryError = "";
     visitorState.ready = false;
     visitorState.busy = false;
     var own = document.getElementById("visitorOwnId");
@@ -2241,9 +2249,12 @@ function resetVisitorPanel() {
     if (list) list.textContent = "لیستەکە هێشتا بار نەکراوە.";
     visitorMessage("");
     visitorControlsState();
+    renderVisitorRegistry();
 }
 function visitorErrorMessage(code) {
     var messages = {
+        registry_not_configured: "لیستی سەردانکەران هێشتا پەیوەست نەکراوە.",
+        registry_unavailable: "لیستی سەردانکەران بەردەست نییە؛ دووبارە نوێکردنەوە بکە.",
         unauthorized: "چوونەژوورەوەکەت بەسەرچووە یان دەسەڵاتت نییە؛ دووبارە بچۆ ژوورەوە.",
         github_not_configured: "پەیوەندی بە لیستی بلۆک هێشتا ڕێک نەخراوە.",
         blocklist_conflict_retry: "لیستەکە لە شوێنێکی دیکە گۆڕاوە؛ نوێی بکەرەوە و دووبارە هەوڵ بدەرەوە.",
@@ -2311,6 +2322,10 @@ function bindVisitorControls() {
     document.getElementById("visitorBlockBtn").addEventListener("click", function() { changeVisitorBlock("block"); });
     document.getElementById("visitorUnblockBtn").addEventListener("click", function() { changeVisitorBlock("unblock"); });
     document.getElementById("visitorRefreshBtn").addEventListener("click", loadVisitorPanel);
+    var registryRefresh = document.getElementById("visitorRegistryRefreshBtn");
+    if (registryRefresh) registryRefresh.addEventListener("click", loadVisitorPanel);
+    var more = document.getElementById("visitorMoreBtn");
+    if (more) more.addEventListener("click", loadMoreVisitors);
 }
 async function loadVisitorPanel() {
     if (!document.getElementById("visitorControls") || visitorState.busy) return;
@@ -2335,6 +2350,9 @@ async function loadVisitorPanel() {
             throw new Error("وەڵامی سێرڤەر نادروستە؛ دووبارە هەوڵ بدەرەوە.");
         }
         visitorState.ownId = identity.visitorId;
+        // Read after identity registration so this browser appears immediately.
+        await fetchVisitorRegistry(token, generation, false);
+        if (generation !== visitorState.generation || token !== getAdminToken()) return;
         visitorState.ids = Array.from(new Set(list.blocked));
         visitorState.ready = true;
         document.getElementById("visitorOwnId").textContent = identity.visitorId;
@@ -2351,6 +2369,7 @@ async function loadVisitorPanel() {
             visitorState.busy = false;
             visitorControlsState();
             renderVisitorBlocklist();
+            renderVisitorRegistry();
         }
     }
 }
@@ -2374,6 +2393,7 @@ async function changeVisitorBlock(action) {
     visitorState.busy = true;
     visitorControlsState();
     renderVisitorBlocklist();
+    renderVisitorRegistry();
     visitorMessage("چاوەڕێ بکە؛ گۆڕانکارییەکە پاشەکەوت دەکرێت...");
     try {
         var result = await visitorRequest("/visitor", {
@@ -2399,6 +2419,87 @@ async function changeVisitorBlock(action) {
             visitorState.busy = false;
             visitorControlsState();
             renderVisitorBlocklist();
+            renderVisitorRegistry();
         }
+    }
+}
+
+function renderVisitorRegistry() {
+    var list = document.getElementById("visitorRegistryList");
+    if (!list) return;
+    list.replaceChildren();
+    if (visitorState.registryError) { list.textContent = visitorState.registryError; return; }
+    if (!visitorState.visitors.length) {
+        list.textContent = "هێشتا سەردانکەرێک تۆمار نەکراوە؛ تۆمارکردن لە ئێستاوە دەست پێ دەکات.";
+        return;
+    }
+    var fragment = document.createDocumentFragment();
+    visitorState.visitors.forEach(function(visitor) {
+        var row = document.createElement("div");
+        row.style.cssText = "border-bottom:1px solid var(--border);padding:14px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center;";
+        var details = document.createElement("div");
+        details.style.cssText = "flex:1;min-width:220px;overflow-wrap:anywhere;";
+        var id = document.createElement("code");
+        id.dir = "ltr"; id.textContent = visitor.visitorId;
+        var status = document.createElement("p");
+        var blocked = visitorState.ids.includes(visitor.visitorId);
+        status.textContent = (blocked ? "بلۆککراو" : "ڕێگەپێدراو") +
+            (visitor.visitorId === visitorState.ownId ? " — ئەم وێبگەڕەی خۆت" : "");
+        var dates = document.createElement("p");
+        dates.style.cssText = "font-size:0.85em;color:var(--text-muted);line-height:1.9;";
+        dates.textContent = "یەکەم سەردان: " + visitorDate(visitor.firstSeen) +
+            " | دوایین سەردان: " + visitorDate(visitor.lastSeen);
+        details.append(id, status, dates);
+        var button = document.createElement("button");
+        button.type = "button"; button.className = "add-btn";
+        button.textContent = blocked ? "لابردنی بلۆک" : "بلۆککردن";
+        button.disabled = visitorState.busy || !visitorState.ready;
+        button.addEventListener("click", function() {
+            document.getElementById("visitorTargetId").value = visitor.visitorId;
+            changeVisitorBlock(blocked ? "unblock" : "block");
+        });
+        row.append(details, button); fragment.append(row);
+    });
+    list.append(fragment);
+}
+function visitorDate(value) {
+    return new Date(value).toLocaleString("en-GB", { timeZone: "Asia/Baghdad", hour12: false }) + " (بەغدا)";
+}
+async function fetchVisitorRegistry(token, generation, append) {
+    try {
+        var path = "/visitor?admin=visitors";
+        if (append && visitorState.nextCursor) path += "&cursor=" + encodeURIComponent(visitorState.nextCursor);
+        var result = await visitorRequest(path, null, token);
+        if (!Array.isArray(result.visitors) || result.visitors.length > 100 ||
+            !result.visitors.every(function(row) {
+                return row && visitorIdPattern.test(row.visitorId || "") &&
+                    typeof row.firstSeen === "string" && Number.isFinite(Date.parse(row.firstSeen)) &&
+                    typeof row.lastSeen === "string" && Number.isFinite(Date.parse(row.lastSeen));
+            }) || !(result.nextCursor === null ||
+                (typeof result.nextCursor === "string" && result.nextCursor.length <= 200))) {
+            throw new Error("وەڵامی لیستی سەردانکەران نادروستە.");
+        }
+        if (generation !== visitorState.generation || token !== getAdminToken()) return;
+        var rows = new Map((append ? visitorState.visitors : []).map(function(row) { return [row.visitorId, row]; }));
+        result.visitors.forEach(function(row) { rows.set(row.visitorId, row); });
+        visitorState.visitors = Array.from(rows.values());
+        visitorState.nextCursor = result.nextCursor;
+        visitorState.registryError = "";
+    } catch (error) {
+        if (generation !== visitorState.generation || token !== getAdminToken()) return;
+        visitorState.registryError = error.name === "AbortError" ? "کاتی داواکاری تەواو بوو؛ نوێکردنەوە بکە." : error.message;
+        visitorState.nextCursor = null;
+        if (!append) visitorState.visitors = [];
+    }
+}
+async function loadMoreVisitors() {
+    if (!visitorState.ready || visitorState.busy || !visitorState.nextCursor) return;
+    var token = getAdminToken();
+    if (!token) return;
+    var generation = ++visitorState.generation;
+    visitorState.busy = true; visitorControlsState(); renderVisitorRegistry();
+    await fetchVisitorRegistry(token, generation, true);
+    if (generation === visitorState.generation) {
+        visitorState.busy = false; visitorControlsState(); renderVisitorRegistry();
     }
 }

@@ -718,6 +718,21 @@
                 </div>
             </div>
             <div class="card">
+                <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+                    سەردانکەران
+                    <button type="button" class="add-btn" id="visitorRegistryRefreshBtn" disabled>نوێکردنەوە</button>
+                </div>
+                <div class="card-body">
+                    <p style="color:var(--text-muted);line-height:1.9;">
+                        لێرە سەردانکەر هەڵبژێرە و بلۆکی بکە یان بلۆکەکەی لاببە.
+                        تەنها ناسنامە و کاتی یەکەم/دوایین سەردان تۆمار دەکرێت.
+                        کاتی دوایین سەردان نزیکەی هەر ١٥ خولەک نوێ دەبێتەوە.
+                    </p>
+                    <div id="visitorRegistryList" aria-live="polite" style="overflow-wrap:anywhere;">لیستەکە هێشتا بار نەکراوە.</div>
+                    <button type="button" class="add-btn" id="visitorMoreBtn" hidden disabled>پیشاندانی زیاتر</button>
+                </div>
+            </div>
+            <div class="card">
                 <div class="card-header">بلۆککردن یان لابردنی بلۆک</div>
                 <div class="card-body">
                     <p id="visitorIntegrationNotice" role="status" style="color:var(--text-muted);line-height:1.9;">
@@ -763,7 +778,7 @@
                         لیستەکە هێشتا بار نەکراوە.
                     </div>
                     <p style="color:var(--text-muted);line-height:1.9;">
-                        ئەمە لیستی بلۆککراوەکانە؛ لیستی هەموو سەردانکەران لەم بەشەدا تۆمار ناکرێت.
+                        ئەمە تەنها لیستی بلۆککراوەکانە؛ لیستی سەردانکەران لە سەرەوەی ئەم بەشە پیشان دەدرێت.
                     </p>
                 </div>
             </div>

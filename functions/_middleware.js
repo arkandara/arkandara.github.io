@@ -5,7 +5,7 @@
 // Reuse the endpoint directly, never fetch our own /visitor URL (no recursion).
 // GitHub Pages itself cannot run this middleware; enforcement is on Pages only.
 // Cookie deletion/new browser profiles can bypass browser-ID blocking.
-import { onRequest as checkVisitor } from "./visitor.js";
+import { onRequest as checkVisitor, recordVisitor } from "./visitor.js";
 
 const encoder = new TextEncoder();
 function unavailable(request) {
@@ -66,7 +66,8 @@ export async function onRequest(context) {
         url.pathname = "/visitor";
         url.search = "";
         const result = await checkVisitor({
-            request: new Request(url, { method: "GET", headers }), env
+            request: new Request(url, { method: "GET", headers }), env,
+            data: { skipVisitorRegistration: true }
         });
         verdict = await result.json();
         if (result.status === 403 && verdict.blocked === true) return denied(request);
@@ -77,6 +78,13 @@ export async function onRequest(context) {
     }
     // Do not catch downstream errors or call next twice.
     const downstream = await context.next();
+    // Record successful HTML navigation only, not every image, API, or asset.
+    if (request.method === "GET" && downstream.ok &&
+        (downstream.headers.get("Content-Type") || "").toLowerCase().includes("text/html")) {
+        const recording = recordVisitor(env, verdict.visitorId);
+        if (typeof context.waitUntil === "function") context.waitUntil(recording);
+        else await recording;
+    }
     const response = new Response(downstream.body, downstream);
     if (cookie) response.headers.append("Set-Cookie", cookie);
     // Browser-specific access decisions must not be reused by shared caches.

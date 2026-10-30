@@ -1,5 +1,7 @@
 // Cloudflare Pages: visitor identity and authenticated blocklist management.
-// No KV, archives, or visitor registry. Admin writes ONLY data/blocked-visitors.json.
+// No KV or archives. Private visitor registry uses the VISITOR_DB D1 binding.
+// Registry stores UUID + first/last seen only; last seen is throttled to 15 minutes.
+// GitHub admin writes remain limited to data/blocked-visitors.json.
 // GET /visitor?admin=blocklist; POST /visitor {action: block|unblock, visitorId}.
 // Admin requires env.ADMIN_TOKEN and env.GH_PAT; no password-hash fallback.
 // GitHub commits trigger deployments and raw/CDN enforcement may lag.
@@ -219,7 +221,74 @@ async function manageBlocklist(request, env) {
     } catch { return reply({ error: "blocklist_operation_unavailable" }, 503); }
 }
 
-export async function onRequest({ request, env }) {
+
+const registryReady = new WeakMap();
+async function visitorDatabase(env) {
+    const db = env && env.VISITOR_DB;
+    if (!db || typeof db.prepare !== "function") throw new Error("registry_not_configured");
+    let ready = registryReady.get(db);
+    if (!ready) {
+        ready = db.batch([
+            db.prepare("CREATE TABLE IF NOT EXISTS visitor_registry (id TEXT PRIMARY KEY, first_seen INTEGER NOT NULL, last_seen INTEGER NOT NULL)"),
+            db.prepare("CREATE INDEX IF NOT EXISTS visitor_registry_recent ON visitor_registry(last_seen DESC, id DESC)")
+        ]).catch(error => { registryReady.delete(db); throw error; });
+        registryReady.set(db, ready);
+    }
+    await ready;
+    return db;
+}
+// Only a signed server-issued identity reaches this helper. No client-supplied
+// IP, user agent, location, page path, text, or name is collected.
+export async function recordVisitor(env, id) {
+    if (!UUID.test(id)) return false;
+    try {
+        const db = await visitorDatabase(env);
+        const now = Math.floor(Date.now() / 1000);
+        await db.prepare(
+            "INSERT INTO visitor_registry (id, first_seen, last_seen) VALUES (?, ?, ?) " +
+            "ON CONFLICT(id) DO UPDATE SET last_seen = excluded.last_seen " +
+            "WHERE visitor_registry.last_seen < excluded.last_seen - 900"
+        ).bind(id, now, now).run();
+        return true;
+    } catch {
+        // Registry outages must not take down the site or alter blocking.
+        return false;
+    }
+}
+async function listVisitors(request, env) {
+    try {
+        if (!await isAdmin(request, env)) return reply({ error: "unauthorized" }, 401);
+        if (!env.VISITOR_DB) return reply({ error: "registry_not_configured" }, 503);
+        let cursor = null;
+        const raw = new URL(request.url).searchParams.get("cursor");
+        if (raw) {
+            try {
+                if (raw.length > 200) throw new Error("cursor");
+                cursor = JSON.parse(atob(raw));
+                if (!Array.isArray(cursor) || cursor.length !== 2 ||
+                    !Number.isSafeInteger(cursor[0]) || cursor[0] < 0 ||
+                    typeof cursor[1] !== "string" || !UUID.test(cursor[1])) throw new Error("cursor");
+            } catch { return reply({ error: "invalid_cursor" }, 400); }
+        }
+        const db = await visitorDatabase(env);
+        const statement = cursor
+            ? db.prepare("SELECT id, first_seen, last_seen FROM visitor_registry WHERE last_seen < ? OR (last_seen = ? AND id < ?) ORDER BY last_seen DESC, id DESC LIMIT 101").bind(cursor[0], cursor[0], cursor[1])
+            : db.prepare("SELECT id, first_seen, last_seen FROM visitor_registry ORDER BY last_seen DESC, id DESC LIMIT 101");
+        const result = await statement.all();
+        if (!result.success || !Array.isArray(result.results)) throw new Error("query");
+        const rows = result.results.slice(0, 100);
+        const last = rows[rows.length - 1];
+        return reply({
+            visitors: rows.map(row => ({ visitorId: row.id,
+                firstSeen: new Date(row.first_seen * 1000).toISOString(),
+                lastSeen: new Date(row.last_seen * 1000).toISOString() })),
+            nextCursor: result.results.length > 100 && last ? btoa(JSON.stringify([last.last_seen, last.id])) : null,
+            lastSeenResolutionSeconds: 900
+        });
+    } catch { return reply({ error: "registry_unavailable" }, 503); }
+}
+
+export async function onRequest({ request, env, data }) {
     const url = new URL(request.url);
     if (url.protocol !== "https:") return reply({ error: "https_required" }, 400);
     const origin = request.headers.get("Origin");
@@ -228,6 +297,9 @@ export async function onRequest({ request, env }) {
         return reply({ error: "origin_not_allowed" }, 403);
     }
     const adminAction = url.searchParams.get("admin");
+    if (request.method === "GET" && adminAction === "visitors") {
+        return listVisitors(request, env || {});
+    }
     if (request.method === "POST" || (request.method === "GET" && adminAction === "blocklist")) {
         return manageBlocklist(request, env || {});
     }
@@ -260,7 +332,9 @@ export async function onRequest({ request, env }) {
                 error: "blocklist_unavailable" }, 503, { ...headers, "Retry-After": "60" });
         }
         const blocked = list.has(identity.id);
-        return reply({ visitorId: identity.id, isNew, blocked }, blocked ? 403 : 200, headers);
+        const registered = !blocked && !(data && data.skipVisitorRegistration)
+            ? await recordVisitor(env, identity.id) : undefined;
+        return reply({ visitorId: identity.id, isNew, blocked, registered }, blocked ? 403 : 200, headers);
     } catch {
         return reply({ error: "visitor_unavailable" }, 503);
     }

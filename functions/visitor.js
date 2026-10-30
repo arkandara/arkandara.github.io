@@ -1,21 +1,16 @@
-// Cloudflare Pages: visitor identity and authenticated blocklist management.
-// No KV or archives. Private visitor registry uses the VISITOR_DB D1 binding.
+// Cloudflare Pages: signed visitor identity, private D1 registry and blocklist.
+// No KV, archive access, or GitHub writes. VISITOR_DB is the D1 binding.
+// Existing GitHub blocks are imported once, atomically, using server-side GH_PAT.
+// After import, all block reads/writes use D1 directly without CDN caching.
 // Registry stores UUID + first/last seen only; last seen is throttled to 15 minutes.
-// GitHub admin writes remain limited to data/blocked-visitors.json.
-// GET /visitor?admin=blocklist; POST /visitor {action: block|unblock, visitorId}.
-// Admin requires env.ADMIN_TOKEN and env.GH_PAT; no password-hash fallback.
-// GitHub commits trigger deployments and raw/CDN enforcement may lag.
-// Required secret: VISITOR_SIGNING_SECRET (at least 32 random bytes; keep stable).
-// Future blocklist: main:data/blocked-visitors.json, JSON {"blocked":["UUID",...]}.
-// Missing, invalid, or unreachable blocklists return 503, never "not blocked".
-// This route checks only itself; site-wide enforcement needs separate middleware.
-// Cookies identify a browser profile, not a person/device. Clearing them bypasses
-// ID-based blocking. Cross-site GitHub Pages -> pages.dev cookies are unreliable;
-// call this endpoint from the same HTTPS origin. No cross-origin CORS is enabled.
+// Admin actions require env.ADMIN_TOKEN; no password-hash fallback.
+// Required secret: VISITOR_SIGNING_SECRET (32+ random bytes, kept stable).
+// Blocklist/database failure returns 503; registry recording failure is nonfatal.
+// Clearing cookies/new browser profiles bypass browser-ID blocking.
+// Use the same HTTPS origin for site and admin; no cross-origin CORS is enabled.
 const COOKIE = "__Host-visitor";
 const AGE = 31536000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const LIST_URL = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/data/blocked-visitors.json";
 const encoder = new TextEncoder();
 
 function reply(data, status = 200, extra = {}) {
@@ -49,41 +44,11 @@ async function readIdentity(request, key, now) {
         encoder.encode(parts.slice(0, 3).join(".")))) return null;
     return { id, token, expiry: +expiry };
 }
-async function blockedIds() {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-    try {
-        // No application cache: GitHub/CDN propagation can still delay updates.
-        const response = await fetch(LIST_URL, {
-            headers: { "Accept": "application/json", "Cache-Control": "no-cache" },
-            // Workers supports manual/follow only; non-2xx redirects fail below.
-            redirect: "manual", signal: controller.signal, cache: "no-store"
-        });
-        if (!response.ok || !response.body) throw new Error("unavailable");
-        // Bound bytes while streaming, including chunked responses.
-        const reader = response.body.getReader();
-        const chunks = [];
-        let size = 0;
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            size += value.byteLength;
-            if (size > 262144) {
-                await reader.cancel();
-                throw new Error("oversized");
-            }
-            chunks.push(value);
-        }
-        const bytes = new Uint8Array(size);
-        let offset = 0;
-        for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-        const data = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
-        if (!data || !Array.isArray(data.blocked) || data.blocked.length > 5000 ||
-            !data.blocked.every(id => typeof id === "string" && UUID.test(id))) {
-            throw new Error("invalid");
-        }
-        return new Set(data.blocked);
-    } finally { clearTimeout(timer); }
+async function blockedIds(env, id) {
+    const db = await blockDatabase(env);
+    // Direct D1 binding queries use the primary database: no replica/CDN cache.
+    const row = await db.prepare("SELECT id FROM visitor_blocks WHERE id = ?").bind(id).first();
+    return new Set(row ? [row.id] : []);
 }
 
 const CONTENTS_URL = "https://api.github.com/repos/arkandara/arkandara.github.io/contents/data/blocked-visitors.json";
@@ -123,28 +88,28 @@ async function isAdmin(request, env) {
     for (let i = 0; i < a.length; i++) difference |= a[i] ^ b[i];
     return difference === 0;
 }
-async function githubRequest(env, method, body) {
+// Used only for the one-time import of the existing GitHub blocklist.
+async function githubRequest(env) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
     try {
-        const response = await fetch(CONTENTS_URL + (method === "GET" ? "?ref=main" : ""), {
-            method, redirect: "manual", cache: "no-store", signal: controller.signal,
+        const response = await fetch(CONTENTS_URL + "?ref=main", {
+            method: "GET", redirect: "manual", cache: "no-store", signal: controller.signal,
             headers: {
                 "Authorization": "Bearer " + env.GH_PAT,
                 "Accept": "application/vnd.github+json",
-                "Content-Type": "application/json",
-                "User-Agent": "arkandara-visitor-admin",
+                "User-Agent": "arkandara-visitor-migration",
                 "X-GitHub-Api-Version": "2022-11-28"
-            },
-            ...(body ? { body: JSON.stringify(body) } : {})
+            }
         });
         if (!response.ok) {
             if (response.body) await response.body.cancel();
-            return { status: response.status, data: null };
+            throw new Error("migration_source_unavailable");
         }
-        return { status: response.status, data: await readBoundedJson(response, 524288) };
+        return await readBoundedJson(response, 524288);
     } finally { clearTimeout(timer); }
 }
+
 function decodeBlocklist(file) {
     if (!file || file.type !== "file" || file.encoding !== "base64" ||
         !/^[0-9a-f]{40}$/.test(file.sha) || typeof file.content !== "string") {
@@ -160,18 +125,35 @@ function decodeBlocklist(file) {
     }
     return data;
 }
-function encodeContent(text) {
-    return btoa(Array.from(encoder.encode(text), byte => String.fromCharCode(byte)).join(""));
+
+const blockReady = new WeakMap();
+async function blockDatabase(env) {
+    const db = await visitorDatabase(env);
+    let ready = blockReady.get(db);
+    if (!ready) {
+        ready = (async () => {
+            const marker = await db.prepare("SELECT value FROM visitor_meta WHERE key = 'github_blocklist_import_v1'").first();
+            if (!marker) {
+                if (typeof env.GH_PAT !== "string" || !env.GH_PAT) throw new Error("migration_not_configured");
+                const legacy = decodeBlocklist(await githubRequest(env));
+                // D1 batch is atomic. Concurrent importers cannot re-add blocks
+                // after an unblock: both inserts are guarded by the same marker.
+                await db.batch([
+                    db.prepare("INSERT OR IGNORE INTO visitor_blocks (id) SELECT value FROM json_each(?) WHERE NOT EXISTS (SELECT 1 FROM visitor_meta WHERE key = 'github_blocklist_import_v1')").bind(JSON.stringify(legacy.blocked)),
+                    db.prepare("INSERT OR IGNORE INTO visitor_meta (key, value) VALUES ('github_blocklist_import_v1', 'complete')")
+                ]);
+            }
+        })().catch(error => { blockReady.delete(db); throw error; });
+        blockReady.set(db, ready);
+    }
+    await ready;
+    return db;
 }
 async function manageBlocklist(request, env) {
     try {
         if (!await isAdmin(request, env)) return reply({ error: "unauthorized" }, 401);
-        if (typeof env.GH_PAT !== "string" || !env.GH_PAT) {
-            return reply({ error: "github_not_configured" }, 503);
-        }
         let change;
         if (request.method === "POST") {
-            // Require same-origin JSON, in addition to the non-cookie bearer token.
             if (request.headers.get("Origin") !== new URL(request.url).origin) {
                 return reply({ error: "origin_required" }, 403);
             }
@@ -184,43 +166,26 @@ async function manageBlocklist(request, env) {
                 return reply({ error: "invalid_action_or_id" }, 400);
             }
         }
-        const current = await githubRequest(env, "GET");
-        if (current.status !== 200) return reply({ error: "blocklist_unavailable" }, 503);
-        const data = decodeBlocklist(current.data);
-        const ids = new Set(data.blocked);
-        if (!change) return reply({ blocked: [...ids], source: "github", enforcementMayLag: true });
-        const present = ids.has(change.visitorId);
-        if (present === (change.action === "block")) {
-            return reply({ success: true, changed: false, visitorId: change.visitorId, blocked: present });
+        const db = await blockDatabase(env);
+        if (!change) {
+            const result = await db.prepare("SELECT id FROM visitor_blocks ORDER BY id").all();
+            if (!result.success) throw new Error("query");
+            return reply({ blocked: result.results.map(row => row.id), source: "d1", enforcementMayLag: false });
         }
-        if (change.action === "block") {
-            if (ids.size >= 5000) return reply({ error: "blocklist_full" }, 409);
-            ids.add(change.visitorId);
-        } else { ids.delete(change.visitorId); }
-        // Keep unrelated metadata and use the current blob SHA to avoid lost writes.
-        data.blocked = [...ids].sort();
-        const serialized = JSON.stringify(data, null, 2) + "\n";
-        if (encoder.encode(serialized).byteLength > 262144) {
-            return reply({ error: "blocklist_full" }, 409);
+        const statement = change.action === "block"
+            ? db.prepare("INSERT OR IGNORE INTO visitor_blocks (id) SELECT ? WHERE (SELECT COUNT(*) FROM visitor_blocks) < 5000").bind(change.visitorId)
+            : db.prepare("DELETE FROM visitor_blocks WHERE id = ?").bind(change.visitorId);
+        const result = await statement.run();
+        if (!result.success) throw new Error("write");
+        const changed = result.meta.changes > 0;
+        if (change.action === "block" && !changed) {
+            const existing = await db.prepare("SELECT id FROM visitor_blocks WHERE id = ?").bind(change.visitorId).first();
+            if (!existing) return reply({ error: "blocklist_full" }, 409);
         }
-        const result = await githubRequest(env, "PUT", {
-            message: "visitor: " + change.action + " " + change.visitorId,
-            branch: "main", sha: current.data.sha,
-            content: encodeContent(serialized)
-        });
-        if (result.status === 409) return reply({ error: "blocklist_conflict_retry" }, 409);
-        if (result.status !== 200 && result.status !== 201) {
-            return reply({ error: "blocklist_update_failed" }, 503);
-        }
-        const commit = result.data && result.data.commit && result.data.commit.sha;
-        if (typeof commit !== "string" || !/^[0-9a-f]{40}$/.test(commit)) {
-            return reply({ error: "blocklist_update_unconfirmed" }, 503);
-        }
-        return reply({ success: true, changed: true, visitorId: change.visitorId,
-            blocked: change.action === "block", commit, enforcementMayLag: true });
+        return reply({ success: true, changed, visitorId: change.visitorId,
+            blocked: change.action === "block", source: "d1", enforcementMayLag: false });
     } catch { return reply({ error: "blocklist_operation_unavailable" }, 503); }
 }
-
 
 const registryReady = new WeakMap();
 async function visitorDatabase(env) {
@@ -230,7 +195,9 @@ async function visitorDatabase(env) {
     if (!ready) {
         ready = db.batch([
             db.prepare("CREATE TABLE IF NOT EXISTS visitor_registry (id TEXT PRIMARY KEY, first_seen INTEGER NOT NULL, last_seen INTEGER NOT NULL)"),
-            db.prepare("CREATE INDEX IF NOT EXISTS visitor_registry_recent ON visitor_registry(last_seen DESC, id DESC)")
+            db.prepare("CREATE INDEX IF NOT EXISTS visitor_registry_recent ON visitor_registry(last_seen DESC, id DESC)"),
+            db.prepare("CREATE TABLE IF NOT EXISTS visitor_blocks (id TEXT PRIMARY KEY)"),
+            db.prepare("CREATE TABLE IF NOT EXISTS visitor_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
         ]).catch(error => { registryReady.delete(db); throw error; });
         registryReady.set(db, ready);
     }
@@ -326,7 +293,7 @@ export async function onRequest({ request, env, data }) {
                 "; Max-Age=" + AGE + "; Path=/; Secure; HttpOnly; SameSite=Lax";
         }
         let list;
-        try { list = await blockedIds(); }
+        try { list = await blockedIds(env, identity.id); }
         catch {
             return reply({ visitorId: identity.id, isNew, blocked: null,
                 error: "blocklist_unavailable" }, 503, { ...headers, "Retry-After": "60" });

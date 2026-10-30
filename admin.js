@@ -2316,6 +2316,9 @@ function renderVisitorBlocklist() {
     list.append(rows);
 }
 function bindVisitorControls() {
+    var notice = document.querySelector("#visitorActionStatus + p");
+    if (notice) notice.textContent = "بلۆککردنی ئەم وێبگەڕەی خۆت دەستگەیشتنت بە پانێل ڕادەگرێت. گۆڕینی دۆخ لە داواکاریی داهاتوودا جێبەجێ دەبێت.";
+
     var controls = document.getElementById("visitorControls");
     if (!controls || controls.dataset.visitorBound) return;
     controls.dataset.visitorBound = "1";
@@ -2407,7 +2410,7 @@ async function changeVisitorBlock(action) {
         if (result.blocked) visitorState.ids.push(id);
         visitorState.ids.sort();
         visitorMessage((result.blocked ? "ناسنامەکە بلۆک کرا." : "بلۆکی ناسنامەکە لابرا.") +
-            " نوێبوونەوەی دۆخی بلۆک لە سایت دەکرێت کەمێک دوا بکەوێت.");
+            " دۆخەکە لە داواکاریی داهاتووی ئەو وێبگەڕەدا جێبەجێ دەبێت.");
     } catch (error) {
         if (generation === visitorState.generation && token === getAdminToken()) {
             // A timed-out write may have reached GitHub; require a fresh read.

@@ -359,6 +359,9 @@
                 <button class="top-nav-btn" onclick="showTab('tab-stats')" id="tnav-stats">
                     <i class="fas fa-chart-bar"></i><span> ئامارەکان</span>
                 </button>
+                <button type="button" class="top-nav-btn" onclick="showTab('tab-visitors')" id="tnav-visitors">
+                    <i class="fas fa-user-shield" aria-hidden="true"></i><span> Visitor ID و بلۆککردن</span>
+                </button>
                 <button class="top-nav-btn" onclick="showTab('tab-archive')" id="tnav-archive">
                     <i class="fas fa-archive"></i><span> ئەرشیف</span>
                 </button>
@@ -699,6 +702,72 @@
           
 
         </div>
+
+        <!-- ===== Visitor ID: controls are enabled by the separately approved admin.js integration ===== -->
+        <section class="tab-content" id="tab-visitors" aria-labelledby="visitorHeading">
+            <h2 class="section-title" id="visitorHeading">
+                <i class="fas fa-user-shield" aria-hidden="true"></i> Visitor ID و بلۆککردن
+            </h2>
+            <div class="card">
+                <div class="card-header">ناسنامەی ئەم وێبگەڕە</div>
+                <div class="card-body">
+                    <p id="visitorOwnId" dir="ltr" style="overflow-wrap:anywhere;">—</p>
+                    <p style="color:var(--text-muted);line-height:1.9;">
+                        Visitor ID ناسنامەی وێبگەڕە؛ سڕینەوەی cookie یان بەکارهێنانی وێبگەڕێکی دیکە ناسنامەی نوێ دروست دەکات.
+                    </p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">بلۆککردن یان لابردنی بلۆک</div>
+                <div class="card-body">
+                    <p id="visitorIntegrationNotice" role="status" style="color:var(--text-muted);line-height:1.9;">
+                        ئەم بەشە هێشتا ناچالاکە؛ دوای تەواوکردنی پەیوەستکردن، دوگمەکان چالاک دەبن.
+                    </p>
+                    <fieldset id="visitorControls" disabled aria-describedby="visitorIntegrationNotice visitorIdHelp" style="border:0;padding:0;margin:0;min-width:0;">
+                        <legend style="font-weight:700;margin-bottom:12px;">کردارەکانی ناسنامە</legend>
+                        <div class="field-group">
+                            <label for="visitorTargetId">Visitor ID</label>
+                            <input type="text" id="visitorTargetId" class="form-input" dir="ltr"
+                                maxlength="36" minlength="36" autocomplete="off" spellcheck="false"
+                                autocapitalize="none" placeholder="xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx"
+                                aria-describedby="visitorIdHelp">
+                            <p id="visitorIdHelp" style="color:var(--text-muted);line-height:1.9;">
+                                ناسنامەی تەواوی وێبگەڕی مەبەست بنووسە. IP یان ناوی کەس لێرە دانەنێ.
+                            </p>
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                            <button type="button" class="save-btn" id="visitorBlockBtn" style="margin:0;background:#b71c1c;">
+                                <i class="fas fa-ban" aria-hidden="true"></i> بلۆککردن
+                            </button>
+                            <button type="button" class="save-btn" id="visitorUnblockBtn" style="margin:0;">
+                                <i class="fas fa-unlock" aria-hidden="true"></i> لابردنی بلۆک
+                            </button>
+                        </div>
+                    </fieldset>
+                    <p id="visitorActionStatus" role="status" aria-live="polite" style="overflow-wrap:anywhere;line-height:1.9;"></p>
+                    <p style="color:var(--text-muted);line-height:1.9;">
+                        بلۆککردنی ئەم وێبگەڕەی خۆت دەستگەیشتنت بە پانێل ڕادەگرێت.
+                        نوێبوونەوەی دۆخی بلۆک دەکرێت کەمێک دوا بکەوێت.
+                    </p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+                    لیستی ناسنامە بلۆککراوەکان
+                    <button type="button" class="add-btn" id="visitorRefreshBtn" disabled>
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i> نوێکردنەوە
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="visitorBlockedList" aria-live="polite" style="overflow-wrap:anywhere;">
+                        لیستەکە هێشتا بار نەکراوە.
+                    </div>
+                    <p style="color:var(--text-muted);line-height:1.9;">
+                        ئەمە لیستی بلۆککراوەکانە؛ لیستی هەموو سەردانکەران لەم بەشەدا تۆمار ناکرێت.
+                    </p>
+                </div>
+            </div>
+        </section>
 
         <!-- ===== تاب ٥: ئەرشیفی هەفتانە ===== -->
         <div class="tab-content" id="tab-archive">

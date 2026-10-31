@@ -369,7 +369,7 @@
                     <i class="fas fa-keyboard"></i><span> تێکستەکان</span>
                 </button>
                 <button class="top-nav-btn" onclick="showTab('tab-password')" id="tnav-password">
-                    <i class="fas fa-key"></i><span> گۆڕینی پاسوۆرد</span>
+                    <i class="fas fa-key"></i><span> گۆڕینی یوزەر و پاسوۆرد</span>
                 </button>
                 <a href="index.html" target="_blank" class="view-site-btn">
                     <i class="fas fa-external-link-alt"></i><span> بینینی سایت</span>
@@ -870,42 +870,50 @@
             </div>
         </div>
 
-        <!-- ===== تاب ٦: گۆڕینی پاسوۆرد ===== -->
+        <!-- ===== تاب ٦: گۆڕینی یوزەر و پاسوۆرد ===== -->
         <div class="tab-content" id="tab-password">
             <div class="section-title">
-                <i class="fas fa-key"></i> گۆڕینی پاسوۆردی ئەدمین
+                <i class="fas fa-key"></i> گۆڕینی یوزەر و پاسوۆردی ئەدمین
             </div>
 
             <div class="card" style="max-width:480px">
-                <div class="card-header"><i class="fas fa-lock"></i> پاسوۆردی نوێ</div>
+                <div class="card-header"><i class="fas fa-lock"></i> یوزەر و پاسۆرد</div>
                 <div class="card-body">
+                    <div class="field-group">
+                        <label for="adminUsername">یوزەری ئەدمین</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="adminUsername" class="form-input" autocomplete="username" minlength="3" maxlength="64" dir="auto">
+                        </div>
+                    </div>
                     <div class="field-group">
                         <label>پاسوۆردی ئێستا</label>
                         <div class="input-wrap">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="oldPass" class="form-input" placeholder="پاسوۆردی ئێستا">
+                            <input type="password" id="oldPass" autocomplete="current-password" class="form-input" placeholder="پاسوۆردی ئێستا">
                         </div>
                     </div>
                     <div class="field-group">
                         <label>پاسوۆردی نوێ</label>
                         <div class="input-wrap">
                             <i class="fas fa-key"></i>
-                            <input type="password" id="newPass" class="form-input" placeholder="پاسوۆردی نوێ">
+                            <input type="password" id="newPass" autocomplete="new-password" class="form-input" placeholder="پاسوۆردی نوێ">
                         </div>
                     </div>
                     <div class="field-group">
                         <label>دووبارەکردنەوەی پاسوۆردی نوێ</label>
                         <div class="input-wrap">
                             <i class="fas fa-check"></i>
-                            <input type="password" id="confirmPass" class="form-input" placeholder="دووبارە بنووسە">
+                            <input type="password" id="confirmPass" autocomplete="new-password" class="form-input" placeholder="دووبارە بنووسە">
                         </div>
                     </div>
-                    <div id="passMsg" style="display:none;margin-top:10px;"></div>
+                    <p style="font-size:0.85em;line-height:1.8;">بۆ گۆڕینی تەنها یوزەر، خانەکانی پاسۆردی نوێ بەتاڵ بهێڵەوە. پاسۆردی نوێ کەمترین ١٢ پیت بێت. پاش پاشەکەوتکردن، هەموو سیشنەکان دادەخرێنەوە. هەر سیشنێک دوای ٨ کاتژمێر کۆتایی دێت.</p>
+                    <div id="passMsg" role="status" style="display:none;margin-top:10px;"></div>
                 </div>
             </div>
 
             <button class="save-btn" onclick="changePassword()">
-                <i class="fas fa-save"></i> گۆڕینی پاسوۆرد
+                <i class="fas fa-save"></i> گۆڕینی یوزەر و پاسوۆرد
             </button>
         </div>
 

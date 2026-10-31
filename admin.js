@@ -4,18 +4,56 @@
 //  نسخەی نوێ: بەبێ Firebase — داتا لە Cloudflare KV
 // ===========================
 
-const ADMIN_USERNAME = "admin";
-
-// ---- Configured bearer; existing visitor API still requires this token. ----
-function getAdminToken() {
-    return localStorage.getItem("adminToken") || "";
+// Session credentials stay in an HttpOnly cookie, never browser storage.
+var adminSessionActive = false;
+var adminSessionEpoch = 0;
+var adminSessionUsername = "";
+var adminSessionTimer = null;
+var adminSessionPoll = null;
+function getAdminToken() { return adminSessionActive ? "cookie-session" : ""; }
+function authHeaders() { return { "Content-Type": "application/json", "X-Admin-Request": "1" }; }
+async function adminFetch(path, options) {
+    var epoch = adminSessionEpoch;
+    var response = await fetch(path, options);
+    var url = new URL(path, window.location.href);
+    if (response.status === 401 && epoch === adminSessionEpoch && adminSessionActive && url.origin === window.location.origin) {
+        endAdminSession("سیشنەکەت کۆتایی هات؛ تکایە دووبارە بچۆ ژوورەوە.");
+    }
+    return response;
 }
-
-function authHeaders() {
-    return {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + getAdminToken()
-    };
+function endAdminSession(message) {
+    adminSessionActive = false;
+    adminSessionEpoch++;
+    adminSessionUsername = "";
+    clearTimeout(adminSessionTimer); clearInterval(adminSessionPoll);
+    if (window._statsInterval) clearInterval(window._statsInterval);
+    resetVisitorPanel();
+    localStorage.removeItem("adminAuth"); localStorage.removeItem("adminToken");
+    document.getElementById("adminPanel").style.display = "none";
+    document.getElementById("loginScreen").style.display = "flex";
+    document.getElementById("loginPass").value = "";
+    ["oldPass", "newPass", "confirmPass"].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ""; });
+    var error = document.getElementById("loginError");
+    if (error) { error.style.display = message ? "flex" : "none"; error.textContent = message || ""; }
+}
+function enterAdminSession(data) {
+    if (typeof data.username !== "string" || !data.username || !Number.isSafeInteger(data.expiresAt) || data.expiresAt <= Math.floor(Date.now() / 1000)) throw new Error("invalid_session");
+    adminSessionActive = true; adminSessionEpoch++; adminSessionUsername = data.username;
+    localStorage.removeItem("adminAuth"); localStorage.removeItem("adminToken");
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("adminPanel").style.display = "flex";
+    document.getElementById("loginPass").value = "";
+    var usernameInput = document.getElementById("adminUsername");
+    if (usernameInput) usernameInput.value = data.username;
+    if (window.innerWidth > 768) { var sidebar = document.getElementById("sidebar"); if (sidebar) sidebar.classList.add("open"); }
+    clearTimeout(adminSessionTimer); clearInterval(adminSessionPoll);
+    adminSessionTimer = setTimeout(function() { endAdminSession("سیشنەکەت کۆتایی هات؛ تکایە دووبارە بچۆ ژوورەوە."); }, Math.max(0, data.expiresAt * 1000 - Date.now()));
+    adminSessionPoll = setInterval(checkAdminSession, 60000);
+    initPanel();
+}
+async function checkAdminSession() {
+    if (!adminSessionActive) return;
+    try { await adminFetch("/track?admin=session", { headers: authHeaders(), cache: "no-store" }); } catch(e) {}
 }
 
 async function hashPassword(pass) {
@@ -45,21 +83,15 @@ async function doLogin() {
         return;
     }
 
-    if (user !== ADMIN_USERNAME) {
-        errEl.style.display = "flex";
-        errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> ناو یان پاسوۆرد هەڵەیە';
-        return;
-    }
-
     loginPending = true;
     try {
         const passHash = await hashPassword(pass);
 
-        // ناردنی hash بۆ سێرڤەر — سێرڤەر پشکنین دەکات و ADMIN_TOKEN دەگەڕێنێتەوە
-        const res = await fetch("/track", {
+        // Verify credentials on the server and receive an HttpOnly session cookie.
+        const res = await adminFetch("/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "admin_pass_verify", passHash: passHash })
+            body: JSON.stringify({ type: "admin_pass_verify", username: user, passHash: passHash })
         });
 
         const data = await res.json();
@@ -78,23 +110,14 @@ async function doLogin() {
             return;
         }
 
-        if (!res.ok || !data.success || typeof data.token !== "string" || !data.token) {
+        if (!res.ok || !data.success || typeof data.username !== "string" || !Number.isSafeInteger(data.expiresAt)) {
             errEl.style.display = "flex";
             errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> ناو یان پاسوۆرد هەڵەیە';
             document.getElementById("loginPass").value = "";
             return;
         }
 
-        // سێرڤەر ADMIN_TOKEN ی ڕاستەکەی گەڕاندەوە — پاشەکەوتی بکە
-        localStorage.setItem("adminToken", data.token);
-        localStorage.setItem("adminAuth", "1");
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("adminPanel").style.display = "flex";
-        if (window.innerWidth > 768) {
-            var sidebar = document.getElementById("sidebar");
-            if (sidebar) sidebar.classList.add("open");
-        }
-        initPanel();
+        enterAdminSession(data);
 
     } catch(e) {
         errEl.style.display = "flex";
@@ -104,14 +127,13 @@ async function doLogin() {
     }
 }
 
-function doLogout() {
-    resetVisitorPanel();
-    localStorage.removeItem("adminAuth");
-    localStorage.removeItem("adminToken");
-    document.getElementById("adminPanel").style.display = "none";
-    document.getElementById("loginScreen").style.display = "flex";
-    document.getElementById("loginUser").value = "";
-    document.getElementById("loginPass").value = "";
+async function doLogout() {
+    try {
+        var response = await adminFetch("/track", { method: "POST", headers: authHeaders(), body: JSON.stringify({ type: "admin_logout" }) });
+        if (!response.ok) throw new Error("logout_failed");
+        endAdminSession("");
+        document.getElementById("loginUser").value = "";
+    } catch(e) { showToast("دەرچوون سەرکەوتوو نەبوو؛ تکایە دووبارە هەوڵ بدەرەوە.", true); }
 }
 
 function togglePass() {
@@ -165,7 +187,7 @@ const tabTitles = {
     "tab-stats":    "ئامارەکان",
     "tab-archive":  "ئەرشیفی هەفتانە",
     "tab-visitors": "Visitor ID",
-    "tab-password": "گۆڕینی پاسوۆرد",
+    "tab-password": "یوزەر و پاسۆرد",
     "tab-preview":  "بینینی دەقی سایت"
 };
 
@@ -207,19 +229,8 @@ function showTab(id) {
 
 
 function resetAdminPass() {
-    if (confirm("دڵنیایت لە ڕیسێتکردنی پاسوۆرد؟\nئەدمین پاسوۆردی دیفۆڵت لە env دا دیاریکراوە.")) {
-        localStorage.removeItem("adminAuth");
-        localStorage.removeItem("adminToken");
-        var errEl = document.getElementById("loginError");
-        if (errEl) {
-            errEl.style.display = "flex";
-            errEl.style.background = "#e8f5e9";
-            errEl.style.color = "#2e7d32";
-            errEl.innerHTML = '<i class="fas fa-check-circle"></i> سیشن پاکیەوە کرا، تکایە دووبارە لۆگین بکە';
-        }
-        document.getElementById("adminPanel").style.display = "none";
-        document.getElementById("loginScreen").style.display = "flex";
-    }
+    var error = document.getElementById("loginError");
+    if (error) { error.style.display = "flex"; error.textContent = "گۆڕینی پاسۆرد پێویستی بە چوونەژوورەوە و پاسۆردی ئێستا هەیە."; }
 }
 
 function toggleSidebar() {
@@ -265,7 +276,7 @@ function loadSiteInfo(force) {
     _siteInfoLoading = true;
     // Always populate editable controls immediately, even if the API is unavailable.
     applySiteInfoSettings(SITE_DEFAULTS);
-    fetch("/track", { headers: authHeaders() })
+    adminFetch("/track", { headers: authHeaders() })
         .then(function(r) { if (!r.ok) throw new Error("Settings HTTP " + r.status); return r.json(); })
         .then(function(d) {
             var kvSettings = d.settings || {};
@@ -363,7 +374,7 @@ function saveSiteInfoDraft() {
 }
 
 function _postSettings(data, msg) {
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify(Object.assign({ type: "settings" }, data))
@@ -428,7 +439,7 @@ var RSS_DEFAULTS = [
 ];
 
 function loadRssSources() {
-    fetch("/track", { headers: authHeaders() })
+    adminFetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(d) {
             var sources = (d.settings && d.settings.rssSources) ? d.settings.rssSources : RSS_DEFAULTS;
@@ -465,7 +476,7 @@ function saveRss() {
         else if (name || url) valid = false;
     });
     if (!valid) { showToast("⚠️ تکایە هەموو خانەکانی ناو و ئادرەس پڕ بکەرەوە", true); return; }
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", rssSources: sources })
@@ -483,7 +494,7 @@ function saveRss() {
 var _hlCountdowns = {};
 
 function loadCustomHeadlines() {
-    fetch("/track", { headers: authHeaders() })
+    adminFetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(d) {
             var items = (d.settings && d.settings.customHeadlines) ? d.settings.customHeadlines : [];
@@ -564,13 +575,13 @@ function _startHlCountdown(row, expiresAt, rowId) {
 }
 
 function _removeExpiredHeadline(expiredRow) {
-    fetch("/track", { headers: authHeaders() })
+    adminFetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
         .then(function(d) {
             var items = (d.settings && d.settings.customHeadlines) ? d.settings.customHeadlines : [];
             var title = expiredRow.querySelector(".rss-name") ? expiredRow.querySelector(".rss-name").value.trim() : "";
             var filtered = items.filter(function(i) { return i.title !== title; });
-            return fetch("/track", {
+            return adminFetch("/track", {
                 method: "POST",
                 headers: authHeaders(),
                 body: JSON.stringify({ type: "settings", customHeadlines: filtered })
@@ -606,7 +617,7 @@ function saveCustomHeadlines() {
         }
         items.push(item);
     });
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", customHeadlines: items })
@@ -615,7 +626,7 @@ function saveCustomHeadlines() {
             showToast("✅ مانشێتەکان پاشەکەوت کران!");
             // snapshot_id نوێ بنووسە KV بۆ ئەوەی سایتی سەرەکی نۆتیف بدات
             var snapId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-            fetch("/track", {
+            adminFetch("/track", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ type: "news_snapshot", snapshotId: snapId })
@@ -657,7 +668,7 @@ function getClsFromAction(action) {
 }
 
 function loadButtons() {
-    fetch("/track", { headers: authHeaders() })
+    adminFetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
         .then(function(d) {
             var savedBtns = (d.settings && Array.isArray(d.settings.toolbarBtns)) ? d.settings.toolbarBtns : [];
@@ -816,7 +827,7 @@ function collectBtns() {
 // پاشەکەوتکردنی یەک دوگمە بە تایبەتی
 function saveSingleBtn(btn) {
     var btns = collectBtns();
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", toolbarBtns: btns })
@@ -826,7 +837,7 @@ function saveSingleBtn(btn) {
 
 function saveButtons() {
     var btns = collectBtns();
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "settings", toolbarBtns: btns })
@@ -846,7 +857,7 @@ function loadStats() {
     setEl("stat-total-textarea","⏳");
     setEl("stat-kv-usage",      "⏳");
 
-    fetch("/track?full=1", { headers: authHeaders() })
+    adminFetch("/track?full=1", { headers: authHeaders() })
         .then(function(r) {
             if (!r.ok) throw new Error("هەڵەی " + r.status);
             return r.json();
@@ -1188,7 +1199,7 @@ function renderSnapshots(snaps) {
 
 
 function forceSiteReload() {
-    fetch('/track', {
+    adminFetch('/track', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ type: 'force_reload' })
@@ -1205,7 +1216,7 @@ function loadTextsTab() {
     var el = document.getElementById("textareaList");
     if (!el) return;
     el.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
-    fetch("/track?full=1", { headers: authHeaders() })
+    adminFetch("/track?full=1", { headers: authHeaders() })
         .then(function(r){ return r.json(); })
         .then(function(data) {
             var txItems = (data.textareaToday || []).map(function(s) {
@@ -1240,7 +1251,7 @@ function loadTextsTab() {
 function deleteAllSnaps() {
     if (!_currentSnaps.length) { showToast("⚠️ هیچ دەقێک نییە", true); return; }
     if (!confirm("دڵنیایت لە سڕینەوەی هەموو " + _currentSnaps.length + " دەق؟")) return;
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "snapshots_replace", snaps: [] })
@@ -1288,11 +1299,11 @@ function loadArchiveList() {
     var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
 
     Promise.all([
-        fetch(base + "daily_current.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
-        fetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-        fetch(base + "monthly_archive.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
-        fetch(base + "yearly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-        fetch("/track", { headers: authHeaders() }).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
+        adminFetch(base + "daily_current.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
+        adminFetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+        adminFetch(base + "monthly_archive.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
+        adminFetch(base + "yearly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+        adminFetch("/track", { headers: authHeaders() }).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var daily   = (results[0] && results[0].days) ? results[0].days.slice().reverse() : [];
         var weekly  = results[1] || [];
@@ -1467,7 +1478,7 @@ function showArchiveChart(type, item) {
             var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
             var jsonFile = item.fileJson.replace("archives/","");
             inner.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> بارکردن...</div>';
-            fetch(base + jsonFile)
+            adminFetch(base + jsonFile)
                 .then(function(r){ return r.ok ? r.json() : null; })
                 .then(function(data) {
                     if (!data) {
@@ -1585,7 +1596,7 @@ function showArchiveChart(type, item) {
     // مانگی ئێستا — کۆی ئامار + چارتی وردی کلیکەکان لە daily_current.json
     var base2 = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
     inner.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> بارکردن...</div>';
-    fetch(base2 + "daily_current.json")
+    adminFetch(base2 + "daily_current.json")
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(cur) {
             var days = (cur && cur.days) ? cur.days : [];
@@ -1638,61 +1649,36 @@ function showArchiveChart(type, item) {
 //  تاب ٦ — گۆڕینی پاسوۆرد
 // ===========================
 
+var credentialChangePending = false;
 async function changePassword() {
-    var msgEl = document.getElementById("passMsg");
-    var oldPass = document.getElementById("oldPass").value;
-    var newPass = document.getElementById("newPass").value;
-    var confirmPass = document.getElementById("confirmPass").value;
-
-    function showMsg(text, isError) {
-        msgEl.className = isError ? "pass-error" : "pass-success";
-        msgEl.innerHTML = (isError ? '<i class="fas fa-times-circle"></i> ' : '<i class="fas fa-check-circle"></i> ') + text;
-        msgEl.style.display = "block";
-    }
-
-    if (!oldPass || !newPass || !confirmPass) {
-        showMsg("تکایە هەموو خانەکان پڕ بکەرەوە", true);
-        return;
-    }
-    if (newPass !== confirmPass) {
-        showMsg("پاسوۆردی نوێ و دووبارەکردنەوەکەی یەک ناگرنەوە", true);
-        return;
-    }
-    if (newPass.length < 8) {
-        showMsg("پاسوۆردی نوێ دەبێت کەمترین ٨ پیت بێت", true);
-        return;
-    }
-    var hasUpper = /[A-Z]/.test(newPass);
-    var hasLower = /[a-z]/.test(newPass);
-    var hasDigit = /[0-9]/.test(newPass);
-    var hasSpecial = /[^A-Za-z0-9]/.test(newPass);
-    var strength = [hasUpper, hasLower, hasDigit, hasSpecial].filter(Boolean).length;
-    if (strength < 3) {
-        showMsg("پاسوۆردی نوێ پێویستە کەمترین ٣ جۆر لەم ٤ەوە تێدا بێت: پیت گەورە، پیت بچووک، ژمارە، نیشانەی تایبەت", true);
-        return;
-    }
-
-    var oldHash = await hashPassword(oldPass);
-    var newHash = await hashPassword(newPass);
-
+    if (credentialChangePending) return;
+    var message = document.getElementById("passMsg");
+    function show(text) { message.style.display = "block"; message.className = "pass-error"; message.textContent = text; }
+    var name = document.getElementById("adminUsername").value.trim().normalize("NFKC");
+    var oldPassword = document.getElementById("oldPass").value;
+    var newPassword = document.getElementById("newPass").value;
+    var confirmation = document.getElementById("confirmPass").value;
+    if (!/^[\p{L}\p{N}_.-]{3,64}$/u.test(name)) { show("یوزەر دەبێت ٣ تا ٦٤ پیت یان ژمارە بێت، بەبێ بۆشایی؛ _ . - ڕێگەپێدراون."); return; }
+    if (!oldPassword) { show("پاسوۆردی ئێستا بنووسە."); return; }
+    if (newPassword !== confirmation) { show("پاسوۆردی نوێ و دووبارەکردنەوەکە یەک ناگرنەوە."); return; }
+    if (!newPassword && name === adminSessionUsername) { show("یوزەرێکی نوێ یان پاسۆردێکی نوێ بنووسە."); return; }
+    if (newPassword && newPassword.length < 12) { show("پاسوۆردی نوێ دەبێت کەمترین ١٢ پیت بێت."); return; }
+    credentialChangePending = true;
     try {
-        var res = await fetch("/track", {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify({ type: "admin_pass_set", oldHash: oldHash, newHash: newHash })
-        });
-        var data = await res.json();
-        if (!res.ok || data.error) {
-            showMsg(data.error || "هەڵەیەک روویدا", true);
-            document.getElementById("oldPass").value = "";
+        var body = { type: "admin_pass_set", username: name, oldHash: await hashPassword(oldPassword) };
+        if (newPassword) body.newHash = await hashPassword(newPassword);
+        var response = await adminFetch("/track", { method: "POST", headers: authHeaders(), body: JSON.stringify(body) });
+        var data = await response.json();
+        if (!response.ok || !data.success || !data.sessionsRevoked) {
+            show(response.status === 429 ? "هەوڵەکان زۆر بوون؛ دواتر دووبارە هەوڵ بدەرەوە." : data.error || "گۆڕانکارییەکە پاشەکەوت نەکرا.");
             return;
         }
-        document.getElementById("oldPass").value = "";
-        document.getElementById("newPass").value = "";
-        document.getElementById("confirmPass").value = "";
-        showMsg("پاسوۆرد بە سەرکەوتوویی گۆڕدرا — لە هەر شوێنێکەوە کارئەکات ✓", false);
-    } catch(e) {
-        showMsg("هەڵەی تۆڕ — دووبارە هەوڵ بدەرەوە", true);
+        endAdminSession("یوزەر/پاسوۆرد گۆڕدرا و هەموو سیشنەکان داخرا؛ بە زانیارییە نوێکان بچۆ ژوورەوە.");
+        document.getElementById("loginUser").value = name;
+    } catch(e) { show("کێشەی پەیوەندی؛ دووبارە هەوڵ بدەرەوە."); }
+    finally {
+        credentialChangePending = false;
+        ["oldPass", "newPass", "confirmPass"].forEach(function(id) { document.getElementById(id).value = ""; });
     }
 }
 
@@ -1704,7 +1690,7 @@ async function changePassword() {
 function manualClearStats() {
     if (!confirm("دڵنیایت لە سفرکردنەوەی ئامارەکان؟\nئامارەی کلیک و سەردان دەمێننەوە — تەنها دەقەکان دەسڕێنەوە.")) return;
     // تەنها snapshot ەکانی ئەمرۆ بسڕەوە
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "snapshots_replace", snaps: [] })
@@ -1763,7 +1749,7 @@ function loadPreviewText() {
     el.innerHTML = '<div class="no-data"><i class="fas fa-spinner fa-spin"></i> چاوەڕێ بکە...</div>';
 
     // داتا لە Cloudflare KV بخوێنەوە
-    fetch("/track", { headers: authHeaders() })
+    adminFetch("/track", { headers: authHeaders() })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             var p = data.preview;
@@ -1792,7 +1778,7 @@ function loadPreviewText() {
 function clearPreviewText() {
     if (!confirm("دڵنیایت لە سڕینەوەی دەقەکە؟")) return;
     // سڕینەوە لە KV
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "preview", text: " ", time: "" })
@@ -1802,18 +1788,16 @@ function clearPreviewText() {
     });
 }
 
-// ---- پشاندانی پانێل ئەگەر پێشتر لۆگین کراوە ----
-window.addEventListener("DOMContentLoaded", function() {
-    if (localStorage.getItem("adminAuth") === "1") {
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("adminPanel").style.display = "flex";
-        if (window.innerWidth > 768) {
-            var sidebar = document.getElementById("sidebar");
-            if (sidebar) sidebar.classList.add("open");
-        }
-        initPanel();
-    }
+// Restore only a server-validated cookie; legacy localStorage cannot authenticate.
+window.addEventListener("DOMContentLoaded", async function() {
+    localStorage.removeItem("adminAuth"); localStorage.removeItem("adminToken");
+    try {
+        var response = await adminFetch("/track?admin=session", { headers: authHeaders(), cache: "no-store" });
+        var data = await response.json();
+        if (response.ok && data.authenticated) enterAdminSession(data);
+    } catch(e) {}
 });
+document.addEventListener("visibilitychange", function() { if (!document.hidden) checkAdminSession(); });
 
 // ===========================
 //  نمودارەکانی رۆژانە / هەفتانە / مانگانە
@@ -1956,11 +1940,11 @@ function loadStatsCharts() {
     var base = "https://raw.githubusercontent.com/arkandara/arkandara.github.io/main/archives/";
 
     Promise.all([
-        fetch(base + "daily_current.json").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; }),
-        fetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
-        fetch(base + "monthly_archive.json").then(function(r){ return r.ok?r.json():{months:[]}; }).catch(function(){ return {months:[]}; }),
-        fetch(base + "yearly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
-        fetch("/track", { headers: authHeaders() }).then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
+        adminFetch(base + "daily_current.json").then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; }),
+        adminFetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        adminFetch(base + "monthly_archive.json").then(function(r){ return r.ok?r.json():{months:[]}; }).catch(function(){ return {months:[]}; }),
+        adminFetch(base + "yearly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
+        adminFetch("/track", { headers: authHeaders() }).then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var archived = (results[0] && results[0].days) ? results[0].days.slice().reverse() : [];
         _weeklyIndex  = results[1];
@@ -2150,7 +2134,7 @@ function renderStatsPeriod(period) {
 var appShots = [];
 
 function loadAppShots() {
-    fetch("/track?appshots=1")
+    adminFetch("/track?appshots=1")
         .then(function(r) { return r.json(); })
         .then(function(d) { appShots = (d && d.images) || []; renderAppShots(); })
         .catch(function() { renderAppShots(); });
@@ -2213,7 +2197,7 @@ document.addEventListener("change", function(e) {
 });
 
 function saveAppShots() {
-    fetch("/track", {
+    adminFetch("/track", {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ type: "app_screenshots_set", images: appShots })
@@ -2294,11 +2278,11 @@ async function visitorRequest(path, options, token) {
     var controller = new AbortController();
     var timer = setTimeout(function() { controller.abort(); }, 25000);
     try {
-        var response = await fetch(path, Object.assign({
+        var response = await adminFetch(path, Object.assign({
             cache: "no-store", credentials: "same-origin", signal: controller.signal
         }, options || {}, { headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
+            "X-Admin-Request": "1"
         } }));
         var data = await response.json();
         if (!response.ok) throw new Error(visitorErrorMessage(data && data.error));

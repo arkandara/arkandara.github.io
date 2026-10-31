@@ -11,7 +11,7 @@ function corsHeaders(origin) {
     return {
         "Access-Control-Allow-Origin":  allowed,
         "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Headers": "Content-Type, X-Admin-Request",
         "Content-Type":                 "application/json; charset=utf-8",
         "Cache-Control":                "no-store",
         "X-Content-Type-Options":        "nosniff",

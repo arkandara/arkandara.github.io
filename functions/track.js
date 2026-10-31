@@ -11,7 +11,7 @@ function corsHeaders(origin) {
     return {
         "Access-Control-Allow-Origin":  allowed,
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Headers": "Content-Type, X-Admin-Request",
         "Content-Type":                 "application/json; charset=utf-8",
         "Cache-Control":                "no-store",
         "X-Content-Type-Options":        "nosniff",
@@ -21,13 +21,83 @@ function corsHeaders(origin) {
 
 // ---- بەراستی توکنی Bearer ----
 export async function isAdminRequest(request, env) {
-    const authHeader = request.headers.get("Authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    if (!token || token.length > 4096) return false;
+    try { return !!await readAdminSession(request, env); }
+    catch { return false; }
+}
 
-    // ١. بەراوردی لەگەڵ ADMIN_TOKEN ی env
-    const adminToken = env.ADMIN_TOKEN || "";
-    return typeof adminToken === "string" && !!adminToken && await sameSecret(token, adminToken);
+const ADMIN_COOKIE = "__Host-admin_session";
+const SESSION_AGE = 8 * 3600;
+const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const authReady = new WeakMap();
+async function authDatabase(env) {
+    const db = env && env.VISITOR_DB;
+    if (!db || typeof db.prepare !== "function") throw invalid("login_not_configured", 503);
+    let ready = authReady.get(db);
+    if (!ready) {
+        ready = db.batch([
+            db.prepare("CREATE TABLE IF NOT EXISTS app_admin_auth (id INTEGER PRIMARY KEY CHECK(id = 1), username TEXT NOT NULL, verifier TEXT NOT NULL, generation TEXT NOT NULL)"),
+            db.prepare("CREATE TABLE IF NOT EXISTS app_admin_sessions (id TEXT PRIMARY KEY, generation TEXT NOT NULL, expires INTEGER NOT NULL)"),
+            db.prepare("CREATE INDEX IF NOT EXISTS app_admin_sessions_expiry ON app_admin_sessions(expires)")
+        ]).then(results => { if (!results.every(result => result.success)) throw invalid("login_not_configured", 503); })
+            .catch(error => { authReady.delete(db); throw error; });
+        authReady.set(db, ready);
+    }
+    await ready;
+    return db;
+}
+function cookieValue(request) {
+    const values = (request.headers.get("Cookie") || "").split(";").map(part => part.trim()).filter(part => part.startsWith(ADMIN_COOKIE + "="));
+    return values.length === 1 ? values[0].slice(ADMIN_COOKIE.length + 1) : "";
+}
+function adminCookie(value = "", age = 0) {
+    return ADMIN_COOKIE + "=" + value + "; Max-Age=" + age + "; Path=/; Secure; HttpOnly; SameSite=Strict";
+}
+function hex(bytes) { return Array.from(new Uint8Array(bytes), n => n.toString(16).padStart(2, "0")).join(""); }
+async function sessionKey(env) {
+    if (typeof env.ADMIN_TOKEN !== "string" || !env.ADMIN_TOKEN) throw invalid("login_not_configured", 503);
+    return crypto.subtle.importKey("raw", new TextEncoder().encode(env.ADMIN_TOKEN), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+}
+async function readAdminSession(request, env) {
+    if (new URL(request.url).protocol !== "https:") return null;
+    const parts = cookieValue(request).split(".");
+    if (parts.length !== 4 || parts[0] !== "v1" || !SESSION_ID.test(parts[1]) || !/^\d{10}$/.test(parts[2]) || !/^[0-9a-f]{64}$/.test(parts[3])) return null;
+    const now = Math.floor(Date.now() / 1000), expires = Number(parts[2]);
+    if (expires <= now || expires > now + SESSION_AGE) return null;
+    const mac = Uint8Array.from(parts[3].match(/../g), n => parseInt(n, 16));
+    if (!await crypto.subtle.verify("HMAC", await sessionKey(env), mac, new TextEncoder().encode(parts.slice(0, 3).join(".")))) return null;
+    const db = await authDatabase(env);
+    const row = await db.prepare("SELECT app_admin_auth.username AS username, app_admin_auth.generation AS generation, app_admin_sessions.expires AS expires FROM app_admin_sessions JOIN app_admin_auth ON app_admin_auth.id = 1 AND app_admin_auth.generation = app_admin_sessions.generation WHERE app_admin_sessions.id = ? AND app_admin_sessions.expires = ? AND app_admin_sessions.expires > ?")
+        .bind(parts[1], expires, now).first();
+    return row ? { ...row, sessionId: parts[1] } : null;
+}
+async function issueSession(env, db, state, cors) {
+    const now = Math.floor(Date.now() / 1000), expires = now + SESSION_AGE;
+    const id = crypto.randomUUID(), payload = ["v1", id, expires].join(".");
+    const signature = hex(await crypto.subtle.sign("HMAC", await sessionKey(env), new TextEncoder().encode(payload)));
+    // Guard against a concurrent credential change between password verification and insertion.
+    const result = await db.prepare("INSERT INTO app_admin_sessions (id, generation, expires) SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM app_admin_auth WHERE id = 1 AND generation = ?)")
+        .bind(id, state.generation, expires, state.generation).run();
+    if (!result.success || result.meta.changes !== 1) throw invalid("credentials_changed", 409);
+    await db.prepare("DELETE FROM app_admin_sessions WHERE expires <= ?").bind(now).run();
+    return new Response(JSON.stringify({ success: true, username: state.username, expiresAt: expires }), {
+        status: 200, headers: { ...cors, "Set-Cookie": adminCookie(payload + "." + signature, SESSION_AGE) }
+    });
+}
+function username(value) {
+    if (typeof value !== "string") return "";
+    const normalized = value.trim().normalize("NFKC");
+    return /^[\p{L}\p{N}_.-]{3,64}$/u.test(normalized) ? normalized : "";
+}
+async function passwordVerifier(hash, existingSalt) {
+    const salt = existingSalt || crypto.getRandomValues(new Uint8Array(16));
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(hash), "PBKDF2", false, ["deriveBits"]);
+    const derived = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, key, 256);
+    return "pbkdf2:100000:" + hex(salt) + ":" + hex(derived);
+}
+async function verifyPassword(hash, verifier) {
+    if (typeof verifier !== "string" || !/^pbkdf2:100000:[0-9a-f]{32}:[0-9a-f]{64}$/.test(verifier)) return false;
+    const salt = Uint8Array.from(verifier.split(":")[2].match(/../g), n => parseInt(n, 16));
+    return sameSecret(await passwordVerifier(hash, salt), verifier);
 }
 
 async function sameSecret(a, b) {
@@ -115,8 +185,8 @@ function validateBody(body, type) {
             body[field] = Number(value);
         }
     }
-    if (type === "admin_pass_verify" && (typeof body.passHash !== "string" || !/^[0-9a-f]{64}$/.test(body.passHash))) throw invalid("invalid_password_hash");
-    if (type === "admin_pass_set" && ![body.oldHash, body.newHash].every(hash => typeof hash === "string" && /^[0-9a-f]{64}$/.test(hash))) throw invalid("invalid_password_hash");
+    if (type === "admin_pass_verify" && (typeof body.passHash !== "string" || !/^[0-9a-f]{64}$/.test(body.passHash) || !username(body.username))) throw invalid("invalid_credentials");
+    if (type === "admin_pass_set" && (typeof body.oldHash !== "string" || !/^[0-9a-f]{64}$/.test(body.oldHash) || (body.newHash !== undefined && (typeof body.newHash !== "string" || !/^[0-9a-f]{64}$/.test(body.newHash))) || !username(body.username))) throw invalid("invalid_credentials");
     if (type === "snapshots_replace") {
         if (!Array.isArray(body.snaps) || body.snaps.length > 200) throw invalid("invalid_snapshots");
         for (const snap of body.snaps) {
@@ -146,6 +216,15 @@ export async function onRequestGet(context) {
     const origin = request.headers.get("Origin") || ALLOWED_ORIGIN;
     const CORS = corsHeaders(origin);
 
+    if (new URL(request.url).searchParams.get("admin") === "session") {
+        try {
+            const session = await readAdminSession(request, env);
+            return new Response(JSON.stringify(session ? { authenticated: true, username: session.username, expiresAt: session.expires } : { authenticated: false }), {
+                status: session ? 200 : 401, headers: CORS
+            });
+        } catch { return new Response(JSON.stringify({ error: "session_unavailable" }), { status: 503, headers: CORS }); }
+    }
+
     // وێنەکانی ئەپ — گشتی (بۆ مۆداڵی «بەرهەمی دیکە»)
     if (new URL(request.url).searchParams.get("appshots") === "1") {
         const raw = await env.STATS_DB.get("settings:app_screenshots");
@@ -154,6 +233,7 @@ export async function onRequestGet(context) {
 
     // بەبێ توکن — forceReload و settings بگەڕێنە (بۆ سایتی سەرەکی)
     if (!await isAdminRequest(request, env)) {
+        if (request.headers.get("X-Admin-Request") === "1" || new URL(request.url).searchParams.get("full") === "1") return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: CORS });
         const url = new URL(request.url);
 
         // newscheck: snapshot ID ی هەواڵەکان بگەڕێنە
@@ -238,9 +318,22 @@ export async function onRequestPost(context) {
         const authenticated = await isAdminRequest(request, env);
         const body = await readBody(request, authenticated ? 5000000 : 32768);
         const type = body.type || "click";
+        if (typeof type !== "string") throw invalid("invalid_type");
 
         // ئەم typeانە بێ توکن کار دەکەن (سایتی خۆی دەیان نێردرێت)
-        const publicTypes = ["click", "visit", "textarea", "preview", "admin_pass_verify"];
+        const publicTypes = ["click", "visit", "textarea", "preview", "admin_pass_verify", "admin_logout"];
+
+        if ((authenticated || type.startsWith("admin_")) && suppliedOrigin !== url.origin) return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: CORS });
+
+        if (type === "admin_logout") {
+            const session = await readAdminSession(request, env);
+            if (session) {
+                const db = await authDatabase(env);
+                const result = await db.prepare("DELETE FROM app_admin_sessions WHERE id = ?").bind(session.sessionId).run();
+                if (!result.success) throw invalid("logout_unavailable", 503);
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...CORS, "Set-Cookie": adminCookie() } });
+        }
 
         if (!publicTypes.includes(type)) {
             // هەموو typeی تری ئەدمین: پشکنینی توکن پێویستە
@@ -455,50 +548,45 @@ export async function onRequestPost(context) {
             return ok({ success: true, cleared: today }, CORS);
         }
 
-        // ---- admin_pass_set (ئەدمین تەنها) ----
+        // Credentials are private D1 state. A generation change revokes every session.
         if (type === "admin_pass_set") {
-            const oldHash = body.oldHash || "";
-            const newHash = body.newHash || "";
-            if (!newHash || newHash.length !== 64) return bad("hash نادروستە", CORS);
-            const savedHash = await env.STATS_DB.get("settings:admin_pass_hash");
-            const defaultHash = env.DEFAULT_PASS_HASH || "";
-            const expected = savedHash || defaultHash;
-            if (typeof expected !== "string" || !expected || !await sameSecret(oldHash, expected)) return bad("پاسۆردی ئێستا هەڵەیە", CORS);
-            await env.STATS_DB.put("settings:admin_pass_hash", newHash);
-            return ok({ success: true }, CORS);
+            await rateLimit(env, request, "credential-change", 10, 900);
+            const session = await readAdminSession(request, env);
+            if (!session) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: CORS });
+            const db = await authDatabase(env);
+            const current = await db.prepare("SELECT username, verifier, generation FROM app_admin_auth WHERE id = 1").first();
+            if (!current || current.generation !== session.generation) throw invalid("credentials_changed", 409);
+            if (!await verifyPassword(body.oldHash, current.verifier)) return bad("پاسۆردی ئێستا هەڵەیە", CORS);
+            const verifier = body.newHash ? await passwordVerifier(body.newHash) : current.verifier;
+            const generation = crypto.randomUUID();
+            const results = await db.batch([
+                db.prepare("UPDATE app_admin_auth SET username = ?, verifier = ?, generation = ? WHERE id = 1 AND generation = ?").bind(username(body.username), verifier, generation, current.generation),
+                db.prepare("DELETE FROM app_admin_sessions WHERE generation = ?").bind(current.generation)
+            ]);
+            if (!results.every(result => result.success)) throw invalid("credentials_unavailable", 503);
+            if (results[0].meta.changes !== 1) throw invalid("credentials_changed", 409);
+            return new Response(JSON.stringify({ success: true, sessionsRevoked: true }), { status: 200, headers: { ...CORS, "Set-Cookie": adminCookie() } });
         }
 
-        // ---- admin_pass_verify: پشکنینی پاسۆرد و گەڕاندنەوەی ADMIN_TOKEN ----
-        // ئەمە بێ توکن کار دەکات چونکە پێش لۆگینە
         if (type === "admin_pass_verify") {
-            const passHash = body.passHash || "";
-            if (!passHash || passHash.length !== 64) return bad("hash نادروستە", CORS);
-
-            // ١. پێشتر لە KV بخوێنەوە
-            const savedHash = await env.STATS_DB.get("settings:admin_pass_hash");
-
-            // ٢. ئەگەر KV خاڵی بوو، لە env بخوێنەوە
-            const defaultHash = env.DEFAULT_PASS_HASH || "";
-
-            // A configured password is required; the saved one replaces the default.
-            const expected = savedHash || defaultHash;
-
-            // Never let a public request claim an unconfigured administrator.
-            if (typeof expected !== "string" || !/^[0-9a-f]{64}$/.test(expected)) throw invalid("login_not_configured", 503);
-
-            if (!await sameSecret(passHash, expected)) {
-                return new Response(JSON.stringify({ error: "پاسۆرد هەڵەیە" }), { status: 401, headers: CORS });
+            const db = await authDatabase(env);
+            let state = await db.prepare("SELECT username, verifier, generation FROM app_admin_auth WHERE id = 1").first();
+            if (!state) {
+                // One-time migration: prove the current password before creating private auth state.
+                // There is no public first-user bootstrap and no fallback once D1 state exists.
+                const saved = await env.STATS_DB.get("settings:admin_pass_hash");
+                const expected = saved || env.DEFAULT_PASS_HASH;
+                if (typeof expected !== "string" || !/^[0-9a-f]{64}$/.test(expected)) throw invalid("login_not_configured", 503);
+                if (username(body.username) !== "admin" || !await sameSecret(body.passHash, expected)) return new Response(JSON.stringify({ error: "ناو یان پاسۆرد هەڵەیە" }), { status: 401, headers: CORS });
+                const result = await db.prepare("INSERT OR IGNORE INTO app_admin_auth (id, username, verifier, generation) VALUES (1, ?, ?, ?)").bind("admin", await passwordVerifier(body.passHash), crypto.randomUUID()).run();
+                if (!result.success) throw invalid("login_not_configured", 503);
+                state = await db.prepare("SELECT username, verifier, generation FROM app_admin_auth WHERE id = 1").first();
             }
-
-            // ئەگەر KV خاڵی بوو و env hash هەبوو — ئێستا لە KV پاشەکەوت بکە بۆ داهاتوو
-            if (!savedHash && defaultHash && passHash === defaultHash) {
-                await env.STATS_DB.put("settings:admin_pass_hash", passHash);
-            }
-
-            // پاسۆرد ڕاستە
-            // Keep the visitor endpoint compatible: only the configured bearer is issued.
-            const token = env.ADMIN_TOKEN;
-            return ok({ success: true, token: token }, CORS);
+            const [userMatches, passwordMatches] = await Promise.all([
+                sameSecret(username(body.username), state.username), verifyPassword(body.passHash, state.verifier)
+            ]);
+            if (!userMatches || !passwordMatches) return new Response(JSON.stringify({ error: "ناو یان پاسۆرد هەڵەیە" }), { status: 401, headers: CORS });
+            return await issueSession(env, db, state, CORS);
         }
 
                 return bad("جۆری نادروست", CORS);
@@ -518,7 +606,7 @@ function safeJson(raw, def) { try { return raw ? JSON.parse(raw) : def; } catch(
 function ok(data, cors)  { return new Response(JSON.stringify(data),                 { status: 200, headers: cors }); }
 function bad(msg, cors)  { return new Response(JSON.stringify({ error: msg }),       { status: 400, headers: cors }); }
 function err500(e, cors) {
-    const status = [400, 413, 429, 503].includes(e.status) ? e.status : 500;
+    const status = [400, 409, 413, 429, 503].includes(e.status) ? e.status : 500;
     return new Response(JSON.stringify({ error: status === 500 ? "operation_unavailable" : e.message }), {
         status, headers: { ...cors, ...(e.retryAfter ? { "Retry-After": String(e.retryAfter) } : {}) }
     });

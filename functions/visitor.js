@@ -1,3 +1,4 @@
+import { isAdminRequest } from "./track.js";
 // Cloudflare Pages: signed visitor identity, private D1 registry and blocklist.
 // No KV, archive access, or GitHub writes. VISITOR_DB is the D1 binding.
 // Existing GitHub blocks are imported once, atomically, using server-side GH_PAT.
@@ -6,7 +7,7 @@
 // Last seen is throttled to 15 minutes. Labels are never returned publicly.
 // Daily Baghdad reset at 23:50 preserves blocked rows; recording resumes 23:55.
 // Visibility changes by server time; physical cleanup is lazy on the next DB use.
-// Admin actions require env.ADMIN_TOKEN; no password-hash fallback.
+// Admin actions require a live private session; no bearer/password-hash fallback.
 // Required secret: VISITOR_SIGNING_SECRET (32+ random bytes, kept stable).
 // Blocklist/database failure returns 503; registry recording failure is nonfatal.
 // Clearing cookies/new browser profiles bypass browser-ID blocking.
@@ -78,19 +79,7 @@ async function readBoundedJson(message, limit) {
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
     return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
 }
-async function isAdmin(request, env) {
-    if (typeof env.ADMIN_TOKEN !== "string" || !env.ADMIN_TOKEN) return false;
-    const authorization = request.headers.get("Authorization") || "";
-    if (!authorization.startsWith("Bearer ") || authorization.length > 4096) return false;
-    const [actual, expected] = await Promise.all([
-        crypto.subtle.digest("SHA-256", encoder.encode(authorization.slice(7))),
-        crypto.subtle.digest("SHA-256", encoder.encode(env.ADMIN_TOKEN))
-    ]);
-    const a = new Uint8Array(actual), b = new Uint8Array(expected);
-    let difference = 0;
-    for (let i = 0; i < a.length; i++) difference |= a[i] ^ b[i];
-    return difference === 0;
-}
+async function isAdmin(request, env) { return isAdminRequest(request, env); }
 // Used only for the one-time import of the existing GitHub blocklist.
 async function githubRequest(env) {
     const controller = new AbortController();

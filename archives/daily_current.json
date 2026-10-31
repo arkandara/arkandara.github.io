@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-10",
-  "updatedAt": "2026-10-30T01:01:10.403Z",
+  "updatedAt": "2026-10-31T00:47:33.088Z",
   "days": [
     {
       "date": "2026-10-01",
@@ -618,6 +618,25 @@
         "سڕینەوەی دەق": 2,
         "تەما": 1,
         "دەربارە": 2
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 0,
+        "tablet": 0
+      },
+      "cityStats": {}
+    },
+    {
+      "date": "2026-10-31",
+      "generatedAt": "2026-10-31T00:47:33.088Z",
+      "totalVisits": 17,
+      "totalClicks": 25,
+      "totalTextarea": 15,
+      "clicks": {
+        "گۆڕین بۆ عەلی کەی": 12,
+        "گۆڕین بۆ یونیکۆد": 9,
+        "سڕینەوەی دەق": 3,
+        "دەربارە": 1
       },
       "deviceStats": {
         "mobile": 0,

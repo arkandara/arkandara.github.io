@@ -7,34 +7,137 @@
 const ALLOWED_ORIGIN = "https://arkandara.github.io";
 
 function corsHeaders(origin) {
-    const allowed = origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
+    const allowed = [ALLOWED_ORIGIN, "https://arkandara.pages.dev"].includes(origin) ? origin : "null";
     return {
         "Access-Control-Allow-Origin":  allowed,
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Content-Type":                 "application/json"
+        "Content-Type":                 "application/json; charset=utf-8",
+        "Cache-Control":                "no-store",
+        "X-Content-Type-Options":        "nosniff",
+        "Vary":                         "Origin, Authorization"
     };
 }
 
 // ---- بەراستی توکنی Bearer ----
-async function checkAuth(request, env) {
+export async function isAdminRequest(request, env) {
     const authHeader = request.headers.get("Authorization") || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    if (!token) return false;
+    if (!token || token.length > 4096) return false;
 
     // ١. بەراوردی لەگەڵ ADMIN_TOKEN ی env
     const adminToken = env.ADMIN_TOKEN || "";
-    if (adminToken && token === adminToken) return true;
+    return typeof adminToken === "string" && !!adminToken && await sameSecret(token, adminToken);
+}
 
-    // ٢. ئەگەر ADMIN_TOKEN بەردەست نەبوو — بەراوردی لەگەڵ hash ی پاشەکەوتکراو لە KV
-    const savedHash = await env.STATS_DB.get("settings:admin_pass_hash");
-    if (savedHash && token === savedHash) return true;
+async function sameSecret(a, b) {
+    const enc = new TextEncoder();
+    const hashes = await Promise.all([a, b].map(value => crypto.subtle.digest("SHA-256", enc.encode(value))));
+    const left = new Uint8Array(hashes[0]), right = new Uint8Array(hashes[1]);
+    let difference = 0;
+    for (let i = 0; i < left.length; i++) difference |= left[i] ^ right[i];
+    return difference === 0;
+}
 
-    // ٣. بەراوردی لەگەڵ DEFAULT_PASS_HASH ی env
-    const defaultHash = env.DEFAULT_PASS_HASH || "";
-    if (defaultHash && token === defaultHash) return true;
+function invalid(message = "invalid_body", status = 400) {
+    return Object.assign(new Error(message), { status });
+}
+async function readBody(request, limit) {
+    if (!request.body) throw invalid();
+    const reader = request.body.getReader();
+    const chunks = [];
+    let size = 0;
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            size += value.byteLength;
+            if (size > limit) { await reader.cancel(); throw invalid("body_too_large", 413); }
+            chunks.push(value);
+        }
+    } finally { reader.releaseLock(); }
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+    let body;
+    try { body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); }
+    catch { throw invalid(); }
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw invalid();
+    return body;
+}
 
-    return false;
+// Persist counters in the existing private D1 binding, shared by all isolates.
+// IPs are keyed with a server secret; no raw address is stored in this table.
+const rateReady = new WeakMap();
+const rateCleaned = new WeakMap();
+async function rateLimit(env, request, scope, limit, seconds) {
+    const db = env.VISITOR_DB;
+    if (!db || typeof db.prepare !== "function" || !env.ADMIN_TOKEN) throw invalid("rate_limit_unavailable", 503);
+    let ready = rateReady.get(db);
+    if (!ready) {
+        ready = db.prepare("CREATE TABLE IF NOT EXISTS track_rate_limits (key TEXT PRIMARY KEY, bucket INTEGER NOT NULL, hits INTEGER NOT NULL)").run()
+            .then(result => { if (!result.success) throw invalid("rate_limit_unavailable", 503); })
+            .catch(error => { rateReady.delete(db); throw error; });
+        rateReady.set(db, ready);
+    }
+    await ready;
+    const now = Math.floor(Date.now() / 1000);
+    const bucket = Math.floor(now / seconds) * seconds;
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const keyBytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(env.ADMIN_TOKEN + "|" + scope + "|" + ip));
+    const key = Array.from(new Uint8Array(keyBytes), n => n.toString(16).padStart(2, "0")).join("");
+    const row = await db.prepare("INSERT INTO track_rate_limits (key, bucket, hits) VALUES (?, ?, 1) ON CONFLICT(key) DO UPDATE SET hits = CASE WHEN track_rate_limits.bucket = excluded.bucket THEN track_rate_limits.hits + 1 ELSE 1 END, bucket = excluded.bucket RETURNING hits")
+        .bind(key, bucket).first();
+    if (!row || !Number.isInteger(row.hits)) throw invalid("rate_limit_unavailable", 503);
+    if (row.hits > limit) throw Object.assign(invalid("too_many_requests", 429), { retryAfter: bucket + seconds - now });
+    if ((rateCleaned.get(db) || 0) < now - 3600) {
+        rateCleaned.set(db, now);
+        try { await db.prepare("DELETE FROM track_rate_limits WHERE bucket < ?").bind(now - 86400).run(); }
+        catch { rateCleaned.delete(db); }
+    }
+}
+
+function textField(body, key, max, required = false) {
+    if (body[key] === undefined && !required) return;
+    if (typeof body[key] !== "string" || body[key].length > max || (required && !body[key].trim())) throw invalid("invalid_" + key);
+}
+function validateBody(body, type) {
+    if (["click", "textarea", "preview"].includes(type)) textField(body, "text", 20000, type !== "click");
+    if (type === "click") textField(body, "label", 120, true);
+    if (type === "textarea") textField(body, "method", 80);
+    if (type === "preview") textField(body, "time", 40);
+    if (type === "visit") {
+        for (const field of ["city", "country", "region", "district", "zip", "isp", "ip", "device", "referrer", "timezone"]) textField(body, field, field === "referrer" ? 512 : 160);
+        for (const [field, max] of [["lat", 90], ["lon", 180]]) {
+            const value = body[field];
+            if (value === undefined || value === "") continue;
+            if (!["number", "string"].includes(typeof value) || (typeof value === "string" && !/^-?\d{1,3}(?:\.\d{1,12})?$/.test(value)) || !Number.isFinite(Number(value)) || Math.abs(Number(value)) > max) throw invalid("invalid_" + field);
+            body[field] = Number(value);
+        }
+    }
+    if (type === "admin_pass_verify" && (typeof body.passHash !== "string" || !/^[0-9a-f]{64}$/.test(body.passHash))) throw invalid("invalid_password_hash");
+    if (type === "admin_pass_set" && ![body.oldHash, body.newHash].every(hash => typeof hash === "string" && /^[0-9a-f]{64}$/.test(hash))) throw invalid("invalid_password_hash");
+    if (type === "snapshots_replace") {
+        if (!Array.isArray(body.snaps) || body.snaps.length > 200) throw invalid("invalid_snapshots");
+        for (const snap of body.snaps) {
+            if (!snap || typeof snap !== "object" || Array.isArray(snap)) throw invalid("invalid_snapshot");
+            textField(snap, "text", 20000); textField(snap, "preview", 20000); textField(snap, "label", 120); textField(snap, "time", 40);
+        }
+    }
+    if (type === "news_snapshot") textField(body, "snapshotId", 100);
+    if (type === "settings") {
+        for (const field of ["rssSources", "customHeadlines", "toolbarBtns"]) {
+            if (body[field] !== undefined && (!Array.isArray(body[field]) || body[field].length > 100)) throw invalid("invalid_" + field);
+        }
+        for (const item of [...(body.rssSources || []), ...(body.toolbarBtns || [])]) {
+            if (!item || typeof item !== "object" || Array.isArray(item)) throw invalid("invalid_setting");
+            if (item.url) {
+                let url; try { url = new URL(item.url); } catch { throw invalid("invalid_url"); }
+                if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) throw invalid("invalid_url");
+            }
+        }
+        if (body.sitemapLastmod !== undefined && (typeof body.sitemapLastmod !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(body.sitemapLastmod))) throw invalid("invalid_date");
+    }
 }
 
 // ---- GET: خوێندنەوەی ئامارەکان ----
@@ -50,7 +153,7 @@ export async function onRequestGet(context) {
     }
 
     // بەبێ توکن — forceReload و settings بگەڕێنە (بۆ سایتی سەرەکی)
-    if (!await checkAuth(request, env)) {
+    if (!await isAdminRequest(request, env)) {
         const url = new URL(request.url);
 
         // newscheck: snapshot ID ی هەواڵەکان بگەڕێنە
@@ -127,17 +230,33 @@ export async function onRequestPost(context) {
     const CORS = corsHeaders(origin);
 
     try {
-        const body = await request.json();
+        const url = new URL(request.url);
+        if (url.protocol !== "https:") return new Response(JSON.stringify({ error: "https_required" }), { status: 400, headers: CORS });
+        const suppliedOrigin = request.headers.get("Origin");
+        if (!suppliedOrigin || ![url.origin, ALLOWED_ORIGIN].includes(suppliedOrigin)) return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: CORS });
+        if ((request.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase() !== "application/json") return new Response(JSON.stringify({ error: "json_required" }), { status: 415, headers: CORS });
+        const authenticated = await isAdminRequest(request, env);
+        const body = await readBody(request, authenticated ? 5000000 : 32768);
         const type = body.type || "click";
 
         // ئەم typeانە بێ توکن کار دەکەن (سایتی خۆی دەیان نێردرێت)
-        const publicTypes = ["click", "visit", "textarea", "preview", "admin_pass_get", "admin_pass_verify"];
+        const publicTypes = ["click", "visit", "textarea", "preview", "admin_pass_verify"];
 
         if (!publicTypes.includes(type)) {
             // هەموو typeی تری ئەدمین: پشکنینی توکن پێویستە
-            if (!await checkAuth(request, env)) {
+            if (!authenticated) {
                 return new Response(JSON.stringify({ error: "مجاز نییە" }), { status: 401, headers: CORS });
             }
+        }
+
+        const knownTypes = [...publicTypes, "settings", "app_screenshots_set", "news_snapshot", "snapshots_replace", "force_reload", "daily_clear", "admin_pass_set"];
+        if (!knownTypes.includes(type)) return bad("جۆری نادروست", CORS);
+        validateBody(body, type);
+        if (type === "admin_pass_verify") {
+            if (typeof env.ADMIN_TOKEN !== "string" || !env.ADMIN_TOKEN) throw invalid("login_not_configured", 503);
+            await rateLimit(env, request, "login", 10, 900);
+        } else if (!authenticated) {
+            await rateLimit(env, request, "public", 120, 60);
         }
 
         // ---- کلیک + snapshot تێکست ----
@@ -145,12 +264,13 @@ export async function onRequestPost(context) {
             const label = (body.label || "").trim();
             if (!label) return bad("label پێویستە", CORS);
 
+            const listRaw = await env.STATS_DB.get("meta:clicks_list");
+            const list    = safeJson(listRaw, []);
+            if (!Array.isArray(list)) throw invalid("click_registry_unavailable", 503);
+            if (!list.includes(label) && list.length >= 200) return bad("click_labels_full", CORS);
             const key     = "click:" + label;
             const current = parseInt(await env.STATS_DB.get(key) || "0");
             await env.STATS_DB.put(key, String(current + 1));
-
-            const listRaw = await env.STATS_DB.get("meta:clicks_list");
-            const list    = safeJson(listRaw, []);
             if (!list.includes(label)) {
                 list.push(label);
                 await env.STATS_DB.put("meta:clicks_list", JSON.stringify(list));
@@ -335,12 +455,6 @@ export async function onRequestPost(context) {
             return ok({ success: true, cleared: today }, CORS);
         }
 
-        // ---- admin_pass_get (ئەدمین تەنها) ----
-        if (type === "admin_pass_get") {
-            const hash = await env.STATS_DB.get("settings:admin_pass_hash");
-            return ok({ hash: hash || null }, CORS);
-        }
-
         // ---- admin_pass_set (ئەدمین تەنها) ----
         if (type === "admin_pass_set") {
             const oldHash = body.oldHash || "";
@@ -349,7 +463,7 @@ export async function onRequestPost(context) {
             const savedHash = await env.STATS_DB.get("settings:admin_pass_hash");
             const defaultHash = env.DEFAULT_PASS_HASH || "";
             const expected = savedHash || defaultHash;
-            if (!expected || oldHash !== expected) return bad("پاسۆردی ئێستا هەڵەیە", CORS);
+            if (typeof expected !== "string" || !expected || !await sameSecret(oldHash, expected)) return bad("پاسۆردی ئێستا هەڵەیە", CORS);
             await env.STATS_DB.put("settings:admin_pass_hash", newHash);
             return ok({ success: true }, CORS);
         }
@@ -366,17 +480,13 @@ export async function onRequestPost(context) {
             // ٢. ئەگەر KV خاڵی بوو، لە env بخوێنەوە
             const defaultHash = env.DEFAULT_PASS_HASH || "";
 
-            // ٣. ئەگەر هەردووکیان بۆش بوون، هاشەکە بە خۆی لە KV پاشەکەوت بکە (bootstrap)
-            let expected = savedHash || defaultHash;
+            // A configured password is required; the saved one replaces the default.
+            const expected = savedHash || defaultHash;
 
-            if (!expected) {
-                // ئەگەر هیچ hash ی نەبوو — passHash ی داواکراو بە خۆی وەک hash پاشەکەوت بکە
-                // (تەنها یەک جار دەکرێت، bootstrap)
-                await env.STATS_DB.put("settings:admin_pass_hash", passHash);
-                expected = passHash;
-            }
+            // Never let a public request claim an unconfigured administrator.
+            if (typeof expected !== "string" || !/^[0-9a-f]{64}$/.test(expected)) throw invalid("login_not_configured", 503);
 
-            if (passHash !== expected) {
+            if (!await sameSecret(passHash, expected)) {
                 return new Response(JSON.stringify({ error: "پاسۆرد هەڵەیە" }), { status: 401, headers: CORS });
             }
 
@@ -386,8 +496,8 @@ export async function onRequestPost(context) {
             }
 
             // پاسۆرد ڕاستە
-            // ADMIN_TOKEN لە env وەک توکن — ئەگەر نەبوو، passHash خۆی وەک توکن بەکاردێت
-            const token = env.ADMIN_TOKEN || passHash;
+            // Keep the visitor endpoint compatible: only the configured bearer is issued.
+            const token = env.ADMIN_TOKEN;
             return ok({ success: true, token: token }, CORS);
         }
 
@@ -407,4 +517,9 @@ function isoDate(d) { return d.toISOString().slice(0, 10); }
 function safeJson(raw, def) { try { return raw ? JSON.parse(raw) : def; } catch(e) { return def; } }
 function ok(data, cors)  { return new Response(JSON.stringify(data),                 { status: 200, headers: cors }); }
 function bad(msg, cors)  { return new Response(JSON.stringify({ error: msg }),       { status: 400, headers: cors }); }
-function err500(e, cors) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: cors }); }
+function err500(e, cors) {
+    const status = [400, 413, 429, 503].includes(e.status) ? e.status : 500;
+    return new Response(JSON.stringify({ error: status === 500 ? "operation_unavailable" : e.message }), {
+        status, headers: { ...cors, ...(e.retryAfter ? { "Retry-After": String(e.retryAfter) } : {}) }
+    });
+}

@@ -6,7 +6,7 @@
 
 const ADMIN_USERNAME = "admin";
 
-// ---- توکنی Bearer لە sessionStorage ----
+// ---- Configured bearer; existing visitor API still requires this token. ----
 function getAdminToken() {
     return localStorage.getItem("adminToken") || "";
 }
@@ -26,28 +26,15 @@ async function hashPassword(pass) {
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-// getSavedPassHash: بەکارنایێنراوە دیکە — verifyAndLogin جێی گرتووە
-// ئەمە بۆ پاراستنی گونجانی کۆد دەمێنێتەوە
-async function getSavedPassHash() {
-    try {
-        const res = await fetch("/track", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "admin_pass_get" })
-        });
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data.hash || null;
-    } catch(e) {
-        return null;
-    }
-}
+// Password verifiers are never requested or stored by the browser.
+var loginPending = false;
 
 // ===========================
 //  لۆگین / دەرچوون
 // ===========================
 
 async function doLogin() {
+    if (loginPending) return;
     const user  = document.getElementById("loginUser").value.trim();
     const pass  = document.getElementById("loginPass").value;
     const errEl = document.getElementById("loginError");
@@ -64,6 +51,7 @@ async function doLogin() {
         return;
     }
 
+    loginPending = true;
     try {
         const passHash = await hashPassword(pass);
 
@@ -76,7 +64,21 @@ async function doLogin() {
 
         const data = await res.json();
 
-        if (!res.ok || !data.success) {
+        if (res.status === 429) {
+            errEl.style.display = "flex";
+            var seconds = Number(res.headers.get("Retry-After")) || 900;
+            errEl.textContent = "هەوڵەکان زۆر بوون؛ دوای " + Math.ceil(seconds / 60) + " خولەک دووبارە هەوڵ بدەرەوە.";
+            document.getElementById("loginPass").value = "";
+            return;
+        }
+
+        if (res.status === 503) {
+            errEl.style.display = "flex";
+            errEl.textContent = "چوونەژوورەوە کاتیی بەردەست نییە؛ دواتر دووبارە هەوڵ بدەرەوە.";
+            return;
+        }
+
+        if (!res.ok || !data.success || typeof data.token !== "string" || !data.token) {
             errEl.style.display = "flex";
             errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> ناو یان پاسوۆرد هەڵەیە';
             document.getElementById("loginPass").value = "";
@@ -97,6 +99,8 @@ async function doLogin() {
     } catch(e) {
         errEl.style.display = "flex";
         errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> کێشەی پەیوەندی — دووبارە هەوڵ بدەرەوە';
+    } finally {
+        loginPending = false;
     }
 }
 
@@ -932,7 +936,7 @@ function renderDeviceCityMeta(a) {
     var topCities = Object.entries(cs).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
     var cityHtml = topCities.length ?
         '<span style="font-size:10px;color:#888;">' +
-        topCities.map(function(x){ return x[0]+' ('+x[1]+')'; }).join(' · ') +
+        topCities.map(function(x){ return escHtml(x[0])+' ('+escHtml(x[1])+')'; }).join(' · ') +
         '</span>' : '';
     return deviceHtml + cityHtml;
 }
@@ -976,7 +980,8 @@ function renderSessions(sessions) {
             }
             var extra = "";
             if (s.isp) extra += '<div style="font-size:10px;color:#aaa;margin-top:2px;"><i class="fas fa-wifi"></i> ' + escHtml(s.isp) + '</div>';
-            if (s.lat && s.lon) extra += '<a href="https://maps.google.com/?q='+s.lat+','+s.lon+'" target="_blank" style="font-size:10px;color:#42a5f5;"><i class="fas fa-map"></i> گووگڵ مەپ</a>';
+            var mapUrl = safeVisitorMapUrl(s.lat, s.lon);
+            if (mapUrl) extra += '<a href="'+mapUrl+'" target="_blank" rel="noopener noreferrer" style="font-size:10px;color:#42a5f5;"><i class="fas fa-map"></i> گووگڵ مەپ</a>';
             if (s.ip && s.ip !== "") extra += '<div style="font-size:10px;color:#ccc;margin-top:1px;direction:ltr;">IP: ' + escHtml(s.ip) + '</div>';
             var refIcons = { 'Facebook': '📘', 'Twitter/X': '🐦', 'Telegram': '✈️', 'WhatsApp': '💬', 'Instagram': '📸', 'YouTube': '▶️', 'Google': '🔍' };
             if (s.referrer && s.referrer !== 'ڕاستەوخۆ') {
@@ -1435,7 +1440,7 @@ function showArchiveChart(type, item) {
                 var barsHTML = sorted.length ? sorted.map(function(kv){
                     var pct = Math.round((kv[1]/maxC)*100);
                     return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-                        '<div style="min-width:110px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+kv[0]+'">'+kv[0]+'</div>' +
+                        '<div style="min-width:110px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escHtml(kv[0])+'">'+escHtml(kv[0])+'</div>' +
                         '<div style="flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;">' +
                             '<div style="width:'+pct+'%;height:100%;background:#42a5f5;border-radius:4px;transition:width 0.4s;"></div>' +
                         '</div>' +
@@ -1556,7 +1561,7 @@ function showArchiveChart(type, item) {
         var clickBarsHTML = sortedClicks.length ? sortedClicks.map(function(kv){
             var pct = Math.round((kv[1]/maxClk)*100);
             return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-                '<div style="min-width:120px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+kv[0]+'">'+kv[0]+'</div>' +
+                '<div style="min-width:120px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escHtml(kv[0])+'">'+escHtml(kv[0])+'</div>' +
                 '<div style="flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;">' +
                     '<div style="width:'+pct+'%;height:100%;background:#42a5f5;border-radius:4px;transition:width 0.4s;"></div>' +
                 '</div>' +
@@ -1605,7 +1610,7 @@ function showArchiveChart(type, item) {
             var clickBarsHTML = sortedClicks.length ? sortedClicks.map(function(kv){
                 var pct = Math.round((kv[1]/maxClk)*100);
                 return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-                    '<div style="min-width:120px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+kv[0]+'">'+kv[0]+'</div>' +
+                    '<div style="min-width:120px;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escHtml(kv[0])+'">'+escHtml(kv[0])+'</div>' +
                     '<div style="flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;">' +
                         '<div style="width:'+pct+'%;height:100%;background:#42a5f5;border-radius:4px;transition:width 0.4s;"></div>' +
                     '</div>' +
@@ -1731,8 +1736,18 @@ function escHtml(str) {
     return String(str)
         .replace(/&/g, "&amp;")
         .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
+}
+
+function safeVisitorMapUrl(lat, lon) {
+    if (![lat, lon].every(function(value) {
+        return (typeof value === "number" || (typeof value === "string" && /^-?\d{1,3}(?:\.\d{1,12})?$/.test(value))) && Number.isFinite(Number(value));
+    })) return "";
+    lat = Number(lat); lon = Number(lon);
+    if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return "";
+    return "https://maps.google.com/?q=" + encodeURIComponent(lat + "," + lon);
 }
 
 

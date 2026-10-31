@@ -4,21 +4,19 @@
 // ============================================================
 
 const ALLOWED_ORIGIN = "https://arkandara.github.io";
+import { isAdminRequest } from "./track.js";
 
 function corsHeaders(origin) {
-    const allowed = origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
+    const allowed = [ALLOWED_ORIGIN, "https://arkandara.pages.dev"].includes(origin) ? origin : "null";
     return {
         "Access-Control-Allow-Origin":  allowed,
         "Access-Control-Allow-Methods": "GET, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Content-Type":                 "application/json"
+        "Content-Type":                 "application/json; charset=utf-8",
+        "Cache-Control":                "no-store",
+        "X-Content-Type-Options":        "nosniff",
+        "Vary":                         "Origin, Authorization"
     };
-}
-
-function checkAuth(request, env) {
-    const authHeader = request.headers.get("Authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    return token === (env.ADMIN_TOKEN || "");
 }
 
 export async function onRequestGet(context) {
@@ -26,7 +24,7 @@ export async function onRequestGet(context) {
     const origin = request.headers.get("Origin") || ALLOWED_ORIGIN;
     const CORS = corsHeaders(origin);
 
-    if (!checkAuth(request, env)) {
+    if (!await isAdminRequest(request, env)) {
         return new Response(JSON.stringify({ error: "مجاز نییە" }), { status: 401, headers: CORS });
     }
 
@@ -67,7 +65,7 @@ export async function onRequestGet(context) {
         }), { status: 200, headers: CORS });
 
     } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+        return new Response(JSON.stringify({ error: "stats_unavailable" }), { status: 500, headers: CORS });
     }
 }
 

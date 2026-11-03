@@ -1652,7 +1652,7 @@ document.getElementById('moreAppsModal').addEventListener('click', function(e) {
             <button class="btn-ali" onclick="convert('toAli')">↻ عەلی کەی</button>
             <button class="btn-copy" onclick="copyText()">✂️ كه‌تكردن</button>
             <button class="btn-clear" onclick="clearText()">🗑️ سڕینه‌وه‌</button>
-            <button id="geminiBtn" class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()">✦ Gemini</button>
+            <button id="geminiBtn" class="btn-nav" style="background: #1a73e8;" onclick="sendToGemini()"><img src="https://cdn.jsdelivr.net/npm/simple-icons@11/icons/openai.svg" alt="" aria-hidden="true" width="18" height="18" style="filter:brightness(0) invert(1); margin-inline-end:6px; vertical-align:middle;"> ChatGPT</button>
             <button id="aiStudioBtn" class="btn-nav" style="background: #9334e6;" onclick="sendToAIStudio()"> AI Studio</button>
             <button id="wordBtn" onclick="downloadAsWord()" class="btn-nav" style="background:#2b5797;"> پاشه‌كه‌وتكردن</button>
 <input type="file" id="ocrImageInput" accept="image/*" style="display:none;">
@@ -2719,10 +2719,10 @@ Text:
         if (geminiWin && !geminiWin.closed) {
             geminiWin.focus();
         } else {
-            geminiWin = window.open('https://gemini.google.com/app', 'GeminiTab');
+            geminiWin = window.open('https://chatgpt.com/', 'ChatGPTTab');
         }
 
-        showStatus("✂️ پرۆمپت + دەق کۆپیکرا — Gemini ئامادەیە");
+        showStatus("✂️ پرۆمپت + دەق کۆپیکرا — ChatGPT ئامادەیە");
     } catch (err) {
         showStatus("❌ هەڵەیەک ڕوویدا");
     }
@@ -3705,7 +3705,7 @@ function akSendVisit(device, city, country, region, zip, isp, lat, lon, ip) {
         "toggleDlModal":     "داگرتنی ڤیدیۆ",
         "toggleAbout":       "دەربارە",
         "toggleT":           "تەما",
-        "sendToGemini":      "Gemini",
+        "sendToGemini":      "ChatGPT",
         "sendToAIStudio":    "AI Studio",
         "downloadAsWord":    "پاشەکەوت Word",
         "copyText":          "کەتکردن",

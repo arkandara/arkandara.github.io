@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-11",
-  "updatedAt": "2026-11-05T01:27:47.952Z",
+  "updatedAt": "2026-11-06T01:33:44.031Z",
   "days": [
     {
       "date": "2026-11-01",
@@ -117,6 +117,29 @@
         "پاشەکەوت Word": 1,
         "سڕینەوەی دەق": 2,
         "AI Studio": 3
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 0,
+        "tablet": 0
+      },
+      "cityStats": {}
+    },
+    {
+      "date": "2026-11-06",
+      "generatedAt": "2026-11-06T01:33:44.031Z",
+      "totalVisits": 15,
+      "totalClicks": 73,
+      "totalTextarea": 51,
+      "clicks": {
+        "سڕینەوەی دەق": 3,
+        "گۆڕین بۆ یونیکۆد": 42,
+        "کەتکردن": 9,
+        "AI Studio": 3,
+        "AI Studio 1": 4,
+        "سڕینەوەی بۆشایی": 6,
+        "هێنانی Word": 1,
+        "گۆڕین بۆ عەلی کەی": 5
       },
       "deviceStats": {
         "mobile": 0,

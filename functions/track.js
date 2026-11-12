@@ -522,30 +522,17 @@ export async function onRequestPost(context) {
 
         // ---- force_reload (ئەدمین تەنها) ----
         if (type === "force_reload") {
-            await env.STATS_DB.put("meta:force_reload", new Date().toISOString(), { expirationTtl: 300 });
+            await env.STATS_DB.put("meta:force_reload", new Date().toISOString(), { expirationTtl: 86400 });
             return ok({ success: true }, CORS);
         }
 
-        // ---- daily_clear (ئەدمین تەنها) — CLEAR_SECRET لە env ----
+        // Manual deletion is intentionally disabled. Daily archiving must be
+        // verified and committed before any source data is removed.
         if (type === "daily_clear") {
-            const secret = body.secret || "";
-            const validSecret = env.CLEAR_SECRET || "";
-            if (!validSecret || secret !== validSecret) {
-                return new Response(JSON.stringify({ error: "مجاز نییە" }), { status: 401, headers: CORS });
-            }
-            const today = isoDate(new Date());
-            await env.STATS_DB.delete("snapshots:" + today);
-            await env.STATS_DB.delete("textarea:"  + today);
-            await env.STATS_DB.delete("visits:"    + today);
-            await env.STATS_DB.put("meta:total_visits",   "0");
-            await env.STATS_DB.put("meta:total_textarea", "0");
-            const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
-            const clickLabels   = safeJson(clicksListRaw, []);
-            for (const label of clickLabels) {
-                await env.STATS_DB.delete("click:" + label);
-            }
-            await env.STATS_DB.delete("meta:clicks_list");
-            return ok({ success: true, cleared: today }, CORS);
+            return new Response(JSON.stringify({
+                error: "manual_clear_disabled",
+                message: "Archive verification is required before deleting analytics data."
+            }), { status: 409, headers: CORS });
         }
 
         // Credentials are private D1 state. A generation change revokes every session.

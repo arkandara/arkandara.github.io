@@ -16,9 +16,13 @@ name: 📦 ئەرشیفی مانگانە و ساڵانە
 
 on:
   schedule:
-    - cron: "40 21 1 * *"     # مانگانە: ١ی هەر مانگ 21:40 UTC
-    - cron: "50 21 1 1 *"     # ساڵانە: ١ی ١ی هەر ساڵ 21:50 UTC
+    - cron: "40 21 1 * *"     # UTC day 1 = Baghdad day 2 at 00:40
+    - cron: "50 21 1 1 *"     # UTC Jan 1 = Baghdad Jan 2 at 00:50
   workflow_dispatch:
+
+concurrency:
+  group: archive-stats-main
+  cancel-in-progress: false
 
 jobs:
   archive:
@@ -54,21 +58,20 @@ jobs:
           const archivePath = "archives/monthly_archive.json";
 
           if (!fs.existsSync(currentPath)) {
-            console.log("⚠️ daily_current.json نییە");
-            process.exit(0);
+            throw new Error("Missing daily_current.json; preserving archive");
           }
 
           let current;
           try {
             current = JSON.parse(fs.readFileSync(currentPath, "utf8"));
           } catch(e) {
-            console.log("⚠️ هەڵە لە خوێندنەوەی daily_current.json");
-            process.exit(0);
+            throw new Error("Invalid daily_current.json; preserving archive");
           }
 
           const days = current.days || [];
+          if (!Array.isArray(days)) throw new Error("Invalid daily_current.days; preserving archive");
           if (!days.length) {
-            console.log("⚠️ daily_current.json داتایەک تێدا نییە — مانگانە نادروستبێت");
+            throw new Error("Empty daily_current.json; monthly archive not confirmed");
           } else {
             // مانگی ڕابردوو: چونکە ئەم جۆبە لە ١ی مانگی نوێ کار دەکات،
             // prevDay = دوەمین رۆژ پێش ئەمرۆ (کۆتا رۆژی مانگی ڕابردوو)
@@ -76,6 +79,7 @@ jobs:
             const monthLabel = isoDate(prevDay).slice(0, 7); // e.g. "2026-05"
             const monthStart = monthLabel + "-01";
             const monthEnd   = isoDate(prevDay);
+            const expectedDays = prevDay.getUTCDate();
 
             console.log(`📅 مانگی ئەرشیف: ${monthLabel} (${monthStart} → ${monthEnd})`);
 
@@ -86,6 +90,19 @@ jobs:
               return dm === monthLabel;
             });
 
+            // Never roll up a partial month or silently discard duplicated/invalid dates.
+            const seen = new Set(monthDays.map(d => d.date));
+            const complete = monthDays.length === expectedDays && seen.size === expectedDays &&
+              monthDays.every(d => /^\d{4}-\d{2}-\d{2}$/.test(d.date) &&
+                d.date >= monthStart && d.date <= monthEnd &&
+                Number.isFinite(d.totalVisits) && d.totalVisits >= 0 &&
+                Number.isFinite(d.totalClicks) && d.totalClicks >= 0 &&
+                d.clicks && typeof d.clicks === "object" && !Array.isArray(d.clicks) &&
+                Object.values(d.clicks).every(v => Number.isFinite(v) && v >= 0) &&
+                Object.values(d.clicks).reduce((sum, v) => sum + v, 0) === d.totalClicks);
+            if (!complete) {
+              throw new Error(`Incomplete or inconsistent daily archive for ${monthLabel}: ${monthDays.length}/${expectedDays} days. No deletion performed.`);
+            }
             if (monthDays.length > 0) {
               const mergeDevice = (ds) => {
                 const t = { mobile:0, desktop:0, tablet:0 };
@@ -129,6 +146,10 @@ jobs:
               try { archive = JSON.parse(fs.readFileSync(archivePath, "utf8")); } catch(e) {}
               if (!Array.isArray(archive.months)) archive.months = [];
 
+              // Existing rollups are never silently replaced by an automatic run.
+              if (archive.months.some(m => m.month === mData.month)) {
+                throw new Error(`Monthly archive ${mData.month} already exists; manual reconciliation required`);
+              }
               archive.months = archive.months.filter(m => m.month !== mData.month);
               archive.months.push(mData);
               archive.months.sort((a,b) => a.month.localeCompare(b.month));
@@ -148,7 +169,7 @@ jobs:
               fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
               console.log("✅ daily_current.json سفر بووەوە بۆ مانگی", monthLabel, "— ئامادەی مانگی نوێ:", newMonth, "| ڕۆژی مایەوە (مانگی تر):", current.days.length);
             } else {
-              console.log(`⚠️ هیچ داتایەک بۆ ${monthLabel} لە daily_current.json نەدۆزراوەتەوە — daily_current.json ناسڕدرێتەوە، چاوەڕوانی هەوڵدانەوەی داهاتوو دەکرێت`);
+              throw new Error(`No daily records for ${monthLabel}; preserving archive`);
             }
           }
 
@@ -212,6 +233,7 @@ jobs:
           };
 
           const yPath = `archives/yearly_${lastYear}.json`;
+          if (fs.existsSync(yPath)) throw new Error(`Yearly archive ${yPath} already exists; refusing overwrite`);
           fs.writeFileSync(yPath, JSON.stringify(yData, null, 2), "utf8");
 
           const yIdxPath = "archives/yearly_index.json";

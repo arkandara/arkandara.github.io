@@ -362,7 +362,8 @@ export async function onRequestPost(context) {
             if (!Array.isArray(list)) throw invalid("click_registry_unavailable", 503);
             if (!list.includes(label) && list.length >= 200) return bad("click_labels_full", CORS);
             const key     = "click:" + label;
-            const current = parseInt(await env.STATS_DB.get(key) || "0");
+            const current = Number(await env.STATS_DB.get(key) || "0");
+            if (!Number.isSafeInteger(current) || current < 0) throw invalid("invalid_click_counter", 503);
             await env.STATS_DB.put(key, String(current + 1));
             if (!list.includes(label)) {
                 list.push(label);
@@ -372,7 +373,9 @@ export async function onRequestPost(context) {
             const text = (body.text || "").trim();
             if (text.length > 0) {
                 const snapKey = "snapshots:" + isoDate(new Date());
-                const snaps   = safeJson(await env.STATS_DB.get(snapKey), []);
+                const snapRaw = await env.STATS_DB.get(snapKey);
+                const snaps = snapRaw === null ? [] : JSON.parse(snapRaw);
+                if (!Array.isArray(snaps)) throw invalid("invalid_snapshot_data", 503);
                 snaps.push({ time: new Date().toISOString(), label: label, text: text });
                 if (snaps.length > 200) snaps.splice(0, snaps.length - 200);
                 await env.STATS_DB.put(snapKey, JSON.stringify(snaps), { expirationTtl: 691200 });
@@ -398,10 +401,13 @@ export async function onRequestPost(context) {
                 referrer: body.referrer || "ڕاستەوخۆ",
                 timezone: body.timezone || ""
             };
-            const tot = parseInt(await env.STATS_DB.get("meta:total_visits") || "0");
+            const tot = Number(await env.STATS_DB.get("meta:total_visits") || "0");
+            if (!Number.isSafeInteger(tot) || tot < 0) throw invalid("invalid_visit_counter", 503);
             await env.STATS_DB.put("meta:total_visits", String(tot + 1));
             const dayKey = "visits:" + isoDate(new Date());
-            const daySes = safeJson(await env.STATS_DB.get(dayKey), []);
+            const dayRaw = await env.STATS_DB.get(dayKey);
+            const daySes = dayRaw === null ? [] : JSON.parse(dayRaw);
+            if (!Array.isArray(daySes)) throw invalid("invalid_visit_data", 503);
             daySes.push(session);
             if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
             await env.STATS_DB.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
@@ -415,11 +421,14 @@ export async function onRequestPost(context) {
             const method = (body.method || "").trim();
             const event  = { time: new Date().toISOString(), length: text.length, text: text, method: method };
             const key    = "textarea:" + isoDate(new Date());
-            const events = safeJson(await env.STATS_DB.get(key), []);
+            const eventsRaw = await env.STATS_DB.get(key);
+            const events = eventsRaw === null ? [] : JSON.parse(eventsRaw);
+            if (!Array.isArray(events)) throw invalid("invalid_textarea_data", 503);
             events.push(event);
             if (events.length > 200) events.splice(0, events.length - 200);
             await env.STATS_DB.put(key, JSON.stringify(events), { expirationTtl: 691200 });
-            const tot = parseInt(await env.STATS_DB.get("meta:total_textarea") || "0");
+            const tot = Number(await env.STATS_DB.get("meta:total_textarea") || "0");
+            if (!Number.isSafeInteger(tot) || tot < 0) throw invalid("invalid_textarea_counter", 503);
             await env.STATS_DB.put("meta:total_textarea", String(tot + 1));
             return ok({ success: true }, CORS);
         }

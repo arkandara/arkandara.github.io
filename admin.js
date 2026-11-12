@@ -1303,7 +1303,7 @@ function loadArchiveList() {
         adminFetch(base + "weekly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
         adminFetch(base + "monthly_archive.json").then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
         adminFetch(base + "yearly_index.json").then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-        adminFetch("/track", { headers: authHeaders() }).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
+        adminFetch("/stats", { headers: authHeaders() }).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var daily   = (results[0] && results[0].days) ? results[0].days.slice().reverse() : [];
         var weekly  = results[1] || [];
@@ -1313,11 +1313,12 @@ function loadArchiveList() {
 
         // داتای ئەمرۆ لە KV — بە ستارەکەوە لە سەرەوە زیاد دەکرێت
         var todayStr = new Date().toISOString().slice(0,10);
-        var todayClicks = Object.values(liveKV.clicks||{}).reduce(function(s,v){ return s+v; },0);
+        // The cumulative KV totals are NOT today's totals.
+        var todayAtomic = liveKV.dailyAtomic && liveKV.dailyAtomic.date === todayStr ? liveKV.dailyAtomic : null;
         var todayEntry = {
             date:        todayStr + " ★",
-            totalVisits: liveKV.totalVisits || 0,
-            totalClicks: todayClicks,
+            totalVisits: todayAtomic ? todayAtomic.visits : null,
+            totalClicks: todayAtomic ? Object.values(todayAtomic.clicks || {}).reduce(function(s,v){ return s+v; },0) : null,
             isToday:     true
         };
         daily = [todayEntry].concat(daily.filter(function(d){ return (d.date||"").replace(" ★","") !== todayStr; }));
@@ -1944,7 +1945,7 @@ function loadStatsCharts() {
         adminFetch(base + "weekly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
         adminFetch(base + "monthly_archive.json").then(function(r){ return r.ok?r.json():{months:[]}; }).catch(function(){ return {months:[]}; }),
         adminFetch(base + "yearly_index.json").then(function(r){ return r.ok?r.json():[]; }).catch(function(){ return []; }),
-        adminFetch("/track", { headers: authHeaders() }).then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
+        adminFetch("/stats", { headers: authHeaders() }).then(function(r){ return r.ok?r.json():{}; }).catch(function(){ return {}; })
     ]).then(function(results) {
         var archived = (results[0] && results[0].days) ? results[0].days.slice().reverse() : [];
         _weeklyIndex  = results[1];
@@ -1954,10 +1955,11 @@ function loadStatsCharts() {
 
         // داتای ئەمرۆ لە KV — وەک ڕیزی یەکەم زیاد دەکرێت
         var todayStr = new Date().toISOString().slice(0,10);
+        var todayAtomic = kv.dailyAtomic && kv.dailyAtomic.date === todayStr ? kv.dailyAtomic : null;
         var todayEntry = {
             date:        todayStr + " ★",  // ئەمرۆ
-            totalVisits: kv.totalVisits  || 0,
-            totalClicks: Object.values(kv.clicks||{}).reduce(function(s,v){ return s+v; }, 0),
+            totalVisits: todayAtomic ? todayAtomic.visits : null,
+            totalClicks: todayAtomic ? Object.values(todayAtomic.clicks || {}).reduce(function(s,v){ return s+v; }, 0) : null,
             _isToday:    true
         };
 

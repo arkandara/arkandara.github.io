@@ -16,7 +16,7 @@
 #    21:40 UTC → archive-stats: daily_current.json دەخوێنێت، مانگانە دروست دەکات، سفر دەکاتەوە
 # ============================================================
 
-name: 🌙 ئەرشیفی شەوانە و سفرکردنەوەی ئامارەکان
+name: 🌙 ئەرشیفی شەوانە — KV safety hold
 
 on:
   schedule:
@@ -26,6 +26,9 @@ on:
 jobs:
   archive-and-clear:
     runs-on: ubuntu-latest
+    concurrency:
+      group: daily-archive-main
+      cancel-in-progress: false
 
     steps:
       - name: ⬇️ Checkout
@@ -36,7 +39,7 @@ jobs:
       - name: 🔄 Pull کردنی کۆتاترین گۆڕانکاری
         run: git pull --rebase
 
-      - name: 📡 ئەرشیفکردن و سفرکردنەوەی KV
+      - name: 📡 ئەرشیفکردن بەبێ سڕینەوەی KV
         env:
           CF_ACCOUNT_ID:   ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN:    ${{ secrets.CF_API_TOKEN }}
@@ -84,8 +87,6 @@ jobs:
           }
 
           const cfGet    = (key)      => cfRequest("GET",    key);
-          const cfDelete = (key)      => cfRequest("DELETE", key);
-          const cfPut    = (key, val) => cfRequest("PUT",    key, val);
 
           function safeJson(raw, def)  { try { return JSON.parse(raw); } catch(e) { return def; } }
           function safeArray(raw)      { if (raw === null) return []; const p = JSON.parse(raw); if (!Array.isArray(p)) throw new Error("Invalid KV array"); return p; }
@@ -138,7 +139,7 @@ jobs:
             let current = { type: "daily_current", month: thisMonth, updatedAt: "", days: [] };
 
             if (fs.existsSync(currentPath)) {
-              try { current = JSON.parse(fs.readFileSync(currentPath, "utf8")); } catch(e) {}
+              current = JSON.parse(fs.readFileSync(currentPath, "utf8"));
             }
 
             // FIX #6: daily-clear قەت نابێت days سفر بکاتەوە یان بیسڕێتەوە،
@@ -154,8 +155,11 @@ jobs:
             // بەپێی d.date فلتەر دەکات نەک بەپێی current.month).
             current.month = thisMonth;
 
-            // سرینەوەی ئەگەر ئەمرۆ پێشتر تۆماربووە (ئەگەر workflow_dispatch دووجار کراوەتەوە)
-            current.days = (current.days || []).filter(d => d.date !== archiveDate);
+            // Never overwrite an existing day with cumulative counters.
+            if (!Array.isArray(current.days)) throw new Error("Invalid daily archive");
+            if (current.days.some(d => d.date === archiveDate)) {
+              throw new Error("Day already archived; refusing to overwrite historical data");
+            }
             current.days.push({
               date:         archiveDate,
               generatedAt:  now.toISOString(),
@@ -172,16 +176,12 @@ jobs:
             fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
             console.log("✅ daily_current.json نوێکرایەوە — رۆژ:", archiveDate, "| کۆی رۆژ:", current.days.length);
 
-            // ---- ٤. سفرکردنەوەی KV ----
-            console.log("🗑️ سفرکردنەوەی KV...");
-            await cfDelete("visits:"    + archiveDate);
-            await cfDelete("snapshots:" + archiveDate);
-            await cfDelete("textarea:"  + archiveDate);
-            await cfPut("meta:total_visits",   "0");
-            await cfPut("meta:total_textarea", "0");
-            for (const lbl of clickLabels) await cfDelete("click:" + lbl);
-            await cfDelete("meta:clicks_list");
-            console.log("✅ KV سفر بووەوە — ئامادەی رۆژی نوێ");
+            // SAFETY HOLD: do not mutate KV until an atomic, verified
+            // archive-and-reset protocol is deployed across both workflows
+            // and the event writer. Git commit success alone is insufficient:
+            // concurrent writes can still be lost during counter reset.
+            console.log("🛡️ Safety hold: no Cloudflare KV keys deleted or reset.");
+
           }
 
           main().catch(e => { console.error(e); process.exit(1); });

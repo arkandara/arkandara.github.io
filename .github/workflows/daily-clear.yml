@@ -160,6 +160,13 @@ jobs:
             const file="archives/daily_current.json";
             const current=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,"utf8")):{type:"daily_current",month,updatedAt:"",days:[]};
             if(!Array.isArray(current.days))throw new Error("Invalid archive");
+            // Existing same-day/future entries indicate an incomplete or
+            // manually generated snapshot. Never silently accept them as final.
+            const today=date(new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate())));
+            const premature=current.days.filter(entry=>typeof entry.date==="string"&&entry.date>=today);
+            if(premature.length)
+              throw new Error("Premature daily archive entries require reconciliation: "+premature.map(x=>x.date).join(", "));
+
             if(current.days.some(entry=>entry.date===day)){
               // A rerun must not overwrite a previously committed archive.
               // Successful checkout of this file means the archived day is durable.

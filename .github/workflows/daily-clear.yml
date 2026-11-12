@@ -44,6 +44,7 @@ jobs:
           CF_ACCOUNT_ID:   ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN:    ${{ secrets.CF_API_TOKEN }}
           CF_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
+          CF_D1_DATABASE_ID: ${{ secrets.CF_D1_DATABASE_ID }}
         run: |
           node - << 'JSEOF'
           const https = require("https");
@@ -84,6 +85,41 @@ jobs:
             return value;
           }
           function date(d){return d.toISOString().slice(0,10);}
+          async function readD1(day) {
+            const id=process.env.CF_D1_DATABASE_ID;
+            if(!id)return null; // Explicitly configured migration only.
+            const sql="SELECT kind, label, count FROM track_daily_counts WHERE day = ?";
+            const payload=JSON.stringify({sql,params:[day]});
+            const endpoint=`https://api.cloudflare.com/client/v4/accounts/${account}/d1/database/${encodeURIComponent(id)}/query`;
+            return new Promise((resolve,reject)=>{
+              const req=https.request(endpoint,{method:"POST",headers:{
+                Authorization:`Bearer ${token}`,"Content-Type":"application/json",
+                "Content-Length":Buffer.byteLength(payload)
+              }},res=>{
+                let body="";res.on("data",c=>body+=c);
+                res.on("end",()=>{
+                  if(res.statusCode!==200)return reject(new Error("D1 HTTP "+res.statusCode));
+                  let data;try{data=JSON.parse(body);}catch{return reject(new Error("Invalid D1 JSON"));}
+                  if(!data.success||!Array.isArray(data.result)||!data.result[0]?.success)
+                    return reject(new Error("D1 query failed"));
+                  const rows=data.result[0].results;
+                  if(!Array.isArray(rows))return reject(new Error("Invalid D1 rows"));
+                  const counts={visit:0,textarea:0,clicks:{}};
+                  for(const row of rows){
+                    const n=Number(row.count);
+                    if(!Number.isSafeInteger(n)||n<0)throw new Error("Invalid D1 count");
+                    if(row.kind==="visit"&&row.label==="")counts.visit=n;
+                    else if(row.kind==="textarea"&&row.label==="")counts.textarea=n;
+                    else if(row.kind==="click"&&typeof row.label==="string")counts.clicks[row.label]=n;
+                  }
+                  resolve(counts);
+                });
+              });
+              req.setTimeout(20000,()=>req.destroy(new Error("D1 timeout")));
+              req.on("error",reject);req.end(payload);
+            });
+          }
+
           async function main(){
             // The UTC day must be complete before it can be archived.
             const now=new Date();
@@ -112,7 +148,12 @@ jobs:
             }
             // The old writer only retains the latest 500 visit records. Do not
             // misrepresent these as a complete demographic breakdown.
-            const totalClicks=Object.values(clicks).reduce((sum,n)=>sum+n,0);
+            const d1=await readD1(day);
+            // Once configured, never archive a potentially incomplete KV count.
+            const archivedClicks=d1?d1.clicks:clicks;
+            const totalClicks=Object.values(archivedClicks).reduce((sum,n)=>sum+n,0);
+            const archivedVisits=d1?d1.visit:totalVisits;
+            const archivedTextarea=d1?d1.textarea:totalTextarea;
             const file="archives/daily_current.json";
             const current=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,"utf8")):{type:"daily_current",month,updatedAt:"",days:[]};
             if(!Array.isArray(current.days))throw new Error("Invalid archive");
@@ -124,15 +165,15 @@ jobs:
             }
             // Fail closed for dates before the new date-scoped counters existed.
             // Such dates require reconciliation, not silently archiving zeroes.
-            if(totalVisits===0&&totalClicks===0&&totalTextarea===0&&sessions.length===0)throw new Error("No daily data; refusing empty archive");
-            if(totalVisits<sessions.length)throw new Error("Visit counter smaller than sessions; possible migration gap");
-            current.days.push({date:day,generatedAt:now.toISOString(),totalVisits,totalClicks,totalTextarea,clicks,deviceStats,cityStats});
+            if(archivedVisits===0&&totalClicks===0&&archivedTextarea===0&&sessions.length===0)throw new Error("No daily data; refusing empty archive");
+            if(archivedVisits<sessions.length)throw new Error("Visit counter smaller than sessions; possible migration gap");
+            current.days.push({date:day,generatedAt:now.toISOString(),source:d1?"d1":"kv",totalVisits:archivedVisits,totalClicks,totalTextarea:archivedTextarea,clicks:archivedClicks,deviceStats,cityStats});
             current.days.sort((x,y)=>x.date.localeCompare(y.date));
             current.month=month;
             current.updatedAt=now.toISOString();
             fs.mkdirSync("archives",{recursive:true});
             fs.writeFileSync(file,JSON.stringify(current,null,2),"utf8");
-            console.log(`Archived ${day}: ${totalVisits} visits, ${totalClicks} clicks; KV remains unchanged pending verified GitHub push`);
+            console.log(`Archived ${day} from ${d1?"D1":"KV"}: ${archivedVisits} visits, ${totalClicks} clicks; KV remains unchanged`);
           }
           main().catch(error=>{console.error(error);process.exit(1);});
           JSEOF
@@ -215,6 +256,6 @@ jobs:
           // atomic store, automatic deletion is disabled to prevent data loss.
           console.log("Verified archived counters; cleanup deferred: KV compare-and-delete is not atomic");
 
-          console.log("Deleted "+keys.length+" completed-day KV keys for "+day);
+          console.log("No KV keys deleted for "+day);
           JSEOF
 

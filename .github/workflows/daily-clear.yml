@@ -182,7 +182,39 @@ jobs:
           }
           // Never delete counters on a rerun if the archive snapshot is stale.
           // Date-scoped counters have an eight-day TTL as a fallback.
-          for(const key of keys)await del(key);
+          // Re-read every archived counter before deletion. A late write,
+          // stale snapshot, or new label must not be silently discarded.
+          async function read(key){
+            return new Promise((resolve,reject)=>{
+              const req=https.request(base+encodeURIComponent(key),{
+                method:"GET",headers:{Authorization:"Bearer "+process.env.CF_API_TOKEN}
+              },res=>{
+                let body="";res.on("data",c=>body+=c);
+                res.on("end",()=>{
+                  if(res.statusCode===404)return resolve(null);
+                  if(res.statusCode!==200)return reject(new Error("KV read "+key+": HTTP "+res.statusCode));
+                  resolve(body);
+                });
+              });
+              req.setTimeout(20000,()=>req.destroy(new Error("KV timeout")));
+              req.on("error",reject);req.end();
+            });
+          }
+          const prefix="daily:"+day+":click:";
+          for(const key of keys){
+            const expected=key==="daily:"+day+":visit"?entry.totalVisits:
+              key==="daily:"+day+":textarea"?entry.totalTextarea:
+              entry.clicks[key.slice(prefix.length)];
+            const actual=await read(key);
+            if(actual===null)continue;
+            if(!Number.isSafeInteger(Number(actual))||Number(actual)!==expected)
+              throw new Error("Archived counter differs from KV: "+key+"; refusing deletion");
+          }
+          // KV has no atomic compare-and-delete: another write could occur
+          // between the check and delete. Until the writer is migrated to an
+          // atomic store, automatic deletion is disabled to prevent data loss.
+          console.log("Verified archived counters; cleanup deferred: KV compare-and-delete is not atomic");
+
           console.log("Deleted "+keys.length+" completed-day KV keys for "+day);
           JSEOF
 

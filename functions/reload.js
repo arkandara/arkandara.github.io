@@ -23,7 +23,7 @@ export async function onRequestGet(context) {
         lastFlag = current || null;
     } catch(e) {}
 
-    // هەر 2 چرکە چێک بکە
+    // Check once per minute while retaining SSE compatibility with index.html.
     const interval = setInterval(async () => {
         if (closed) { clearInterval(interval); return; }
         try {
@@ -40,16 +40,14 @@ export async function onRequestGet(context) {
             clearInterval(interval);
             try { await writer.close(); } catch(_) {}
         }
-    }, 2000);
+    }, 60000);
 
     // کاتێک براوزەر پەیوەندییەکە داخست
-    context.waitUntil(
-        request.signal?.addEventListener("abort", () => {
-            closed = true;
-            clearInterval(interval);
-            writer.close().catch(() => {});
-        })
-    );
+    request.signal?.addEventListener("abort", () => {
+        closed = true;
+        clearInterval(interval);
+        writer.close().catch(() => {});
+    }, { once: true });
 
     return new Response(readable, {
         status: 200,

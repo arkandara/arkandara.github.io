@@ -210,6 +210,19 @@ function validateBody(body, type) {
     }
 }
 
+// Separate daily KV counters from the legacy dashboard totals. The archive
+// workflow will read these date-scoped keys before clearing completed days.
+// KV read-modify-write is not atomic; this is a compatibility stage, not a
+// guarantee against simultaneous updates.
+async function incrementDailyStat(env, kind, label = "") {
+    const date = isoDate(new Date());
+    const key = "daily:" + date + ":" + kind + (kind === "click" ? ":" + label : "");
+    const raw = await env.STATS_DB.get(key);
+    const value = raw === null ? 0 : Number(raw);
+    if (!Number.isSafeInteger(value) || value < 0) throw invalid("invalid_daily_counter", 503);
+    await env.STATS_DB.put(key, String(value + 1), { expirationTtl: 691200 });
+}
+
 // ---- GET: خوێندنەوەی ئامارەکان ----
 export async function onRequestGet(context) {
     const { env, request } = context;
@@ -381,6 +394,7 @@ export async function onRequestPost(context) {
                 await env.STATS_DB.put(snapKey, JSON.stringify(snaps), { expirationTtl: 691200 });
             }
 
+            await incrementDailyStat(env, "click", label);
             return ok({ success: true, label, count: current + 1 }, CORS);
         }
 
@@ -411,6 +425,7 @@ export async function onRequestPost(context) {
             daySes.push(session);
             if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
             await env.STATS_DB.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
+            await incrementDailyStat(env, "visit");
             return ok({ success: true, total: tot + 1 }, CORS);
         }
 
@@ -430,6 +445,7 @@ export async function onRequestPost(context) {
             const tot = Number(await env.STATS_DB.get("meta:total_textarea") || "0");
             if (!Number.isSafeInteger(tot) || tot < 0) throw invalid("invalid_textarea_counter", 503);
             await env.STATS_DB.put("meta:total_textarea", String(tot + 1));
+            await incrementDailyStat(env, "textarea");
             return ok({ success: true }, CORS);
         }
 

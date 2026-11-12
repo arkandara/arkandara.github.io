@@ -152,6 +152,14 @@ jobs:
             // The old writer only retains the latest 500 visit records. Do not
             // misrepresent these as a complete demographic breakdown.
             const d1=await readD1(day);
+            // During migration D1 may contain only part of a day. Never
+            // replace a larger legacy counter with a smaller D1 counter.
+            if(d1){
+              const kvClicks=Object.values(clicks).reduce((sum,n)=>sum+n,0);
+              const d1Clicks=Object.values(d1.clicks).reduce((sum,n)=>sum+n,0);
+              if(d1.visit<totalVisits||d1.textarea<totalTextarea||d1Clicks<kvClicks)
+                throw new Error("D1 counters lag KV for "+day+"; refusing incomplete archive");
+            }
             // Once configured, never archive a potentially incomplete KV count.
             const archivedClicks=d1?d1.clicks:clicks;
             const totalClicks=Object.values(archivedClicks).reduce((sum,n)=>sum+n,0);

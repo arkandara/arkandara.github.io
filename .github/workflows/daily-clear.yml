@@ -1,30 +1,16 @@
-# ============================================================
-#  .github/workflows/daily-clear.yml
-#  هەر شەو 12:20 AM عێراق (UTC+3) = 21:20 UTC:
-#  ١. داتای رۆژ لە KV دەخوێنێتەوە
-#  ٢. رێزێکی نوێ زیاد دەکات بۆ archives/daily_current.json
-#  ٣. هەموو ئامارەکانی KV سفر دەبنەوە
-#
-#  FIX #5 — مەترسی مانگی تر:
-#  ئەم جۆبە هەر شەو کار دەکات، نەک ١ی مانگ تەنها.
-#  ئەگەر ئەمرۆ ١ی مانگ بووە (UTC)، ئەم جۆبە تەنها
-#  داتای ئەمرۆ دەخاتە daily_current.json (مانگی نوێ).
-#  سفرکردنەوەی مانگی ڕابردوو بەپێچەوانەوە کاری archive-stats.yml-ە
-#  کە لە 21:40 کار دەکات — ٢٠ خولەک پاش ئەم جۆبە.
-#  بۆیە ئۆردەری دروستە:
-#    21:20 UTC → daily-clear: KV دەخوێنێت، daily_current.json نوێدەکات، KV سفر دەکاتەوە
-#    21:40 UTC → archive-stats: daily_current.json دەخوێنێت، مانگانە دروست دەکات، سفر دەکاتەوە
-# ============================================================
+# Archive the completed UTC day and push the snapshot to GitHub before
+# cleaning up its date-scoped KV counters. D1 retains the authoritative counts.
 
 name: 🌙 ئەرشیفی ڕۆژانە — safe GitHub checkpoint
 
 on:
   schedule:
-    - cron: "20 0 * * *"   # 21:20 UTC = 12:20 AM عێراق (UTC+3)
+    - cron: "20 0 * * *"   # 00:20 UTC = 03:20 Asia/Baghdad
   workflow_dispatch:
 
 jobs:
   archive-and-clear:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency:
       group: daily-archive-main
@@ -39,7 +25,7 @@ jobs:
       - name: 🔄 Pull کردنی کۆتاترین گۆڕانکاری
         run: git pull --rebase
 
-      - name: 📡 ئەرشیفکردنی ڕۆژی تەواوبوو لە KV
+      - name: 📡 ئەرشیفکردن و پاککردنەوەی ڕۆژی تەواوبوو
         env:
           CF_ACCOUNT_ID:   ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN:    ${{ secrets.CF_API_TOKEN }}
@@ -49,6 +35,7 @@ jobs:
           node - << 'JSEOF'
           const https = require("https");
           const fs = require("fs");
+          const {execFileSync} = require("node:child_process");
           const account = process.env.CF_ACCOUNT_ID, token = process.env.CF_API_TOKEN;
           const namespace = process.env.CF_NAMESPACE_ID;
           if (![account,token,namespace].every(Boolean)) throw new Error("Missing Cloudflare credentials");
@@ -61,9 +48,14 @@ jobs:
                 let value="";
                 res.on("data",chunk=>value+=chunk);
                 res.on("end",()=>{
-                  if(method==="GET" && res.statusCode===404)return resolve(null);
+                  if(res.statusCode===404)return resolve(null);
                   if(res.statusCode<200 || res.statusCode>=300)return reject(new Error(`KV ${method} ${key}: HTTP ${res.statusCode}`));
-                  resolve(value);
+                  if(method==="DELETE"){
+                  let result;
+                  try{result=JSON.parse(value);}catch{return reject(new Error("Invalid KV delete response"));}
+                  if(result.success!==true)return reject(new Error("KV delete failed"));
+                }
+                resolve(value);
                 });
               });
               req.setTimeout(20000,()=>req.destroy(new Error("KV timeout")));
@@ -105,13 +97,14 @@ jobs:
                   const rows=data.result[0].results;
                   if(!Array.isArray(rows))return reject(new Error("Invalid D1 rows"));
                   if(rows.length===0)return reject(new Error("No D1 rows for archived day; refusing empty snapshot"));
-                  const counts={visit:0,textarea:0,clicks:{}};
+                  const counts={visit:0,textarea:0,clicks:Object.create(null)};
                   for(const row of rows){
                     const n=Number(row.count);
                     if(!Number.isSafeInteger(n)||n<0)return reject(new Error("Invalid D1 count"));
                     if(row.kind==="visit"&&row.label==="")counts.visit=n;
                     else if(row.kind==="textarea"&&row.label==="")counts.textarea=n;
-                    else if(row.kind==="click"&&typeof row.label==="string")counts.clicks[row.label]=n;
+                    else if(row.kind==="click"&&typeof row.label==="string"&&row.label.length)counts.clicks[row.label]=n;
+                    else return reject(new Error("Unsupported D1 counter"));
                   }
                   if(counts.visit===0&&counts.textarea===0&&Object.keys(counts.clicks).length===0)
                     return reject(new Error("D1 day has no supported analytics counters"));
@@ -123,6 +116,42 @@ jobs:
             });
           }
 
+          function publishArchive(file, day){
+            const git=(...args)=>execFileSync("git",args,{stdio:"inherit"});
+            git("config","user.name","github-actions[bot]");
+            git("config","user.email","github-actions[bot]@users.noreply.github.com");
+            git("add","--",file);
+            const staged=execFileSync("git",["diff","--cached","--name-only","--",file],{encoding:"utf8"});
+            if(staged.trim())git("commit","-m","🌙 ئەرشیفی ڕۆژانە — "+day,"--",file);
+            git("push","origin","HEAD:refs/heads/main");
+          }
+
+          async function clearArchivedCounters(day, entry, kvClicks, kvVisits, kvTextarea){
+            if(entry.source!=="d1"){
+              console.log("KV cleanup skipped: the committed snapshot has no authoritative D1 counts");
+              return;
+            }
+            if(!Number.isFinite(Date.parse(entry.generatedAt))||date(new Date(entry.generatedAt))<=day)
+              throw new Error("Incomplete archive timestamp; refusing KV cleanup for "+day);
+
+            const d1=await readD1(day);
+            const labels=Object.keys(d1?.clicks||{});
+            if(!d1||d1.visit!==entry.totalVisits||d1.textarea!==entry.totalTextarea||
+               labels.length!==Object.keys(entry.clicks||{}).length||
+               labels.some(label=>d1.clicks[label]!==entry.clicks[label])||
+               labels.reduce((sum,label)=>sum+d1.clicks[label],0)!==entry.totalClicks||
+               kvVisits>d1.visit||kvTextarea>d1.textarea||
+               Object.keys(kvClicks).some(label=>kvClicks[label]>(d1.clicks[label]??0)))
+              throw new Error("Archive and Cloudflare counters differ; refusing KV cleanup for "+day);
+
+            // D1 is retained. Each KV increment follows its D1 write, so these
+            // keys are duplicate counters once the complete D1 snapshot is durable.
+            const keys=["daily:"+day+":visit","daily:"+day+":textarea",
+              ...labels.map(label=>"daily:"+day+":click:"+label)];
+            for(const key of keys)await request("DELETE",key);
+            console.log("Cleared "+keys.length+" archived-day KV counter keys for "+day);
+          }
+
           async function main(){
             // The UTC day must be complete before it can be archived.
             const now=new Date();
@@ -130,7 +159,7 @@ jobs:
             const day=date(yesterday), month=day.slice(0,7);
             const labels=array(await get("meta:clicks_list"),"meta:clicks_list");
             if(labels.some(x=>typeof x!=="string"||!x||x.length>120)||new Set(labels).size!==labels.length)throw new Error("Invalid click labels");
-            const clicks={};
+            const clicks=Object.create(null);
             for(const label of labels){
               const key=`daily:${day}:click:${label}`;
               const n=counter(await get(key),key);
@@ -155,9 +184,8 @@ jobs:
             // During migration D1 may contain only part of a day. Never
             // replace a larger legacy counter with a smaller D1 counter.
             if(d1){
-              const kvClicks=Object.values(clicks).reduce((sum,n)=>sum+n,0);
-              const d1Clicks=Object.values(d1.clicks).reduce((sum,n)=>sum+n,0);
-              if(d1.visit<totalVisits||d1.textarea<totalTextarea||d1Clicks<kvClicks)
+              if(d1.visit<totalVisits||d1.textarea<totalTextarea||
+                 Object.keys(clicks).some(label=>clicks[label]>(d1.clicks[label]??0)))
                 throw new Error("D1 counters lag KV for "+day+"; refusing incomplete archive");
             }
             // Once configured, never archive a potentially incomplete KV count.
@@ -175,105 +203,24 @@ jobs:
             if(premature.length)
               throw new Error("Premature daily archive entries require reconciliation: "+premature.map(x=>x.date).join(", "));
 
-            if(current.days.some(entry=>entry.date===day)){
-              // A rerun must not overwrite a previously committed archive.
-              // Successful checkout of this file means the archived day is durable.
-              console.log("Already archived: "+day+"; no overwrite");
-              return;
+            const matches=current.days.filter(entry=>entry.date===day);
+            if(matches.length>1)throw new Error("Duplicate archive entries for "+day);
+            let entry=matches[0];
+            if(!entry){
+              if(archivedVisits===0&&totalClicks===0&&archivedTextarea===0&&sessions.length===0)
+                throw new Error("No daily data; refusing empty archive");
+              if(archivedVisits<sessions.length)throw new Error("Visit counter smaller than sessions; possible migration gap");
+              entry={date:day,generatedAt:now.toISOString(),source:d1?"d1":"kv",totalVisits:archivedVisits,totalClicks,totalTextarea:archivedTextarea,clicks:archivedClicks,deviceStats,cityStats};
+              current.days.push(entry);
+              current.days.sort((x,y)=>x.date.localeCompare(y.date));
+              current.month=month;
+              current.updatedAt=now.toISOString();
+              fs.mkdirSync("archives",{recursive:true});
+              fs.writeFileSync(file,JSON.stringify(current,null,2),"utf8");
             }
-            // Fail closed for dates before the new date-scoped counters existed.
-            // Such dates require reconciliation, not silently archiving zeroes.
-            if(archivedVisits===0&&totalClicks===0&&archivedTextarea===0&&sessions.length===0)throw new Error("No daily data; refusing empty archive");
-            if(archivedVisits<sessions.length)throw new Error("Visit counter smaller than sessions; possible migration gap");
-            current.days.push({date:day,generatedAt:now.toISOString(),source:d1?"d1":"kv",totalVisits:archivedVisits,totalClicks,totalTextarea:archivedTextarea,clicks:archivedClicks,deviceStats,cityStats});
-            current.days.sort((x,y)=>x.date.localeCompare(y.date));
-            current.month=month;
-            current.updatedAt=now.toISOString();
-            fs.mkdirSync("archives",{recursive:true});
-            fs.writeFileSync(file,JSON.stringify(current,null,2),"utf8");
-            console.log(`Archived ${day} from ${d1?"D1":"KV"}: ${archivedVisits} visits, ${totalClicks} clicks; KV remains unchanged`);
+            publishArchive(file,day);
+            console.log("Confirmed GitHub archive for "+day);
+            await clearArchivedCounters(day,entry,clicks,totalVisits,totalTextarea);
           }
-          main().catch(error=>{console.error(error);process.exit(1);});
+          main().catch(error=>{console.error(error);process.exitCode=1;});
           JSEOF
-
-      - name: 📤 Commit
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add archives/
-          git diff --staged --quiet || git commit -m "🌙 ئەرشیفی رۆژانە — $(date -u +'%Y-%m-%d')"
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
-
-      # Run only after the GitHub push succeeds. Delete completed-day event
-      # payloads; never delete cumulative dashboard counters or live-day keys.
-      - name: 🧹 پاککردنەوەی داتای ڕۆژی ئەرشیفکراو لە KV
-        env:
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CF_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
-        run: |
-          node - << 'JSEOF'
-          const https=require("https");
-          const fs=require("fs");
-          const now=new Date();
-          const day=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-1)).toISOString().slice(0,10);
-          const archive=JSON.parse(fs.readFileSync("archives/daily_current.json","utf8"));
-          const entry=archive.days.find(d=>d.date===day);
-          if(!entry)throw new Error("Day not present in committed archive; refusing cleanup");
-          const base=`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/storage/kv/namespaces/${process.env.CF_NAMESPACE_ID}/values/`;
-          // Raw visit/textarea/snapshot payloads are not in the aggregate archive.
-          // Preserve them; only completed-day aggregate counters are eligible.
-          const keys=["daily:"+day+":visit","daily:"+day+":textarea",
-            ...Object.keys(entry.clicks||{}).map(label=>"daily:"+day+":click:"+label)];
-          // Only date-scoped keys for an archived, completed UTC day.
-          // Never delete global totals or settings needed by the dashboard.
-          async function del(key){
-            return new Promise((resolve,reject)=>{
-              const req=https.request(base+encodeURIComponent(key),{
-                method:"DELETE",headers:{Authorization:"Bearer "+process.env.CF_API_TOKEN}
-              },res=>{
-                let body="";res.on("data",c=>body+=c);
-                res.on("end",()=>res.statusCode>=200&&res.statusCode<300?resolve():reject(new Error("KV delete "+key+": HTTP "+res.statusCode)));
-              });
-              req.setTimeout(20000,()=>req.destroy(new Error("KV timeout")));
-              req.on("error",reject);req.end();
-            });
-          }
-          // Never delete counters on a rerun if the archive snapshot is stale.
-          // Date-scoped counters have an eight-day TTL as a fallback.
-          // Re-read every archived counter before deletion. A late write,
-          // stale snapshot, or new label must not be silently discarded.
-          async function read(key){
-            return new Promise((resolve,reject)=>{
-              const req=https.request(base+encodeURIComponent(key),{
-                method:"GET",headers:{Authorization:"Bearer "+process.env.CF_API_TOKEN}
-              },res=>{
-                let body="";res.on("data",c=>body+=c);
-                res.on("end",()=>{
-                  if(res.statusCode===404)return resolve(null);
-                  if(res.statusCode!==200)return reject(new Error("KV read "+key+": HTTP "+res.statusCode));
-                  resolve(body);
-                });
-              });
-              req.setTimeout(20000,()=>req.destroy(new Error("KV timeout")));
-              req.on("error",reject);req.end();
-            });
-          }
-          const prefix="daily:"+day+":click:";
-          for(const key of keys){
-            const expected=key==="daily:"+day+":visit"?entry.totalVisits:
-              key==="daily:"+day+":textarea"?entry.totalTextarea:
-              entry.clicks[key.slice(prefix.length)];
-            const actual=await read(key);
-            if(actual===null)continue;
-            if(!Number.isSafeInteger(Number(actual))||Number(actual)!==expected)
-              throw new Error("Archived counter differs from KV: "+key+"; refusing deletion");
-          }
-          // KV has no atomic compare-and-delete: another write could occur
-          // between the check and delete. Until the writer is migrated to an
-          // atomic store, automatic deletion is disabled to prevent data loss.
-          console.log("Verified archived counters; cleanup deferred: KV compare-and-delete is not atomic");
-
-          console.log("No KV keys deleted for "+day);
-          JSEOF
-

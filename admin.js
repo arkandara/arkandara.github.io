@@ -2033,8 +2033,9 @@ function renderStatsPeriod(period) {
         return raw ? kurdishDays[new Date(raw).getDay()] : "";
     });
 
-    var visits = data.map(function(d){ return d.totalVisits||0; });
-    var clicks  = data.map(function(d){ return d.totalClicks||0;  });
+    // Unknown live D1 values must remain gaps, not invented zeroes.
+    var visits = data.map(function(d){ return Number.isFinite(d.totalVisits) && d.totalVisits >= 0 ? d.totalVisits : null; });
+    var clicks = data.map(function(d){ return Number.isFinite(d.totalClicks) && d.totalClicks >= 0 ? d.totalClicks : null; });
 
     // سڕینەوەی چارتی کۆن ئەگەر هەبوو
     if (window._scChart && typeof window._scChart.destroy === "function") {

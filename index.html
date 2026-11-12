@@ -3546,18 +3546,58 @@ function akStartSession() {
         });
 }
 
-// ---- ریفرێش — Server-Sent Events ----
+// ---- Reload: maintain SSE only while the page is visible ----
 (function akWatchReload() {
-    function connect() {
-        var es = new EventSource('/reload');
-        es.onmessage = function(e) {
-            if (e.data === 'reload') window.location.reload();
-        };
-        es.onerror = function() {
+    if (typeof EventSource === 'undefined') return;
+    var es = null;
+    var retryTimer = null;
+    var retryDelay = 5000;
+    var stopped = false;
+
+    function disconnect() {
+        if (retryTimer !== null) {
+            clearTimeout(retryTimer);
+            retryTimer = null;
+        }
+        if (es) {
             es.close();
-            setTimeout(connect, 5000);
+            es = null;
+        }
+    }
+
+    function connect() {
+        if (stopped || document.hidden || es) return;
+        var stream = new EventSource('/reload');
+        es = stream;
+        stream.onopen = function() { retryDelay = 5000; };
+        stream.onmessage = function(event) {
+            if (event.data === 'reload') window.location.reload();
+        };
+        stream.onerror = function() {
+            if (es !== stream) return;
+            disconnect();
+            if (stopped || document.hidden) return;
+            var wait = retryDelay;
+            retryDelay = Math.min(retryDelay * 2, 60000);
+            retryTimer = setTimeout(function() {
+                retryTimer = null;
+                connect();
+            }, wait);
         };
     }
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) disconnect();
+        else connect();
+    });
+    window.addEventListener('pagehide', function() {
+        stopped = true;
+        disconnect();
+    });
+    window.addEventListener('pageshow', function() {
+        stopped = false;
+        connect();
+    });
     connect();
 })();
 

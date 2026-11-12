@@ -104,14 +104,17 @@ jobs:
                     return reject(new Error("D1 query failed"));
                   const rows=data.result[0].results;
                   if(!Array.isArray(rows))return reject(new Error("Invalid D1 rows"));
+                  if(rows.length===0)return reject(new Error("No D1 rows for archived day; refusing empty snapshot"));
                   const counts={visit:0,textarea:0,clicks:{}};
                   for(const row of rows){
                     const n=Number(row.count);
-                    if(!Number.isSafeInteger(n)||n<0)throw new Error("Invalid D1 count");
+                    if(!Number.isSafeInteger(n)||n<0)return reject(new Error("Invalid D1 count"));
                     if(row.kind==="visit"&&row.label==="")counts.visit=n;
                     else if(row.kind==="textarea"&&row.label==="")counts.textarea=n;
                     else if(row.kind==="click"&&typeof row.label==="string")counts.clicks[row.label]=n;
                   }
+                  if(counts.visit===0&&counts.textarea===0&&Object.keys(counts.clicks).length===0)
+                    return reject(new Error("D1 day has no supported analytics counters"));
                   resolve(counts);
                 });
               });

@@ -239,9 +239,8 @@ async function incrementAtomicDailyStat(env, kind, label = "") {
         dailyReady.set(db, ready);
     }
     await ready;
-    const day = isoDate(new Date());
-    const result = await db.prepare("INSERT INTO track_daily_counts (day, kind, label, count) VALUES (?, ?, ?, 1) ON CONFLICT(day, kind, label) DO UPDATE SET count = count + 1")
-        .bind(day, kind, label).run();
+    const result = await db.prepare("INSERT INTO track_daily_counts (day, kind, label, count) VALUES (date('now'), ?, ?, 1) ON CONFLICT(day, kind, label) DO UPDATE SET count = count + 1")
+        .bind(kind, label).run();
     if (!result.success) throw invalid("daily_stats_unavailable", 503);
 }
 

@@ -223,6 +223,28 @@ async function incrementDailyStat(env, kind, label = "") {
     await env.STATS_DB.put(key, String(value + 1), { expirationTtl: 691200 });
 }
 
+// Atomic daily totals in the existing D1 database. KV daily counters remain
+// temporarily for compatibility with the current archive workflow; they are
+// NOT an authoritative source under concurrent traffic.
+const dailyReady = new WeakMap();
+async function incrementAtomicDailyStat(env, kind, label = "") {
+    const db = env.VISITOR_DB;
+    if (!db || typeof db.prepare !== "function") throw invalid("daily_stats_unavailable", 503);
+    let ready = dailyReady.get(db);
+    if (!ready) {
+        ready = db.prepare("CREATE TABLE IF NOT EXISTS track_daily_counts (day TEXT NOT NULL, kind TEXT NOT NULL, label TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, kind, label))")
+            .run().then(result => {
+                if (!result.success) throw invalid("daily_stats_unavailable", 503);
+            }).catch(error => { dailyReady.delete(db); throw error; });
+        dailyReady.set(db, ready);
+    }
+    await ready;
+    const day = isoDate(new Date());
+    const result = await db.prepare("INSERT INTO track_daily_counts (day, kind, label, count) VALUES (?, ?, ?, 1) ON CONFLICT(day, kind, label) DO UPDATE SET count = count + 1")
+        .bind(day, kind, label).run();
+    if (!result.success) throw invalid("daily_stats_unavailable", 503);
+}
+
 // ---- GET: خوێندنەوەی ئامارەکان ----
 export async function onRequestGet(context) {
     const { env, request } = context;
@@ -394,6 +416,7 @@ export async function onRequestPost(context) {
                 await env.STATS_DB.put(snapKey, JSON.stringify(snaps), { expirationTtl: 691200 });
             }
 
+            await incrementAtomicDailyStat(env, "click", label);
             await incrementDailyStat(env, "click", label);
             return ok({ success: true, label, count: current + 1 }, CORS);
         }
@@ -425,6 +448,7 @@ export async function onRequestPost(context) {
             daySes.push(session);
             if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
             await env.STATS_DB.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
+            await incrementAtomicDailyStat(env, "visit");
             await incrementDailyStat(env, "visit");
             return ok({ success: true, total: tot + 1 }, CORS);
         }
@@ -445,6 +469,7 @@ export async function onRequestPost(context) {
             const tot = Number(await env.STATS_DB.get("meta:total_textarea") || "0");
             if (!Number.isSafeInteger(tot) || tot < 0) throw invalid("invalid_textarea_counter", 503);
             await env.STATS_DB.put("meta:total_textarea", String(tot + 1));
+            await incrementAtomicDailyStat(env, "textarea");
             await incrementDailyStat(env, "textarea");
             return ok({ success: true }, CORS);
         }

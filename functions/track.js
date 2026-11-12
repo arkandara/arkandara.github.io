@@ -136,27 +136,6 @@ async function readBody(request, limit) {
     return body;
 }
 
-// Additive migration: atomic daily D1 counters. Legacy KV remains in place
-// until the dashboard and archive workflows are migrated together.
-// No visitor IP, text, or location is stored in this new counter table.
-const dailyCounterReady = new WeakMap();
-async function recordDailyCounter(env, kind, label = "") {
-    const db = env && env.VISITOR_DB;
-    if (!db || typeof db.prepare !== "function") throw invalid("stats_d1_unavailable", 503);
-    let ready = dailyCounterReady.get(db);
-    if (!ready) {
-        ready = db.prepare("CREATE TABLE IF NOT EXISTS track_daily_counters (day TEXT NOT NULL, kind TEXT NOT NULL, label TEXT NOT NULL, total INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, kind, label))").run()
-            .then(result => { if (!result.success) throw invalid("stats_d1_unavailable", 503); })
-            .catch(error => { dailyCounterReady.delete(db); throw error; });
-        dailyCounterReady.set(db, ready);
-    }
-    await ready;
-    const day = new Date().toISOString().slice(0, 10);
-    const result = await db.prepare("INSERT INTO track_daily_counters (day, kind, label, total) VALUES (?, ?, ?, 1) ON CONFLICT(day, kind, label) DO UPDATE SET total = total + 1")
-        .bind(day, kind, label).run();
-    if (!result.success) throw invalid("stats_d1_write_failed", 503);
-}
-
 // Persist counters in the existing private D1 binding, shared by all isolates.
 // IPs are keyed with a server secret; no raw address is stored in this table.
 const rateReady = new WeakMap();
@@ -402,7 +381,6 @@ export async function onRequestPost(context) {
                 await env.STATS_DB.put(snapKey, JSON.stringify(snaps), { expirationTtl: 691200 });
             }
 
-            await recordDailyCounter(env, "click", label);
             return ok({ success: true, label, count: current + 1 }, CORS);
         }
 
@@ -433,7 +411,6 @@ export async function onRequestPost(context) {
             daySes.push(session);
             if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
             await env.STATS_DB.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
-            await recordDailyCounter(env, "visit");
             return ok({ success: true, total: tot + 1 }, CORS);
         }
 
@@ -453,7 +430,6 @@ export async function onRequestPost(context) {
             const tot = Number(await env.STATS_DB.get("meta:total_textarea") || "0");
             if (!Number.isSafeInteger(tot) || tot < 0) throw invalid("invalid_textarea_counter", 503);
             await env.STATS_DB.put("meta:total_textarea", String(tot + 1));
-            await recordDailyCounter(env, "textarea");
             return ok({ success: true }, CORS);
         }
 

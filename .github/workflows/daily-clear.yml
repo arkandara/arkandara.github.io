@@ -64,8 +64,19 @@ jobs:
               }
               const req = https.request(
                 `${BASE}/values/${encodeURIComponent(key)}`, opts,
-                (r) => { let b=""; r.on("data",d=>b+=d); r.on("end",()=>res(b)); }
+                (r) => {
+                  let b = "";
+                  r.on("data", d => b += d);
+                  r.on("end", () => {
+                    if (method === "GET" && r.statusCode === 404) return res(null);
+                    if (r.statusCode < 200 || r.statusCode >= 300) {
+                      return rej(new Error(`Cloudflare KV ${method} ${key}: HTTP ${r.statusCode}`));
+                    }
+                    res(b);
+                  });
+                }
               );
+              req.setTimeout(20000, () => req.destroy(new Error("Cloudflare KV timeout")));
               req.on("error", rej);
               if (body !== undefined) req.write(Buffer.from(String(body)));
               req.end();
@@ -77,7 +88,7 @@ jobs:
           const cfPut    = (key, val) => cfRequest("PUT",    key, val);
 
           function safeJson(raw, def)  { try { return JSON.parse(raw); } catch(e) { return def; } }
-          function safeArray(raw)      { try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch(e) { return []; } }
+          function safeArray(raw)      { if (raw === null) return []; const p = JSON.parse(raw); if (!Array.isArray(p)) throw new Error("Invalid KV array"); return p; }
           function isoDate(d)          { return d.toISOString().slice(0,10); }
 
           async function main() {
@@ -97,8 +108,12 @@ jobs:
               if (v && !isNaN(+v)) clicks[lbl] = +v;
             }
             const totalVisits   = +(await cfGet("meta:total_visits")   || "0");
+            if (!Number.isFinite(totalVisits) || totalVisits < 0) throw new Error("Invalid total visits");
             const totalTextarea = +(await cfGet("meta:total_textarea") || "0");
-            const sessions      = safeArray(await cfGet("visits:" + archiveDate));
+            if (!Number.isFinite(totalTextarea) || totalTextarea < 0) throw new Error("Invalid total textarea");
+            const rawSessions   = await cfGet("visits:" + archiveDate);
+            if (totalVisits > 0 && rawSessions === null) throw new Error("Missing visits sessions; refusing to clear");
+            const sessions      = safeArray(rawSessions);
 
             // ---- ٢. حیسابکردنی deviceStats و cityStats ----
             const deviceStats = { mobile: 0, desktop: 0, tablet: 0 };

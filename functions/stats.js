@@ -31,22 +31,39 @@ export async function onRequestGet(context) {
     try {
         const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
         const clickLabels   = clicksListRaw ? JSON.parse(clicksListRaw) : [];
+        if (!Array.isArray(clickLabels)) throw new Error("Invalid click registry");
+        const clickValues = await Promise.all(clickLabels.map(label => env.STATS_DB.get("click:" + label)));
         const clicks = {};
-        for (const label of clickLabels) {
-            const val = await env.STATS_DB.get("click:" + label);
-            if (val) clicks[label] = parseInt(val);
-        }
+        clickLabels.forEach((label, i) => {
+            const raw = clickValues[i];
+            if (raw !== null) {
+                const value = Number(raw);
+                if (!Number.isSafeInteger(value) || value < 0) throw new Error("Invalid click counter");
+                clicks[label] = value;
+            }
+        });
 
-        const totalVisits   = parseInt(await env.STATS_DB.get("meta:total_visits")   || "0");
-        const totalTextarea = parseInt(await env.STATS_DB.get("meta:total_textarea") || "0");
+        const [visitsRaw, textareaCountRaw] = await Promise.all([
+            env.STATS_DB.get("meta:total_visits"),
+            env.STATS_DB.get("meta:total_textarea")
+        ]);
+        const totalVisits = Number(visitsRaw || "0");
+        const totalTextarea = Number(textareaCountRaw || "0");
+        if (![totalVisits, totalTextarea].every(n => Number.isSafeInteger(n) && n >= 0)) throw new Error("Invalid totals");
 
+        const now = new Date();
+        const sessionKeys = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(now);
+            d.setUTCDate(d.getUTCDate() - i);
+            return "visits:" + d.toISOString().slice(0, 10);
+        });
+        const sessionValues = await Promise.all(sessionKeys.map(key => env.STATS_DB.get(key)));
         const sessions = [];
-        for (let i = 0; i < 7; i++) {
-            const d   = new Date();
-            d.setDate(d.getDate() - i);
-            const key = "visits:" + d.toISOString().slice(0, 10);
-            const raw = await env.STATS_DB.get(key);
-            if (raw) sessions.push(...JSON.parse(raw));
+        for (const raw of sessionValues) {
+            if (!raw) continue;
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) throw new Error("Invalid sessions");
+            sessions.push(...parsed);
         }
         const recentSessions = sessions
             .sort((a, b) => new Date(b.time) - new Date(a.time))

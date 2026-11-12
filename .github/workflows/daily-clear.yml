@@ -162,8 +162,9 @@ jobs:
           const entry=archive.days.find(d=>d.date===day);
           if(!entry)throw new Error("Day not present in committed archive; refusing cleanup");
           const base=`https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/storage/kv/namespaces/${process.env.CF_NAMESPACE_ID}/values/`;
-          const keys=["visits:"+day,"textarea:"+day,"snapshots:"+day,
-            "daily:"+day+":visit","daily:"+day+":textarea",
+          // Raw visit/textarea/snapshot payloads are not in the aggregate archive.
+          // Preserve them; only completed-day aggregate counters are eligible.
+          const keys=["daily:"+day+":visit","daily:"+day+":textarea",
             ...Object.keys(entry.clicks||{}).map(label=>"daily:"+day+":click:"+label)];
           // Only date-scoped keys for an archived, completed UTC day.
           // Never delete global totals or settings needed by the dashboard.
@@ -179,6 +180,8 @@ jobs:
               req.on("error",reject);req.end();
             });
           }
+          // Never delete counters on a rerun if the archive snapshot is stale.
+          // Date-scoped counters have an eight-day TTL as a fallback.
           for(const key of keys)await del(key);
           console.log("Deleted "+keys.length+" completed-day KV keys for "+day);
           JSEOF

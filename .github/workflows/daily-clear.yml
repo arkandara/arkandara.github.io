@@ -16,11 +16,11 @@
 #    21:40 UTC → archive-stats: daily_current.json دەخوێنێت، مانگانە دروست دەکات، سفر دەکاتەوە
 # ============================================================
 
-name: 🌙 ئەرشیفی شەوانە — KV safety hold
+name: 🌙 ئەرشیفی ڕۆژانە — safe GitHub checkpoint
 
 on:
   schedule:
-    - cron: "20 21 * * *"   # 21:20 UTC = 12:20 AM عێراق (UTC+3)
+    - cron: "20 0 * * *"   # 21:20 UTC = 12:20 AM عێراق (UTC+3)
   workflow_dispatch:
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
       - name: 🔄 Pull کردنی کۆتاترین گۆڕانکاری
         run: git pull --rebase
 
-      - name: 📡 ئەرشیفکردن بەبێ سڕینەوەی KV
+      - name: 📡 ئەرشیفکردنی ڕۆژی تەواوبوو لە KV
         env:
           CF_ACCOUNT_ID:   ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN:    ${{ secrets.CF_API_TOKEN }}
@@ -47,144 +47,89 @@ jobs:
         run: |
           node - << 'JSEOF'
           const https = require("https");
-          const fs    = require("fs");
-
-          const ACCOUNT   = process.env.CF_ACCOUNT_ID;
-          const TOKEN     = process.env.CF_API_TOKEN;
-          const NAMESPACE = process.env.CF_NAMESPACE_ID;
-          const BASE      = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/storage/kv/namespaces/${NAMESPACE}`;
-
-          function cfRequest(method, key, body) {
-            return new Promise((res, rej) => {
-              const opts = {
-                method: method || "GET",
-                headers: { Authorization: `Bearer ${TOKEN}` }
-              };
-              if (body !== undefined) {
-                const buf = Buffer.from(String(body));
-                opts.headers["Content-Type"]   = "text/plain";
-                opts.headers["Content-Length"] = buf.length;
-              }
-              const req = https.request(
-                `${BASE}/values/${encodeURIComponent(key)}`, opts,
-                (r) => {
-                  let b = "";
-                  r.on("data", d => b += d);
-                  r.on("end", () => {
-                    if (method === "GET" && r.statusCode === 404) return res(null);
-                    if (r.statusCode < 200 || r.statusCode >= 300) {
-                      return rej(new Error(`Cloudflare KV ${method} ${key}: HTTP ${r.statusCode}`));
-                    }
-                    res(b);
-                  });
-                }
-              );
-              req.setTimeout(20000, () => req.destroy(new Error("Cloudflare KV timeout")));
-              req.on("error", rej);
-              if (body !== undefined) req.write(Buffer.from(String(body)));
+          const fs = require("fs");
+          const account = process.env.CF_ACCOUNT_ID, token = process.env.CF_API_TOKEN;
+          const namespace = process.env.CF_NAMESPACE_ID;
+          if (![account,token,namespace].every(Boolean)) throw new Error("Missing Cloudflare credentials");
+          const base = `https://api.cloudflare.com/client/v4/accounts/${account}/storage/kv/namespaces/${namespace}`;
+          function request(method,key) {
+            return new Promise((resolve,reject)=>{
+              const req=https.request(`${base}/values/${encodeURIComponent(key)}`,{
+                method,headers:{Authorization:`Bearer ${token}`}
+              },res=>{
+                let value="";
+                res.on("data",chunk=>value+=chunk);
+                res.on("end",()=>{
+                  if(method==="GET" && res.statusCode===404)return resolve(null);
+                  if(res.statusCode<200 || res.statusCode>=300)return reject(new Error(`KV ${method} ${key}: HTTP ${res.statusCode}`));
+                  resolve(value);
+                });
+              });
+              req.setTimeout(20000,()=>req.destroy(new Error("KV timeout")));
+              req.on("error",reject);
               req.end();
             });
           }
-
-          const cfGet    = (key)      => cfRequest("GET",    key);
-
-          function safeJson(raw, def)  { try { return JSON.parse(raw); } catch(e) { return def; } }
-          function safeArray(raw)      { if (raw === null) return []; const p = JSON.parse(raw); if (!Array.isArray(p)) throw new Error("Invalid KV array"); return p; }
-          function isoDate(d)          { return d.toISOString().slice(0,10); }
-
-          async function main() {
-            const now         = new Date();
-            // FIX #5: archiveDate بەرپرسە لە رۆژی ئەمرۆ (UTC) — هەمیشە دروستە
-            // چونکە ئەم جۆبە پێش archive-stats کار دەکات، داتای KV
-            // بۆ مانگی دروست دەچێت
-            const archiveDate = isoDate(now);
-            const thisMonth   = archiveDate.slice(0, 7);
-            console.log("📅 رۆژی ئەرشیف:", archiveDate, "| مانگ:", thisMonth);
-
-            // ---- ١. خوێندنەوەی داتا لە KV ----
-            const clickLabels = safeArray(await cfGet("meta:clicks_list"));
-            const clicks = {};
-            for (const lbl of clickLabels) {
-              const v = await cfGet("click:" + lbl);
-              if (v && !isNaN(+v)) clicks[lbl] = +v;
-            }
-            const totalVisits   = +(await cfGet("meta:total_visits")   || "0");
-            if (!Number.isFinite(totalVisits) || totalVisits < 0) throw new Error("Invalid total visits");
-            const totalTextarea = +(await cfGet("meta:total_textarea") || "0");
-            if (!Number.isFinite(totalTextarea) || totalTextarea < 0) throw new Error("Invalid total textarea");
-            const rawSessions   = await cfGet("visits:" + archiveDate);
-            if (totalVisits > 0 && rawSessions === null) throw new Error("Missing visits sessions; refusing to clear");
-            const sessions      = safeArray(rawSessions);
-
-            // ---- ٢. حیسابکردنی deviceStats و cityStats ----
-            const deviceStats = { mobile: 0, desktop: 0, tablet: 0 };
-            const cityStats   = {};
-            sessions.forEach(s => {
-              const d = s.device || "";
-              if      (d.includes("تابلێت") || d.includes("📟")) deviceStats.tablet++;
-              else if (d.includes("موبایل") || d.includes("📱")) deviceStats.mobile++;
-              else                                                  deviceStats.desktop++;
-              const city = (s.city && s.city !== "---")
-                ? s.city
-                : ((s.country && s.country !== "---") ? s.country : "نەناسراو");
-              cityStats[city] = (cityStats[city] || 0) + 1;
-            });
-
-            const totalClicks = Object.values(clicks).reduce((s,v) => s+v, 0);
-
-            if (!fs.existsSync("archives")) fs.mkdirSync("archives");
-
-            // ---- ٣. زیادکردن بۆ daily_current.json ----
-            const currentPath = "archives/daily_current.json";
-            let current = { type: "daily_current", month: thisMonth, updatedAt: "", days: [] };
-
-            if (fs.existsSync(currentPath)) {
-              current = JSON.parse(fs.readFileSync(currentPath, "utf8"));
-            }
-
-            // FIX #6: daily-clear قەت نابێت days سفر بکاتەوە یان بیسڕێتەوە،
-            // تەنانەت ئەگەر current.month لەگەڵ thisMonth یەکسان نەبێت.
-            // ئەگەر ئەمرۆ ١ی مانگە، ڕۆژانی مانگی ڕابردوو (بۆ نموونە حوزەیران)
-            // هێشتا لە داخڵی daysماونەتەوە و پێویستە بمێننەوە، چونکە
-            // archive-stats.yml لە 21:40 (٢٠ خولەک دواتر) پێویستی پێیانە
-            // بۆ دروستکردنی ئەرشیفی مانگانە. ئەگەر لێرە بسڕدرێنەوە،
-            // archive-stats هیچ داتایەک بۆ مانگی ڕابردوو نادۆزێتەوە و
-            // ئەرشیفی مانگانە دروست نابێت.
-            // تەنها current.month نوێ دەکەینەوە (ئاماژەیە، کاریگەری
-            // لەسەر فلتەرکردنی archive-stats نییە چونکە ئەو خۆی
-            // بەپێی d.date فلتەر دەکات نەک بەپێی current.month).
-            current.month = thisMonth;
-
-            // Never overwrite an existing day with cumulative counters.
-            if (!Array.isArray(current.days)) throw new Error("Invalid daily archive");
-            if (current.days.some(d => d.date === archiveDate)) {
-              throw new Error("Day already archived; refusing to overwrite historical data");
-            }
-            current.days.push({
-              date:         archiveDate,
-              generatedAt:  now.toISOString(),
-              totalVisits,
-              totalClicks,
-              totalTextarea,
-              clicks,
-              deviceStats,
-              cityStats
-            });
-            current.days.sort((a,b) => a.date.localeCompare(b.date));
-            current.updatedAt = now.toISOString();
-
-            fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
-            console.log("✅ daily_current.json نوێکرایەوە — رۆژ:", archiveDate, "| کۆی رۆژ:", current.days.length);
-
-            // SAFETY HOLD: do not mutate KV until an atomic, verified
-            // archive-and-reset protocol is deployed across both workflows
-            // and the event writer. Git commit success alone is insufficient:
-            // concurrent writes can still be lost during counter reset.
-            console.log("🛡️ Safety hold: no Cloudflare KV keys deleted or reset.");
-
+          const get=key=>request("GET",key);
+          function array(raw,key) {
+            if(raw===null)return [];
+            const value=JSON.parse(raw);
+            if(!Array.isArray(value))throw new Error("Invalid array: "+key);
+            return value;
           }
-
-          main().catch(e => { console.error(e); process.exit(1); });
+          function counter(raw,key) {
+            if(raw===null)return 0;
+            const value=Number(raw);
+            if(!Number.isSafeInteger(value)||value<0)throw new Error("Invalid counter: "+key);
+            return value;
+          }
+          function date(d){return d.toISOString().slice(0,10);}
+          async function main(){
+            // The UTC day must be complete before it can be archived.
+            const now=new Date();
+            const yesterday=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-1));
+            const day=date(yesterday), month=day.slice(0,7);
+            const labels=array(await get("meta:clicks_list"),"meta:clicks_list");
+            if(labels.some(x=>typeof x!=="string"||!x||x.length>120)||new Set(labels).size!==labels.length)throw new Error("Invalid click labels");
+            const clicks={};
+            for(const label of labels){
+              const key=`daily:${day}:click:${label}`;
+              const n=counter(await get(key),key);
+              if(n)clicks[label]=n;
+            }
+            const totalVisits=counter(await get(`daily:${day}:visit`),"daily visits");
+            const totalTextarea=counter(await get(`daily:${day}:textarea`),"daily textarea");
+            const sessions=array(await get("visits:"+day),"visits");
+            const deviceStats={mobile:0,desktop:0,tablet:0},cityStats={};
+            for(const session of sessions){
+              if(!session||typeof session!=="object")throw new Error("Invalid visit");
+              const device=String(session.device||"");
+              if(device.includes("تابلێت")||device.includes("📟"))deviceStats.tablet++;
+              else if(device.includes("موبایل")||device.includes("📱"))deviceStats.mobile++;
+              else deviceStats.desktop++;
+              const city=session.city&&session.city!=="---"?session.city:(session.country&&session.country!=="---"?session.country:"نەناسراو");
+              cityStats[city]=(cityStats[city]||0)+1;
+            }
+            // The old writer only retains the latest 500 visit records. Do not
+            // misrepresent these as a complete demographic breakdown.
+            const totalClicks=Object.values(clicks).reduce((sum,n)=>sum+n,0);
+            const file="archives/daily_current.json";
+            const current=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,"utf8")):{type:"daily_current",month,updatedAt:"",days:[]};
+            if(!Array.isArray(current.days))throw new Error("Invalid archive");
+            if(current.days.some(entry=>entry.date===day))throw new Error("Date already archived: "+day);
+            // Fail closed for dates before the new date-scoped counters existed.
+            // Such dates require reconciliation, not silently archiving zeroes.
+            if(totalVisits===0&&totalClicks===0&&totalTextarea===0&&sessions.length===0)throw new Error("No daily data; refusing empty archive");
+            if(totalVisits<sessions.length)throw new Error("Visit counter smaller than sessions; possible migration gap");
+            current.days.push({date:day,generatedAt:now.toISOString(),totalVisits,totalClicks,totalTextarea,clicks,deviceStats,cityStats});
+            current.days.sort((x,y)=>x.date.localeCompare(y.date));
+            current.month=month;
+            current.updatedAt=now.toISOString();
+            fs.mkdirSync("archives",{recursive:true});
+            fs.writeFileSync(file,JSON.stringify(current,null,2),"utf8");
+            console.log(`Archived ${day}: ${totalVisits} visits, ${totalClicks} clicks; KV remains unchanged pending verified GitHub push`);
+          }
+          main().catch(error=>{console.error(error);process.exit(1);});
           JSEOF
 
       - name: 📤 Commit

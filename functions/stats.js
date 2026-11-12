@@ -73,12 +73,37 @@ export async function onRequestGet(context) {
         const txRaw         = await env.STATS_DB.get(txKey);
         const textareaToday = txRaw ? JSON.parse(txRaw) : [];
 
+        // D1 is the authoritative, atomic source for NEW daily event counts.
+        // Keep existing KV cumulative totals intact during migration.
+        // Do not silently report a zero when D1 is unavailable.
+        let dailyAtomic = null;
+        if (env.VISITOR_DB && typeof env.VISITOR_DB.prepare === "function") {
+            try {
+                const today = todayStr();
+                const rows = await env.VISITOR_DB.prepare(
+                    "SELECT kind, label, count FROM track_daily_counts WHERE day = ?"
+                ).bind(today).all();
+                if (!rows.success) throw new Error("D1 daily stats query failed");
+                const counts = { visits: 0, textarea: 0, clicks: {} };
+                for (const row of rows.results || []) {
+                    if (row.kind === "visit" && row.label === "") counts.visits = row.count;
+                    else if (row.kind === "textarea" && row.label === "") counts.textarea = row.count;
+                    else if (row.kind === "click") counts.clicks[row.label] = row.count;
+                }
+                dailyAtomic = { date: today, ...counts };
+            } catch (error) {
+                // Table may not exist until the first tracked event after deployment.
+                // Explicit null signals unavailable data; never replace legacy totals.
+                console.warn("Atomic daily stats unavailable", error);
+            }
+        }
+
         const archiveListRaw = await env.STATS_DB.get("meta:archive_list");
         const archiveList    = archiveListRaw ? JSON.parse(archiveListRaw) : [];
 
         return new Response(JSON.stringify({
             clicks, totalVisits, totalTextarea,
-            recentSessions, textareaToday, archiveList
+            recentSessions, textareaToday, archiveList, dailyAtomic
         }), { status: 200, headers: CORS });
 
     } catch (err) {

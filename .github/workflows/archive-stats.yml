@@ -16,12 +16,12 @@ name: 📦 ئەرشیفی مانگانە و ساڵانە
 
 on:
   schedule:
-    - cron: "40 21 1 * *"     # UTC day 1 = Baghdad day 2 at 00:40
-    - cron: "50 21 1 1 *"     # UTC Jan 1 = Baghdad Jan 2 at 00:50
+    - cron: "40 0 1 * *"     # UTC day 1 = Baghdad day 2 at 00:40
+    - cron: "50 0 1 1 *"     # UTC Jan 1 = Baghdad Jan 2 at 00:50
   workflow_dispatch:
 
 concurrency:
-  group: archive-stats-main
+  group: daily-archive-main
   cancel-in-progress: false
 
 jobs:
@@ -148,7 +148,8 @@ jobs:
 
               // Existing rollups are never silently replaced by an automatic run.
               if (archive.months.some(m => m.month === mData.month)) {
-                throw new Error(`Monthly archive ${mData.month} already exists; manual reconciliation required`);
+                console.log(`Monthly archive ${mData.month} already exists; leaving it unchanged`);
+                process.exit(0);
               }
               archive.months = archive.months.filter(m => m.month !== mData.month);
               archive.months.push(mData);
@@ -157,17 +158,9 @@ jobs:
               fs.writeFileSync(archivePath, JSON.stringify(archive, null, 2), "utf8");
               console.log(`✅ مانگانە: ${monthLabel} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان) → monthly_archive.json`);
 
-              // FIX #7: تەنها ئەگەر ئەرشیف بەسەرکەوتووی دروستبوو، ئەوسا
-              // ڕۆژانی ئەو مانگە لە daily_current.json بسڕەوە. تەنها ڕۆژانی
-              // ئەو مانگەی کە ئەرشیف کرا (monthLabel) لادەبرێت — نەک هەموو
-              // days، بۆ ئەوەی ئەگەر ڕۆژانی مانگێکی تر (بۆ نموونە لەبەر
-              // شکستی ئەرشیفکردنی پێشوو) لەناویدا مابوو، لەناونەچێت.
-              const newMonth = todayStr.slice(0, 7);
-              current.days      = days.filter(d => (d.date || "").slice(0, 7) !== monthLabel);
-              current.month     = newMonth;
-              current.updatedAt = now.toISOString();
-              fs.writeFileSync(currentPath, JSON.stringify(current, null, 2), "utf8");
-              console.log("✅ daily_current.json سفر بووەوە بۆ مانگی", monthLabel, "— ئامادەی مانگی نوێ:", newMonth, "| ڕۆژی مایەوە (مانگی تر):", current.days.length);
+              // Preserve all original daily records in GitHub. The monthly
+              // summary is an additional index, not a replacement for days.
+              console.log("Daily source records retained for audit and recovery");
             } else {
               throw new Error(`No daily records for ${monthLabel}; preserving archive`);
             }

@@ -38,6 +38,8 @@ jobs:
         run: git pull --rebase
 
       - name: 📊 دروستکردنی ئەرشیفی مانگانە و ساڵانە
+        env:
+          ARCHIVE_MODE: ${{ github.event.schedule == '50 0 1 1 *' && 'yearly' || 'monthly' }}
         run: |
           node - << 'JSEOF'
           const fs = require("fs");
@@ -46,6 +48,7 @@ jobs:
 
           const now      = new Date();
           const todayStr = isoDate(now);
+          const archiveMode = process.env.ARCHIVE_MODE || "monthly";
 
           // ================================================================
           // مانگانە — لە daily_current.json
@@ -57,6 +60,7 @@ jobs:
           const currentPath = "archives/daily_current.json";
           const archivePath = "archives/monthly_archive.json";
 
+          if (archiveMode === "monthly") {
           if (!fs.existsSync(currentPath)) {
             throw new Error("Missing daily_current.json; preserving archive");
           }
@@ -185,10 +189,15 @@ jobs:
             }
           }
 
+          }
           // ================================================================
           // ساڵانە — تەنها ١ی ١ی هەر ساڵ
           // ================================================================
           const isJan1 = (now.getUTCMonth() === 0 && now.getUTCDate() === 1);
+          if (archiveMode !== "yearly") {
+            console.log("Monthly run completed; yearly is reserved for 03:50 Iraq");
+            process.exit(0);
+          }
           if (!isJan1) {
             console.log("ℹ️ ئەمڕۆ ١ی ١ نییە — ساڵانە نادروستبێت");
             process.exit(0);
@@ -204,13 +213,22 @@ jobs:
             (m.month || "").startsWith(String(lastYear))
           );
 
-          // FIX #4: دڵنیاببە هەموو ١٢ مانگ بەردەستن پێش دروستکردنی ساڵانە
+          // Use available valid months, even when some months are missing.
           const expectedMonths = Array.from({length:12},(_,i)=>String(lastYear)+"-"+String(i+1).padStart(2,"0"));
-          if (yearMonths.length !== 12 || !expectedMonths.every(m=>yearMonths.some(x=>x.month===m)) || yearMonths.some(m=>!Number.isSafeInteger(m.totalVisits)||!Number.isSafeInteger(m.totalClicks)||!m.clicks||Object.values(m.clicks).reduce((a,b)=>a+b,0)!==m.totalClicks)) {
-            console.log(`⚠️ ساڵانە نادروستبێت: ${yearMonths.length} مانگ بەردەستە، پێویستە ١٢ مانگ بێت`);
-            console.log("   مانگە بەردەستەکان:", yearMonths.map(m => m.month).join(", ") || "(هیچ)");
-            process.exit(0);
+          const unique = new Set();
+          for (const m of yearMonths) {
+            if (!expectedMonths.includes(m.month) || unique.has(m.month) ||
+                !Number.isSafeInteger(m.totalVisits) || m.totalVisits < 0 ||
+                !Number.isSafeInteger(m.totalClicks) || m.totalClicks < 0 ||
+                !m.clicks || typeof m.clicks !== "object" || Array.isArray(m.clicks) ||
+                Object.values(m.clicks).some(v=>!Number.isSafeInteger(v)||v<0) ||
+                Object.values(m.clicks).reduce((a,b)=>a+b,0)!==m.totalClicks) {
+              throw new Error("Invalid or duplicate monthly archive for "+lastYear);
+            }
+            unique.add(m.month);
           }
+          const missingMonths = expectedMonths.filter(m=>!unique.has(m));
+          console.log("Yearly coverage:",yearMonths.length+"/12; missing:",missingMonths.join(", ")||"none");
 
           // FIX #2: ساڵانە تەنها کۆکردنەوەی مانگانە دەکات — هیچ days تێدا ناخرێت
           const yDevice = { mobile:0, desktop:0, tablet:0 };
@@ -233,7 +251,10 @@ jobs:
             generatedAt: now.toISOString(),
             totalVisits: yearMonths.reduce((s,m) => s+(m.totalVisits||0), 0),
             totalClicks: yearMonths.reduce((s,m) => s+(m.totalClicks||0), 0),
-            monthsCount: 12,
+            monthsCount: yearMonths.length,
+            expectedMonths: 12,
+            missingMonths,
+            complete: missingMonths.length === 0 && yearMonths.every(m=>m.complete !== false),
             deviceStats: yDevice,
             cityStats:   yCity,
             clicks:      yClicks,
@@ -246,7 +267,10 @@ jobs:
           };
 
           const yPath = `archives/yearly_${lastYear}.json`;
-          if (fs.existsSync(yPath)) throw new Error(`Yearly archive ${yPath} already exists; refusing overwrite`);
+          if (fs.existsSync(yPath)) {
+            console.log(`Yearly archive ${yPath} already exists; leaving unchanged`);
+            process.exit(0);
+          }
           fs.writeFileSync(yPath, JSON.stringify(yData, null, 2), "utf8");
 
           const yIdxPath = "archives/yearly_index.json";
@@ -262,14 +286,16 @@ jobs:
             generatedAt: yData.generatedAt,
             totalVisits: yData.totalVisits,
             totalClicks: yData.totalClicks,
-            monthsCount: 12,
+            monthsCount: yData.monthsCount,
+            expectedMonths: 12,
+            missingMonths: yData.missingMonths,
+            complete: yData.complete,
             months:      yData.months,
             file:        yPath
           });
           fs.writeFileSync(yIdxPath, JSON.stringify(yIdx, null, 2), "utf8");
-          archive2.months = archive2.months.filter(m=>!yearMonths.some(y=>y.month===m.month));
-          fs.writeFileSync(archivePath,JSON.stringify(archive2,null,2),"utf8");
-          console.log(`Yearly ${lastYear} created; twelve monthly sources pruned in same commit`);
+          // Preserve monthly source data for auditing and recovery.
+          console.log(`Yearly ${lastYear} created from ${yearMonths.length} available months; monthly sources preserved`);
           JSEOF
 
       - name: 📤 Commit

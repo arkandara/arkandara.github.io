@@ -44,6 +44,15 @@ async function main(){
   try{await request("DELETE",kv+"/values/"+encodeURIComponent(key))}
   catch(e){failures.push(key+": "+e.message)}
  }
+ // Clear ordinary visitor registry every morning; preserve blocked visitor records.
+ // A blocked ID remains in visitor_blocks and is never deleted here.
+ if(dbId){
+  try{
+   const r=await request("POST","/d1/database/"+dbId+"/query",{sql:"DELETE FROM visitor_registry WHERE NOT EXISTS (SELECT 1 FROM visitor_blocks WHERE visitor_blocks.id = visitor_registry.id)"});
+   if(!r?.success||!r.result?.[0]?.success)throw Error("Visitor registry delete failed");
+   console.log("Unblocked visitor registry entries cleared; blocked visitors preserved");
+  }catch(e){failures.push("D1 visitor registry: "+e.message)}
+ }else failures.push("D1 database id missing; visitor registry not cleared");
  // Daily counts in D1 are analytics, not admin or security data.
  if(dbId){
   try{

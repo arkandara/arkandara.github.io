@@ -70,9 +70,7 @@ jobs:
 
           const days = current.days || [];
           if (!Array.isArray(days)) throw new Error("Invalid daily_current.days; preserving archive");
-          if (!days.length) {
-            throw new Error("Empty daily_current.json; monthly archive not confirmed");
-          } else {
+          {
             // مانگی ڕابردوو: چونکە ئەم جۆبە لە ١ی مانگی نوێ کار دەکات،
             // prevDay = دوەمین رۆژ پێش ئەمرۆ (کۆتا رۆژی مانگی ڕابردوو)
             const prevDay    = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0)); // رۆژی دوایی مانگی ڕابردوو
@@ -90,20 +88,21 @@ jobs:
               return dm === monthLabel;
             });
 
-            // Never roll up a partial month or silently discard duplicated/invalid dates.
-            const seen = new Set(monthDays.map(d => d.date));
-            const complete = monthDays.length === expectedDays && seen.size === expectedDays &&
-              monthDays.every(d => /^\d{4}-\d{2}-\d{2}$/.test(d.date) &&
-                d.date >= monthStart && d.date <= monthEnd &&
-                Number.isFinite(d.totalVisits) && d.totalVisits >= 0 &&
-                Number.isFinite(d.totalClicks) && d.totalClicks >= 0 &&
-                d.clicks && typeof d.clicks === "object" && !Array.isArray(d.clicks) &&
-                Object.values(d.clicks).every(v => Number.isFinite(v) && v >= 0) &&
-                Object.values(d.clicks).reduce((sum, v) => sum + v, 0) === d.totalClicks);
-            if (!complete) {
-              throw new Error(`Incomplete or inconsistent daily archive for ${monthLabel}: ${monthDays.length}/${expectedDays} days. No deletion performed.`);
+            // Missing days are allowed. Reject malformed or conflicting available entries.
+          const seen = new Set();
+          for (const d of monthDays) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(d.date) || d.date < monthStart || d.date > monthEnd ||
+                seen.has(d.date) || !Number.isFinite(d.totalVisits) || d.totalVisits < 0 ||
+                !Number.isFinite(d.totalClicks) || d.totalClicks < 0 ||
+                !d.clicks || typeof d.clicks !== "object" || Array.isArray(d.clicks) ||
+                Object.values(d.clicks).some(v => !Number.isFinite(v) || v < 0) ||
+                Object.values(d.clicks).reduce((sum,v)=>sum+v,0) !== d.totalClicks) {
+              throw new Error("Invalid or duplicate daily entry for "+monthLabel+"; preserving archive");
             }
-            if (monthDays.length > 0) {
+            seen.add(d.date);
+          }
+          console.log("Monthly coverage:",monthDays.length+"/"+expectedDays,"days; missing days permitted");
+          if (monthDays.length > 0) {
               const mergeDevice = (ds) => {
                 const t = { mobile:0, desktop:0, tablet:0 };
                 ds.forEach(d => {
@@ -136,6 +135,9 @@ jobs:
                 totalVisits: monthDays.reduce((s,d) => s+(d.totalVisits||0), 0),
                 totalClicks: monthDays.reduce((s,d) => s+(d.totalClicks||0), 0),
                 monthsCount: monthDays.length,
+                expectedDays: expectedDays,
+                missingDays: expectedDays - monthDays.length,
+                complete: monthDays.length === expectedDays,
                 deviceStats: mergeDevice(monthDays),
                 cityStats:   mergeCity(monthDays),
                 clicks:      mergeClicks(monthDays)
@@ -170,7 +172,16 @@ jobs:
                 console.log("Pruned archived daily records:",days.length-retained.length);
               }
             } else {
-              throw new Error(`No daily records for ${monthLabel}; preserving archive`);
+              console.log(`No daily records for ${monthLabel}; writing zero-count monthly summary`);
+              // No daily entries: still record an explicitly incomplete zero-count month.
+              let archive = { months: [] };
+              try { archive = JSON.parse(fs.readFileSync(archivePath, "utf8")); } catch(e) {}
+              if (!Array.isArray(archive.months)) archive.months = [];
+              if (!archive.months.some(m=>m.month===monthLabel)) {
+                archive.months.push({month:monthLabel,generatedAt:now.toISOString(),totalVisits:0,totalClicks:0,monthsCount:0,expectedDays,missingDays:expectedDays,complete:false,deviceStats:{mobile:0,desktop:0,tablet:0},cityStats:{},clicks:{}});
+                archive.months.sort((a,b)=>a.month.localeCompare(b.month));
+                fs.writeFileSync(archivePath,JSON.stringify(archive,null,2),"utf8");
+              }
             }
           }
 

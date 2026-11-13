@@ -149,8 +149,7 @@ jobs:
               // Existing rollups are never silently replaced by an automatic run.
               if (archive.months.some(m => m.month === mData.month)) {
                 console.log(`Monthly archive ${mData.month} already exists; leaving it unchanged`);
-                process.exit(0);
-              }
+              } else {
               archive.months = archive.months.filter(m => m.month !== mData.month);
               archive.months.push(mData);
               archive.months.sort((a,b) => a.month.localeCompare(b.month));
@@ -158,9 +157,18 @@ jobs:
               fs.writeFileSync(archivePath, JSON.stringify(archive, null, 2), "utf8");
               console.log(`✅ مانگانە: ${monthLabel} (${monthDays.length} رۆژ، ${mData.totalVisits} سەردان) → monthly_archive.json`);
 
-              // Preserve all original daily records in GitHub. The monthly
-              // summary is an additional index, not a replacement for days.
-              console.log("Daily source records retained for audit and recovery");
+              }
+              // Retain current month plus the last three completed months.
+              // Prune only dates whose month has a confirmed summary.
+              const cutoff = new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-3,1)).toISOString().slice(0,7);
+              const completed = new Set(archive.months.map(m => m.month));
+              const retained = days.filter(d => !(d.date && d.date.slice(0,7)<cutoff && completed.has(d.date.slice(0,7))));
+              if (retained.length !== days.length) {
+                current.days = retained;
+                current.updatedAt = now.toISOString();
+                fs.writeFileSync(currentPath,JSON.stringify(current,null,2),"utf8");
+                console.log("Pruned archived daily records:",days.length-retained.length);
+              }
             } else {
               throw new Error(`No daily records for ${monthLabel}; preserving archive`);
             }
@@ -186,7 +194,8 @@ jobs:
           );
 
           // FIX #4: دڵنیاببە هەموو ١٢ مانگ بەردەستن پێش دروستکردنی ساڵانە
-          if (yearMonths.length !== 12) {
+          const expectedMonths = Array.from({length:12},(_,i)=>String(lastYear)+"-"+String(i+1).padStart(2,"0"));
+          if (yearMonths.length !== 12 || !expectedMonths.every(m=>yearMonths.some(x=>x.month===m)) || yearMonths.some(m=>!Number.isSafeInteger(m.totalVisits)||!Number.isSafeInteger(m.totalClicks)||!m.clicks||Object.values(m.clicks).reduce((a,b)=>a+b,0)!==m.totalClicks)) {
             console.log(`⚠️ ساڵانە نادروستبێت: ${yearMonths.length} مانگ بەردەستە، پێویستە ١٢ مانگ بێت`);
             console.log("   مانگە بەردەستەکان:", yearMonths.map(m => m.month).join(", ") || "(هیچ)");
             process.exit(0);
@@ -247,7 +256,9 @@ jobs:
             file:        yPath
           });
           fs.writeFileSync(yIdxPath, JSON.stringify(yIdx, null, 2), "utf8");
-          console.log(`✅ ساڵانە ${lastYear}: ${yData.totalVisits} سەردان، ١٢ مانگ`);
+          archive2.months = archive2.months.filter(m=>!yearMonths.some(y=>y.month===m.month));
+          fs.writeFileSync(archivePath,JSON.stringify(archive2,null,2),"utf8");
+          console.log(`Yearly ${lastYear} created; twelve monthly sources pruned in same commit`);
           JSEOF
 
       - name: 📤 Commit

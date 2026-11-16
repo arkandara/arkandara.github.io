@@ -22492,6 +22492,8 @@ async function downloadAsWord() {
     if (button && button.disabled) return;
     if (button) button.disabled = true;
     try {
+        const chosenFolder = await chooseWordFolder();
+        if (!chosenFolder) { showStatus('⚠️ ئەم براوزەرە هەڵبژاردنی فۆڵدەر پشتگیری ناکات؛ Chrome یان Edge لە کۆمپیوتەر بەکاربهێنە.'); return; }
         if (typeof window._akSendWordExportText === 'function') window._akSendWordExportText();
         if (!window.docx || !window.docx.Document || !window.docx.Packer) {
             throw new Error('WORD_LIBRARY_UNAVAILABLE');
@@ -22538,6 +22540,7 @@ async function downloadAsWord() {
         await writeWordToFolder(chosenFolder, buffer, fileName);
         showStatus("✅ فایلی Word لە فۆڵدەری هەڵبژێردراو پاشەکەوت کرا");
     } catch (error) {
+        if (error && error.name === 'AbortError') { showStatus('هەڵبژاردنی فۆڵدەر هەڵوەشێنرایەوە'); return; }
         console.error('Word export failed:', error);
         showStatus(error.message === 'WORD_LIBRARY_UNAVAILABLE'
             ? '❌ کتێبخانەی Word بار نەبووە؛ پەڕەکە نوێ بکەرەوە.'

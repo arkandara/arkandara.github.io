@@ -4,6 +4,11 @@ const https=require("https");
 const account=process.env.CF_ACCOUNT_ID,token=process.env.CF_API_TOKEN,ns=process.env.CF_KV_NAMESPACE_ID,dbId=process.env.CF_D1_DATABASE_ID;
 if(!account||!token||!ns)throw Error("Missing KV credentials");
 const today=new Date().toISOString().slice(0,10);
+const fs=require("fs");
+const archive=JSON.parse(fs.readFileSync("archives/daily_current.json","utf8"));
+if(!Array.isArray(archive.days))throw Error("Missing valid daily archive: cleanup stopped");
+const archivedDays=new Set(archive.days.filter(d=>d && typeof d.date==="string" && Number.isSafeInteger(d.totalVisits)).map(d=>d.date));
+
 const kv="/storage/kv/namespaces/"+ns;
 function request(method,path,body){
  return new Promise((resolve,reject)=>{
@@ -33,12 +38,12 @@ async function main(){
  const removable=new Set();
  for(const prefix of ["daily:","visits:","textarea:","snapshots:"]){
   for(const k of await keys(prefix)){
-   if(prefix==="daily:"?/^daily:\d{4}-\d{2}-\d{2}:(visit|textarea|click:.+)$/.test(k)&&dateKey(k,"daily:"):dateKey(k,prefix))removable.add(k);
+   if(prefix==="daily:"?/^daily:\d{4}-\d{2}-\d{2}:(visit|textarea|click:.+)$/.test(k)&&archivedDays.has(k.slice(6,16)):archivedDays.has(k.slice(prefix.length,prefix.length+10)))removable.add(k);
   }
  }
  // Old global analytics counters must not grow indefinitely.
- for(const k of await keys("click:"))removable.add(k);
- for(const k of ["meta:total_visits","meta:total_textarea","meta:clicks_list"])removable.add(k);
+ // Global counters cannot be deleted safely without a date-scoped checkpoint.
+ // Preserve global totals and click labels until all dashboard counters are migrated.
  let failures=[];
  for(const key of removable){
   try{await request("DELETE",kv+"/values/"+encodeURIComponent(key))}
@@ -46,20 +51,20 @@ async function main(){
  }
  // Clear ordinary visitor registry every morning; preserve blocked visitor records.
  // A blocked ID remains in visitor_blocks and is never deleted here.
- if(dbId){
+ if(false && dbId){
   try{
    const r=await request("POST","/d1/database/"+dbId+"/query",{sql:"DELETE FROM visitor_registry WHERE NOT EXISTS (SELECT 1 FROM visitor_blocks WHERE visitor_blocks.id = visitor_registry.id)"});
    if(!r?.success||!r.result?.[0]?.success)throw Error("Visitor registry delete failed");
    console.log("Unblocked visitor registry entries cleared; blocked visitors preserved");
   }catch(e){failures.push("D1 visitor registry: "+e.message)}
- }else failures.push("D1 database id missing; visitor registry not cleared");
+ } // Visitor registry is not part of the daily archive: preserve it.
  // Daily counts in D1 are analytics, not admin or security data.
- if(dbId){
+ if(false && dbId){
   try{
    const r=await request("POST","/d1/database/"+dbId+"/query",{sql:"DELETE FROM track_daily_counts WHERE day < ?",params:[today]});
    if(!r?.success||!r.result?.[0]?.success)throw Error("D1 delete failed");
   }catch(e){failures.push("D1 analytics: "+e.message)}
- }else failures.push("D1 database id missing; D1 analytics not cleared");
+ } // D1 deletion disabled until archived dates are verified per-day.
  console.log("03:30 analytics reset:",today,"KV deleted:",removable.size-failures.filter(x=>!x.startsWith("D1")).length);
  console.log("Admin, security, visitor blocks and today's data preserved");
  if(failures.length)throw Error("Cleanup incomplete: "+failures.slice(0,10).join("; "));

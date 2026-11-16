@@ -22453,16 +22453,25 @@ function wordFolderStore(mode, value) {
 }
 async function chooseWordFolder(){
  if(typeof window.showDirectoryPicker!=='function')return null;
- let folder=null;
- try{folder=await wordFolderStore('get')}catch(e){console.warn(e)}
- if(folder&&folder.kind==='directory'){
-  try{
-   if(await folder.queryPermission({mode:'readwrite'})==='granted')return folder;
-   if(await folder.requestPermission({mode:'readwrite'})==='granted')return folder;
-  }catch(e){console.warn(e)}
+ // sessionStorage survives refresh, but normally ends when the tab/browser session closes.
+ // The durable IndexedDB handle is only reused within the same tab session.
+ const sessionKey='arkan-word-folder-selected-this-session';
+ let sameSession=false;
+ try{sameSession=sessionStorage.getItem(sessionKey)==='1'}catch(e){console.warn(e)}
+ if(sameSession){
+  let folder=null;
+  try{folder=await wordFolderStore('get')}catch(e){console.warn(e)}
+  if(folder&&folder.kind==='directory'){
+   try{
+    if(await folder.queryPermission({mode:'readwrite'})==='granted')return folder;
+    if(await folder.requestPermission({mode:'readwrite'})==='granted')return folder;
+   }catch(e){console.warn(e)}
+  }
  }
- folder=await window.showDirectoryPicker({mode:'readwrite'});
+ // First save in a new browser/tab session always requires a fresh folder choice.
+ const folder=await window.showDirectoryPicker({mode:'readwrite'});
  try{await wordFolderStore('set',folder)}catch(e){console.warn(e)}
+ try{sessionStorage.setItem(sessionKey,'1')}catch(e){console.warn(e)}
  return folder;
 }
 async function writeWordToFolder(folder,blob,name){

@@ -7,7 +7,7 @@ const today=new Date().toISOString().slice(0,10);
 const fs=require("fs");
 const archive=JSON.parse(fs.readFileSync("archives/daily_current.json","utf8"));
 if(!Array.isArray(archive.days))throw Error("Missing valid daily archive: cleanup stopped");
-const archivedDays=new Set(archive.days.filter(d=>d && typeof d.date==="string" && Number.isSafeInteger(d.totalVisits)).map(d=>d.date));
+const archivedDays=new Set(archive.days.filter(d=>d && /^\d{4}-\d{2}-\d{2}$/.test(d.date) && d.date<today && Number.isSafeInteger(d.totalVisits) && d.totalVisits>=0).map(d=>d.date));
 
 const kv="/storage/kv/namespaces/"+ns;
 function request(method,path,body){
@@ -49,22 +49,16 @@ async function main(){
   try{await request("DELETE",kv+"/values/"+encodeURIComponent(key))}
   catch(e){failures.push(key+": "+e.message)}
  }
- // Clear ordinary visitor registry every morning; preserve blocked visitor records.
- // A blocked ID remains in visitor_blocks and is never deleted here.
- if(false && dbId){
-  try{
-   const r=await request("POST","/d1/database/"+dbId+"/query",{sql:"DELETE FROM visitor_registry WHERE NOT EXISTS (SELECT 1 FROM visitor_blocks WHERE visitor_blocks.id = visitor_registry.id)"});
-   if(!r?.success||!r.result?.[0]?.success)throw Error("Visitor registry delete failed");
-   console.log("Unblocked visitor registry entries cleared; blocked visitors preserved");
-  }catch(e){failures.push("D1 visitor registry: "+e.message)}
- } // Visitor registry is not part of the daily archive: preserve it.
- // Daily counts in D1 are analytics, not admin or security data.
- if(false && dbId){
-  try{
-   const r=await request("POST","/d1/database/"+dbId+"/query",{sql:"DELETE FROM track_daily_counts WHERE day < ?",params:[today]});
-   if(!r?.success||!r.result?.[0]?.success)throw Error("D1 delete failed");
-  }catch(e){failures.push("D1 analytics: "+e.message)}
- } // D1 deletion disabled until archived dates are verified per-day.
+ // Preserve visitor registry and security data: never included in GitHub analytics.
+ // Remove only archived D1 daily counters. D1 has no IP/location details here.
+ if(dbId && archivedDays.size){
+  for(const day of archivedDays){
+   try{
+    const r=await request("POST","/d1/database/"+encodeURIComponent(dbId)+"/query",{sql:"DELETE FROM track_daily_counts WHERE day = ?",params:[day]});
+    if(!r?.success||!r.result?.[0]?.success)throw Error("D1 archived-day delete failed");
+   }catch(e){failures.push("D1 "+day+": "+e.message)}
+  }
+ }
  console.log("03:30 analytics reset:",today,"KV deleted:",removable.size-failures.filter(x=>!x.startsWith("D1")).length);
  console.log("Admin, security, visitor blocks and today's data preserved");
  if(failures.length)throw Error("Cleanup incomplete: "+failures.slice(0,10).join("; "));

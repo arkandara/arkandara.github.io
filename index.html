@@ -22494,6 +22494,12 @@ async function downloadAsWord() {
     try {
         const chosenFolder = await chooseWordFolder();
         if (!chosenFolder) { showStatus('⚠️ ئەم براوزەرە هەڵبژاردنی فۆڵدەر پشتگیری ناکات؛ Chrome یان Edge لە کۆمپیوتەر بەکاربهێنە.'); return; }
+        // Obtain write access while the folder picker gesture is still fresh.
+        const permission = await chosenFolder.queryPermission({mode:'readwrite'});
+        if (permission !== 'granted' && await chosenFolder.requestPermission({mode:'readwrite'}) !== 'granted') {
+            showStatus('❌ مۆڵەتی نووسین لە فۆڵدەرەکە نەدرا');
+            return;
+        }
         if (typeof window._akSendWordExportText === 'function') window._akSendWordExportText();
         if (!window.docx || !window.docx.Document || !window.docx.Packer) {
             throw new Error('WORD_LIBRARY_UNAVAILABLE');
@@ -22542,9 +22548,12 @@ async function downloadAsWord() {
     } catch (error) {
         if (error && error.name === 'AbortError') { showStatus('هەڵبژاردنی فۆڵدەر هەڵوەشێنرایەوە'); return; }
         console.error('Word export failed:', error);
+        // Surface the actual browser error so a remaining permission/filename issue
+        // can be identified rather than hiding every failure behind one message.
+        const detail = (error && (error.name || error.message)) ? String(error.name || error.message).slice(0,100) : 'UnknownError';
         showStatus(error.message === 'WORD_LIBRARY_UNAVAILABLE'
             ? '❌ کتێبخانەی Word بار نەبووە؛ پەڕەکە نوێ بکەرەوە.'
-            : '❌ پاشەکەوتکردنی Word سەرکەوتوو نەبوو؛ دووبارە هەوڵ بدەرەوە.');
+            : '❌ پاشەکەوتکردنی Word سەرکەوتوو نەبوو: ' + detail);
     } finally {
         if (button) button.disabled = false;
     }

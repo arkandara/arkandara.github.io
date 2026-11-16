@@ -330,8 +330,28 @@ export async function onRequestGet(context) {
             textareaToday = safeJson(txRaw, []);
         }
 
+        // D1 is the authoritative daily event counter; do not use cumulative KV totals.
+        let dailyAtomic = null;
+        if (env.VISITOR_DB && typeof env.VISITOR_DB.prepare === "function") {
+            try {
+                const day = isoDate(new Date());
+                const result = await env.VISITOR_DB.prepare(
+                    "SELECT kind, label, count FROM track_daily_counts WHERE day = ?"
+                ).bind(day).all();
+                if (!result.success) throw Error("D1 daily stats query failed");
+                const counts = { visits: 0, textarea: 0, clicks: {} };
+                for (const row of result.results || []) {
+                    if (row.kind === "visit" && row.label === "") counts.visits = row.count;
+                    else if (row.kind === "textarea" && row.label === "") counts.textarea = row.count;
+                    else if (row.kind === "click") counts.clicks[row.label] = row.count;
+                }
+                dailyAtomic = { date: day, ...counts };
+            } catch (error) {
+                console.warn("Daily D1 stats unavailable", error);
+            }
+        }
         const forceReload = await env.STATS_DB.get("meta:force_reload");
-        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings, kvUsage, forceReload }, CORS);
+        return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings, kvUsage, forceReload, dailyAtomic }, CORS);
 
     } catch (err) {
         return err500(err, CORS);

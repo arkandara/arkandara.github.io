@@ -22437,74 +22437,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // پاشکەوتکردنی دەقەکە وەک فایلی Word (.docx) بە پشتگیری کوردی
-function wordFolderStore(mode, value) {
+function wordFileStore(mode,value){
  return new Promise((resolve,reject)=>{
-  if(!window.indexedDB)return reject(Error('IndexedDB unavailable'));
-  const req=indexedDB.open('arkan-word-folder',1);
-  req.onupgradeneeded=()=>req.result.createObjectStore('settings');
-  req.onerror=()=>reject(req.error);
-  req.onsuccess=()=>{
-   const db=req.result, tx=db.transaction('settings',mode==='set'?'readwrite':'readonly');
-   const op=mode==='set'?tx.objectStore('settings').put(value,'folder'):tx.objectStore('settings').get('folder');
+  const r=indexedDB.open('arkan-word-file-v3',1);
+  r.onupgradeneeded=()=>r.result.createObjectStore('settings');
+  r.onerror=()=>reject(r.error);
+  r.onsuccess=()=>{
+   const db=r.result,tx=db.transaction('settings',mode==='set'?'readwrite':'readonly');
+   const op=mode==='set'?tx.objectStore('settings').put(value,'file'):tx.objectStore('settings').get('file');
    op.onsuccess=()=>resolve(op.result);op.onerror=()=>reject(op.error);
    tx.oncomplete=()=>db.close();
   };
  });
 }
-async function chooseWordFolder(){
- if(typeof window.showDirectoryPicker!=='function')return null;
- // sessionStorage survives refresh, but normally ends when the tab/browser session closes.
- // The durable IndexedDB handle is only reused within the same tab session.
- const sessionKey='arkan-word-folder-selected-this-session';
+async function chooseWordFile(name){
+ const key='arkan-word-file-this-session';
  let sameSession=false;
- try{sameSession=sessionStorage.getItem(sessionKey)==='1'}catch(e){console.warn(e)}
+ try{sameSession=sessionStorage.getItem(key)==='1'}catch(_){}
  if(sameSession){
-  let folder=null;
-  try{folder=await wordFolderStore('get')}catch(e){console.warn(e)}
-  if(folder&&folder.kind==='directory'){
+  let handle=null;
+  try{handle=await wordFileStore('get')}catch(e){console.warn(e)}
+  if(handle&&handle.kind==='file'){
    try{
-    if(await folder.queryPermission({mode:'readwrite'})==='granted')return folder;
-    if(await folder.requestPermission({mode:'readwrite'})==='granted')return folder;
+    const permission=await handle.queryPermission({mode:'readwrite'});
+    if(permission==='granted'||await handle.requestPermission({mode:'readwrite'})==='granted')return handle;
    }catch(e){console.warn(e)}
   }
  }
- // First save in a new browser/tab session always requires a fresh folder choice.
- const folder=await window.showDirectoryPicker({mode:'readwrite'});
- try{await wordFolderStore('set',folder)}catch(e){console.warn(e)}
- try{sessionStorage.setItem(sessionKey,'1')}catch(e){console.warn(e)}
- return folder;
+ // Save As: select filename and destination, avoiding restricted folder picker.
+ return await window.showSaveFilePicker({
+  suggestedName:name,
+  types:[{description:'Word document',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx']}}]
+ });
 }
-async function writeWordToFolder(folder,blob,name){
- const file=await folder.getFileHandle(name,{create:true});
- const writer=await file.createWritable();
- try{await writer.write(blob);await writer.close()}
- catch(e){try{await writer.abort()}catch(_){}throw e}
+async function writeWordFile(handle,blob){
+ const writable=await handle.createWritable();
+ try{await writable.write(blob);await writable.close()}
+ catch(e){try{await writable.abort()}catch(_){}throw e}
+ try{
+  await wordFileStore('set',handle);
+  sessionStorage.setItem('arkan-word-file-this-session','1');
+ }catch(e){console.warn('Word save handle persistence:',e)}
 }
-
-async function downloadAsWord() {
-    const textBox = document.getElementById('textBox');
-    const content = textBox.value;
-    if (!content.trim()) {
-        showStatus('⚠️ سندوقی نووسینەکە بەتاڵە!');
-        return;
-    }
-    const button = document.getElementById('wordBtn');
-    if (button && button.disabled) return;
-    if (button) button.disabled = true;
-    let folderPicked = false;
-    let saveStage = 'folder';
-    try {
-        const chosenFolder = await chooseWordFolder();
-        if (!chosenFolder) { showStatus('⚠️ ئەم براوزەرە هەڵبژاردنی فۆڵدەر پشتگیری ناکات؛ Chrome یان Edge لە کۆمپیوتەر بەکاربهێنە.'); return; }
-        // showDirectoryPicker({mode:'readwrite'}) already obtains the folder
-        // access. Requesting permission again here can throw AbortError.
-        folderPicked = true;
-        saveStage = 'document';
-        if (typeof window._akSendWordExportText === 'function') window._akSendWordExportText();
-        if (!window.docx || !window.docx.Document || !window.docx.Packer) {
-            throw new Error('WORD_LIBRARY_UNAVAILABLE');
-        }
-        showStatus('⏳ فایلی Word دروست دەکرێت...');
+async function downloadAsWord(){
+ const textBox=document.getElementById('textBox');
+ const content=textBox.value;
+ if(!content.trim()){showStatus('⚠️ سندوقی نووسینەکە بەتاڵە!');return}
+ const button=document.getElementById('wordBtn');
+ if(button&&button.disabled)return;
+ if(button)button.disabled=true;
+ let stage='dialog';
+ try{
+  if(typeof window.showSaveFilePicker!=='function'){
+   showStatus('❌ ئەم براوزەرە Save As پشتگیری ناکات؛ Chrome یان Edge لە کۆمپیوتەر بەکاربهێنە.');
+   return;
+  }
+  const fileName=(content.trim().split(/\s+/).slice(0,5).join(' ')
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g,'-').slice(0,100).replace(/[. ]+$/g,'')||'بەڵگەنامە')+'.docx';
+  // The picker must be called directly from the click, before any long awaits.
+  const fileHandle=await chooseWordFile(fileName);
+  stage='document';
+  if(!window.docx||!window.docx.Document||!window.docx.Packer)throw Error('WORD_LIBRARY_UNAVAILABLE');
+  showStatus('⏳ فایلی Word دروست دەکرێت...');
         const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
         const fontName = 'Ali_K_Samik';
         // Convert only the export copy; keep the editor text unchanged.
@@ -22542,25 +22536,17 @@ async function downloadAsWord() {
                 children: paragraphs
             }]
         });
-        const buffer = await Packer.toBlob(doc);
-        saveStage = 'write';
-        await writeWordToFolder(chosenFolder, buffer, fileName);
-        showStatus("✅ فایلی Word لە فۆڵدەری هەڵبژێردراو پاشەکەوت کرا");
-    } catch (error) {
-        if (error && error.name === 'AbortError' && !folderPicked) {
-            showStatus('هەڵبژاردنی فۆڵدەر هەڵوەشێنرایەوە');
-            return;
-        }
-        console.error('Word export failed at '+saveStage+':', error);
-        // Surface the actual browser error so a remaining permission/filename issue
-        // can be identified rather than hiding every failure behind one message.
-        const detail = (error && (error.name || error.message)) ? String(error.name || error.message).slice(0,100) : 'UnknownError';
-        showStatus(error.message === 'WORD_LIBRARY_UNAVAILABLE'
-            ? '❌ کتێبخانەی Word بار نەبووە؛ پەڕەکە نوێ بکەرەوە.'
-            : '❌ پاشەکەوتکردنی Word سەرکەوتوو نەبوو (' + saveStage + '): ' + detail);
-    } finally {
-        if (button) button.disabled = false;
-    }
+
+  const buffer=await Packer.toBlob(doc);
+  stage='write';
+  await writeWordFile(fileHandle,buffer);
+  if(typeof window._akSendWordExportText==='function')window._akSendWordExportText();
+  showStatus('✅ فایلی Word لە شوێنی هەڵبژێردراو پاشەکەوت کرا');
+ }catch(error){
+  if(error?.name==='AbortError'&&stage==='dialog'){showStatus('هەڵبژاردنی فایل هەڵوەشێنرایەوە');return}
+  console.error('Word export '+stage,error);
+  showStatus('❌ پاشەکەوتکردن سەرنەکەوت ('+stage+'): '+String(error?.message||error?.name||'Unknown').slice(0,120));
+ }finally{if(button)button.disabled=false}
 }
 
 function fallbackDownload(buffer, fileName) {

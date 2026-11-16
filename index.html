@@ -22511,9 +22511,6 @@ async function downloadAsWord(){
         }
         const fontPx = parseFloat(window.getComputedStyle(textBox).fontSize) || 20;
         const fontSize = Math.max(2, Math.round(fontPx * 1.5));
-        const fileName = (content.trim().split(/\s+/).slice(0, 5).join(' ')
-            .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-')
-            .slice(0, 100).replace(/[. ]+$/g, '') || 'بەڵگەنامە') + '.docx';
         const paragraphs = exportText.split(/\r\n|\r|\n/).map(line => new Paragraph({
             alignment: AlignmentType.JUSTIFIED,
             bidirectional: true,

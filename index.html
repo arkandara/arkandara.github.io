@@ -22437,6 +22437,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // پاشکەوتکردنی دەقەکە وەک فایلی Word (.docx) بە پشتگیری کوردی
+function wordFolderStore(mode, value) {
+ return new Promise((resolve,reject)=>{
+  if(!window.indexedDB)return reject(Error('IndexedDB unavailable'));
+  const req=indexedDB.open('arkan-word-folder',1);
+  req.onupgradeneeded=()=>req.result.createObjectStore('settings');
+  req.onerror=()=>reject(req.error);
+  req.onsuccess=()=>{
+   const db=req.result, tx=db.transaction('settings',mode==='set'?'readwrite':'readonly');
+   const op=mode==='set'?tx.objectStore('settings').put(value,'folder'):tx.objectStore('settings').get('folder');
+   op.onsuccess=()=>resolve(op.result);op.onerror=()=>reject(op.error);
+   tx.oncomplete=()=>db.close();
+  };
+ });
+}
+async function chooseWordFolder(){
+ if(typeof window.showDirectoryPicker!=='function')return null;
+ let folder=null;
+ try{folder=await wordFolderStore('get')}catch(e){console.warn(e)}
+ if(folder&&folder.kind==='directory'){
+  try{
+   if(await folder.queryPermission({mode:'readwrite'})==='granted')return folder;
+   if(await folder.requestPermission({mode:'readwrite'})==='granted')return folder;
+  }catch(e){console.warn(e)}
+ }
+ folder=await window.showDirectoryPicker({mode:'readwrite'});
+ try{await wordFolderStore('set',folder)}catch(e){console.warn(e)}
+ return folder;
+}
+async function writeWordToFolder(folder,blob,name){
+ const file=await folder.getFileHandle(name,{create:true});
+ const writer=await file.createWritable();
+ try{await writer.write(blob);await writer.close()}
+ catch(e){try{await writer.abort()}catch(_){}throw e}
+}
+
 async function downloadAsWord() {
     const textBox = document.getElementById('textBox');
     const content = textBox.value;
@@ -22491,7 +22526,8 @@ async function downloadAsWord() {
             }]
         });
         const buffer = await Packer.toBlob(doc);
-        fallbackDownload(buffer, fileName);
+        await writeWordToFolder(chosenFolder, buffer, fileName);
+        showStatus("✅ فایلی Word لە فۆڵدەری هەڵبژێردراو پاشەکەوت کرا");
     } catch (error) {
         console.error('Word export failed:', error);
         showStatus(error.message === 'WORD_LIBRARY_UNAVAILABLE'

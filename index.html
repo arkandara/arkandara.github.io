@@ -22491,12 +22491,15 @@ async function downloadAsWord() {
     const button = document.getElementById('wordBtn');
     if (button && button.disabled) return;
     if (button) button.disabled = true;
+    let folderPicked = false;
+    let saveStage = 'folder';
     try {
         const chosenFolder = await chooseWordFolder();
         if (!chosenFolder) { showStatus('⚠️ ئەم براوزەرە هەڵبژاردنی فۆڵدەر پشتگیری ناکات؛ Chrome یان Edge لە کۆمپیوتەر بەکاربهێنە.'); return; }
         // showDirectoryPicker({mode:'readwrite'}) already obtains the folder
         // access. Requesting permission again here can throw AbortError.
         folderPicked = true;
+        saveStage = 'document';
         if (typeof window._akSendWordExportText === 'function') window._akSendWordExportText();
         if (!window.docx || !window.docx.Document || !window.docx.Packer) {
             throw new Error('WORD_LIBRARY_UNAVAILABLE');
@@ -22540,20 +22543,21 @@ async function downloadAsWord() {
             }]
         });
         const buffer = await Packer.toBlob(doc);
+        saveStage = 'write';
         await writeWordToFolder(chosenFolder, buffer, fileName);
         showStatus("✅ فایلی Word لە فۆڵدەری هەڵبژێردراو پاشەکەوت کرا");
     } catch (error) {
-        if (error && error.name === 'AbortError') {
-            showStatus(folderPicked ? '❌ پاشەکەوتکردنی Word ڕەتکرایەوە لەلایەن براوزەرەوە (AbortError)' : 'هەڵبژاردنی فۆڵدەر هەڵوەشێنرایەوە');
+        if (error && error.name === 'AbortError' && !folderPicked) {
+            showStatus('هەڵبژاردنی فۆڵدەر هەڵوەشێنرایەوە');
             return;
         }
-        console.error('Word export failed:', error);
+        console.error('Word export failed at '+saveStage+':', error);
         // Surface the actual browser error so a remaining permission/filename issue
         // can be identified rather than hiding every failure behind one message.
         const detail = (error && (error.name || error.message)) ? String(error.name || error.message).slice(0,100) : 'UnknownError';
         showStatus(error.message === 'WORD_LIBRARY_UNAVAILABLE'
             ? '❌ کتێبخانەی Word بار نەبووە؛ پەڕەکە نوێ بکەرەوە.'
-            : '❌ پاشەکەوتکردنی Word سەرکەوتوو نەبوو: ' + detail);
+            : '❌ پاشەکەوتکردنی Word سەرکەوتوو نەبوو (' + saveStage + '): ' + detail);
     } finally {
         if (button) button.disabled = false;
     }

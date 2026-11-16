@@ -871,14 +871,26 @@ function loadStats() {
                 topBtn = Object.entries(clicks).sort(function(a, b) { return b[1] - a[1]; })[0][0];
             }
 
-            setEl("stat-total-visits",   data.totalVisits   || 0);
+            // Show today's atomic D1 count, not the legacy cumulative KV counter.
+            var todayUtc = new Date().toISOString().slice(0,10);
+            var todayCount = data.dailyAtomic && data.dailyAtomic.date === todayUtc ? data.dailyAtomic.visits : null;
+            setEl("stat-total-visits", todayCount === null ? "—" : todayCount);
             setEl("stat-total-clicks",   totalClicks);
             setEl("stat-btn-count",      btnCount);
             setEl("stat-top-btn",        topBtn);
             setEl("stat-total-textarea", data.totalTextarea || 0);
 
             renderClickChart(clicks);
-            renderSessions(data.recentSessions || []);
+            // Keep the visible visit table on the same UTC day as the D1 counter.
+            var todaySessions = (data.recentSessions || []).filter(function(v) {
+                return typeof v.time === "string" && v.time.slice(0,10) === todayUtc;
+            });
+            renderSessions(todaySessions);
+            if(todayCount !== null && todayCount !== todaySessions.length) {
+                var sessionEl = document.getElementById("sessionList");
+                if(sessionEl) sessionEl.insertAdjacentHTML("afterbegin",
+                    '<div class="no-data">تێبینی: ژمارەی D1 ('+todayCount+') و تۆمارەکانی KV ('+todaySessions.length+') جیاوازن؛ هێشتا هەموو تۆمارەکان لە یەک سەرچاوە نین.</div>');
+            }
             // تێکست لە هەردوو سەرچاوە: textarea + snapshot (کۆپیکردن)
             var txItems = (data.textareaToday || []).map(function(s) {
                 var methodMap = {

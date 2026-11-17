@@ -1,13 +1,23 @@
 "use strict";
 // Daily 03:30 Iraq analytics reset. Security/admin/visitor block data is never touched.
 const https=require("https");
-const account=process.env.CF_ACCOUNT_ID,token=process.env.CF_API_TOKEN,ns=process.env.CF_DAILY_KV_NAMESPACE_ID,dbId=null;
+const account=process.env.CF_ACCOUNT_ID,token=process.env.CF_API_TOKEN,ns=process.env.CF_DAILY_KV_NAMESPACE_ID;
 if(!account||!token||!ns)throw Error("Missing KV credentials");
 const today=new Date().toISOString().slice(0,10);
 const fs=require("fs");
 const archive=JSON.parse(fs.readFileSync("archives/daily_current.json","utf8"));
 if(!Array.isArray(archive.days))throw Error("Missing valid daily archive: cleanup stopped");
-const archivedDays=new Set(archive.days.filter(d=>d && /^\d{4}-\d{2}-\d{2}$/.test(d.date) && d.date<today && Number.isSafeInteger(d.totalVisits) && d.totalVisits>=0).map(d=>d.date));
+const archivedDays=new Set(archive.days.filter(d=>
+  d && /^\d{4}-\d{2}-\d{2}$/.test(d.date) && d.date<today &&
+  Number.isSafeInteger(d.totalVisits) && d.totalVisits>=0 &&
+  Number.isSafeInteger(d.totalClicks) && d.totalClicks>=0 &&
+  Number.isSafeInteger(d.totalTextarea) && d.totalTextarea>=0 &&
+  d.clicks && typeof d.clicks==="object" && !Array.isArray(d.clicks) &&
+  Object.values(d.clicks).every(n=>Number.isSafeInteger(n)&&n>=0) &&
+  Object.values(d.clicks).reduce((a,b)=>a+b,0)===d.totalClicks &&
+  d.deviceStats && typeof d.deviceStats==="object" &&
+  d.cityStats && typeof d.cityStats==="object"
+).map(d=>d.date));
 
 const kv="/storage/kv/namespaces/"+ns;
 function request(method,path,body){
@@ -31,35 +41,26 @@ async function keys(prefix){
  }while(cursor);
  return all;
 }
-const dateKey=(name,prefix)=>{const d=name.slice(prefix.length, prefix.length+10);return /^\d{4}-\d{2}-\d{2}$/.test(d)&&d<today};
+
 async function main(){
  // No deletion of current UTC day, admin credentials, sessions, security,
  // site settings, visitor registry, blocklist or any unrelated KV namespace keys.
  const removable=new Set();
  for(const prefix of ["daily:","visits:","textarea:","snapshots:"]){
   for(const k of await keys(prefix)){
-   if(prefix==="daily:"?/^daily:\d{4}-\d{2}-\d{2}:(visit|textarea|click:.+|clicks_list|preview:latest)$/.test(k)&&archivedDays.has(k.slice(6,16)):archivedDays.has(k.slice(prefix.length,prefix.length+10)))removable.add(k);
+   const day=k.slice(prefix.length,prefix.length+10);
+   const suffix=k.slice(prefix.length+10);
+   if(archivedDays.has(day) && (prefix!=="daily:" || suffix.startsWith(":")))removable.add(k);
   }
  }
- // Old global analytics counters must not grow indefinitely.
- // Global counters cannot be deleted safely without a date-scoped checkpoint.
- // Preserve global totals and click labels until all dashboard counters are migrated.
+ // Remove all date-scoped keys for confirmed archived days, but never today's keys.
+ // Never touch legacy STATS_DB, other namespaces, or unrelated undated keys.
  let failures=[];
  for(const key of removable){
   try{await request("DELETE",kv+"/values/"+encodeURIComponent(key))}
   catch(e){failures.push(key+": "+e.message)}
  }
- // Preserve visitor registry and security data: never included in GitHub analytics.
- // Remove only archived D1 daily counters. D1 has no IP/location details here.
- if(dbId && archivedDays.size){
-  for(const day of archivedDays){
-   try{
-    const r=await request("POST","/d1/database/"+encodeURIComponent(dbId)+"/query",{sql:"DELETE FROM track_daily_counts WHERE day = ?",params:[day]});
-    if(!r?.success||!r.result?.[0]?.success)throw Error("D1 archived-day delete failed");
-   }catch(e){failures.push("D1 "+day+": "+e.message)}
-  }
- }
- console.log("03:30 analytics reset:",today,"KV deleted:",removable.size-failures.filter(x=>!x.startsWith("D1")).length);
+ console.log("03:30 analytics reset:",today,"KV deleted:",removable.size-failures.length);
  console.log("Admin, security, visitor blocks and today's data preserved");
  if(failures.length)throw Error("Cleanup incomplete: "+failures.slice(0,10).join("; "));
 }

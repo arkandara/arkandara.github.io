@@ -28,23 +28,15 @@ export async function isAdminRequest(request, env) {
 const ADMIN_COOKIE = "__Host-admin_session";
 const SESSION_AGE = 8 * 3600;
 const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const authReady = new WeakMap();
-async function authDatabase(env) {
-    const db = env && env.VISITOR_DB;
-    if (!db || typeof db.prepare !== "function") throw invalid("login_not_configured", 503);
-    let ready = authReady.get(db);
-    if (!ready) {
-        ready = db.batch([
-            db.prepare("CREATE TABLE IF NOT EXISTS app_admin_auth (id INTEGER PRIMARY KEY CHECK(id = 1), username TEXT NOT NULL, verifier TEXT NOT NULL, generation TEXT NOT NULL)"),
-            db.prepare("CREATE TABLE IF NOT EXISTS app_admin_sessions (id TEXT PRIMARY KEY, generation TEXT NOT NULL, expires INTEGER NOT NULL)"),
-            db.prepare("CREATE INDEX IF NOT EXISTS app_admin_sessions_expiry ON app_admin_sessions(expires)")
-        ]).then(results => { if (!results.every(result => result.success)) throw invalid("login_not_configured", 503); })
-            .catch(error => { authReady.delete(db); throw error; });
-        authReady.set(db, ready);
-    }
-    await ready;
-    return db;
+async function adminVerifier(env) {
+ const saved=await env.STATS_DB.get("settings:admin_verifier");
+ if(saved)return saved;
+ const legacy=await env.STATS_DB.get("settings:admin_pass_hash")||env.DEFAULT_PASS_HASH;
+ if(typeof legacy!=="string"||!/^[0-9a-f]{64}$/.test(legacy))throw invalid("login_not_configured",503);
+ return legacy;
 }
+async function adminGeneration(env){return await env.STATS_DB.get("settings:admin_generation")||"initial";}
+async function adminUsername(env){return await env.STATS_DB.get("settings:admin_username")||"admin";}
 function cookieValue(request) {
     const values = (request.headers.get("Cookie") || "").split(";").map(part => part.trim()).filter(part => part.startsWith(ADMIN_COOKIE + "="));
     return values.length === 1 ? values[0].slice(ADMIN_COOKIE.length + 1) : "";
@@ -57,31 +49,25 @@ async function sessionKey(env) {
     if (typeof env.ADMIN_TOKEN !== "string" || !env.ADMIN_TOKEN) throw invalid("login_not_configured", 503);
     return crypto.subtle.importKey("raw", new TextEncoder().encode(env.ADMIN_TOKEN), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
 }
-async function readAdminSession(request, env) {
-    if (new URL(request.url).protocol !== "https:") return null;
-    const parts = cookieValue(request).split(".");
-    if (parts.length !== 4 || parts[0] !== "v1" || !SESSION_ID.test(parts[1]) || !/^\d{10}$/.test(parts[2]) || !/^[0-9a-f]{64}$/.test(parts[3])) return null;
-    const now = Math.floor(Date.now() / 1000), expires = Number(parts[2]);
-    if (expires <= now || expires > now + SESSION_AGE) return null;
-    const mac = Uint8Array.from(parts[3].match(/../g), n => parseInt(n, 16));
-    if (!await crypto.subtle.verify("HMAC", await sessionKey(env), mac, new TextEncoder().encode(parts.slice(0, 3).join(".")))) return null;
-    const db = await authDatabase(env);
-    const row = await db.prepare("SELECT app_admin_auth.username AS username, app_admin_auth.generation AS generation, app_admin_sessions.expires AS expires FROM app_admin_sessions JOIN app_admin_auth ON app_admin_auth.id = 1 AND app_admin_auth.generation = app_admin_sessions.generation WHERE app_admin_sessions.id = ? AND app_admin_sessions.expires = ? AND app_admin_sessions.expires > ?")
-        .bind(parts[1], expires, now).first();
-    return row ? { ...row, sessionId: parts[1] } : null;
+async function readAdminSession(request,env){
+ if(new URL(request.url).protocol!=="https:")return null;
+ const parts=cookieValue(request).split(".");
+ if(parts.length!==4||parts[0]!=="v1"||!SESSION_ID.test(parts[1])||!/^\d{10}$/.test(parts[2])||!/^[0-9a-f]{64}$/.test(parts[3]))return null;
+ const now=Math.floor(Date.now()/1000),expires=Number(parts[2]);
+ if(expires<=now||expires>now+SESSION_AGE)return null;
+ const generation=await adminGeneration(env);
+ const mac=Uint8Array.from(parts[3].match(/../g),n=>parseInt(n,16));
+ if(!await crypto.subtle.verify("HMAC",await sessionKey(env),mac,new TextEncoder().encode(parts.slice(0,3).join(".")+"|"+generation)))return null;
+ if(await env.STATS_DB.get("admin:session:"+parts[1])!==generation)return null;
+ return {username:await adminUsername(env),generation,sessionId:parts[1],expires};
 }
-async function issueSession(env, db, state, cors) {
-    const now = Math.floor(Date.now() / 1000), expires = now + SESSION_AGE;
-    const id = crypto.randomUUID(), payload = ["v1", id, expires].join(".");
-    const signature = hex(await crypto.subtle.sign("HMAC", await sessionKey(env), new TextEncoder().encode(payload)));
-    // Guard against a concurrent credential change between password verification and insertion.
-    const result = await db.prepare("INSERT INTO app_admin_sessions (id, generation, expires) SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM app_admin_auth WHERE id = 1 AND generation = ?)")
-        .bind(id, state.generation, expires, state.generation).run();
-    if (!result.success || result.meta.changes !== 1) throw invalid("credentials_changed", 409);
-    await db.prepare("DELETE FROM app_admin_sessions WHERE expires <= ?").bind(now).run();
-    return new Response(JSON.stringify({ success: true, username: state.username, expiresAt: expires }), {
-        status: 200, headers: { ...cors, "Set-Cookie": adminCookie(payload + "." + signature, SESSION_AGE) }
-    });
+async function issueSession(env,state,cors){
+ const expires=Math.floor(Date.now()/1000)+SESSION_AGE,id=crypto.randomUUID(),payload=["v1",id,expires].join(".");
+ const generation=await adminGeneration(env);
+ if(generation!==state.generation)throw invalid("credentials_changed",409);
+ const signature=hex(await crypto.subtle.sign("HMAC",await sessionKey(env),new TextEncoder().encode(payload+"|"+generation)));
+ await env.STATS_DB.put("admin:session:"+id,generation,{expirationTtl:SESSION_AGE});
+ return new Response(JSON.stringify({success:true,username:state.username,expiresAt:expires}),{status:200,headers:{...cors,"Set-Cookie":adminCookie(payload+"."+signature,SESSION_AGE)}});
 }
 function username(value) {
     if (typeof value !== "string") return "";
@@ -136,37 +122,17 @@ async function readBody(request, limit) {
     return body;
 }
 
-// Persist counters in the existing private D1 binding, shared by all isolates.
-// IPs are keyed with a server secret; no raw address is stored in this table.
-const rateReady = new WeakMap();
-const rateCleaned = new WeakMap();
-async function rateLimit(env, request, scope, limit, seconds) {
-    const db = env.VISITOR_DB;
-    if (!db || typeof db.prepare !== "function" || !env.ADMIN_TOKEN) throw invalid("rate_limit_unavailable", 503);
-    let ready = rateReady.get(db);
-    if (!ready) {
-        ready = db.prepare("CREATE TABLE IF NOT EXISTS track_rate_limits (key TEXT PRIMARY KEY, bucket INTEGER NOT NULL, hits INTEGER NOT NULL)").run()
-            .then(result => { if (!result.success) throw invalid("rate_limit_unavailable", 503); })
-            .catch(error => { rateReady.delete(db); throw error; });
-        rateReady.set(db, ready);
-    }
-    await ready;
-    const now = Math.floor(Date.now() / 1000);
-    const bucket = Math.floor(now / seconds) * seconds;
-    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-    const keyBytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(env.ADMIN_TOKEN + "|" + scope + "|" + ip));
-    const key = Array.from(new Uint8Array(keyBytes), n => n.toString(16).padStart(2, "0")).join("");
-    const row = await db.prepare("INSERT INTO track_rate_limits (key, bucket, hits) VALUES (?, ?, 1) ON CONFLICT(key) DO UPDATE SET hits = CASE WHEN track_rate_limits.bucket = excluded.bucket THEN track_rate_limits.hits + 1 ELSE 1 END, bucket = excluded.bucket RETURNING hits")
-        .bind(key, bucket).first();
-    if (!row || !Number.isInteger(row.hits)) throw invalid("rate_limit_unavailable", 503);
-    if (row.hits > limit) throw Object.assign(invalid("too_many_requests", 429), { retryAfter: bucket + seconds - now });
-    if ((rateCleaned.get(db) || 0) < now - 3600) {
-        rateCleaned.set(db, now);
-        try { await db.prepare("DELETE FROM track_rate_limits WHERE bucket < ?").bind(now - 86400).run(); }
-        catch { rateCleaned.delete(db); }
-    }
+// Best-effort KV rate limits; add Cloudflare WAF rules for strict distributed limits.
+async function rateLimit(env,request,scope,limit,seconds){
+ if(!env.ADMIN_TOKEN)throw invalid("rate_limit_unavailable",503);
+ const now=Math.floor(Date.now()/1000),bucket=Math.floor(now/seconds),ip=request.headers.get("CF-Connecting-IP")||"unknown";
+ const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(env.ADMIN_TOKEN+"|"+scope+"|"+ip));
+ const key="admin:rate:"+scope+":"+bucket+":"+hex(digest);
+ const hits=Number(await env.STATS_DB.get(key)||"0");
+ if(!Number.isSafeInteger(hits)||hits<0)throw invalid("rate_limit_unavailable",503);
+ if(hits>=limit)throw Object.assign(invalid("too_many_requests",429),{retryAfter:(bucket+1)*seconds-now});
+ await env.STATS_DB.put(key,String(hits+1),{expirationTtl:seconds*2});
 }
-
 function textField(body, key, max, required = false) {
     if (body[key] === undefined && !required) return;
     if (typeof body[key] !== "string" || body[key].length > max || (required && !body[key].trim())) throw invalid("invalid_" + key);
@@ -221,28 +187,6 @@ async function incrementDailyStat(env, kind, label = "") {
     const value = raw === null ? 0 : Number(raw);
     if (!Number.isSafeInteger(value) || value < 0) throw invalid("invalid_daily_counter", 503);
     await env.STATS_DB.put(key, String(value + 1), { expirationTtl: 691200 });
-}
-
-// Atomic daily totals in the existing D1 database. KV daily counters remain
-// temporarily for compatibility with the current archive workflow; they are
-// NOT an authoritative source under concurrent traffic.
-const dailyReady = new WeakMap();
-async function incrementAtomicDailyStat(env, kind, label = "") {
-    const db = env.VISITOR_DB;
-    if (!db || typeof db.prepare !== "function") throw invalid("daily_stats_unavailable", 503);
-    let ready = dailyReady.get(db);
-    if (!ready) {
-        ready = db.prepare("CREATE TABLE IF NOT EXISTS track_daily_counts (day TEXT NOT NULL, kind TEXT NOT NULL, label TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, kind, label))")
-            .run().then(result => {
-                if (!result.success) throw invalid("daily_stats_unavailable", 503);
-            }).catch(error => { dailyReady.delete(db); throw error; });
-        dailyReady.set(db, ready);
-    }
-    await ready;
-    const day = isoDate(new Date());
-    const result = await db.prepare("INSERT INTO track_daily_counts (day, kind, label, count) VALUES (?, ?, ?, 1) ON CONFLICT(day, kind, label) DO UPDATE SET count = count + 1")
-        .bind(day, kind, label).run();
-    if (!result.success) throw invalid("daily_stats_unavailable", 503);
 }
 
 // ---- GET: خوێندنەوەی ئامارەکان ----
@@ -325,26 +269,15 @@ export async function onRequestGet(context) {
             textareaToday = safeJson(txRaw, []);
         }
 
-        // D1 is the authoritative daily event counter; do not use cumulative KV totals.
-        let dailyAtomic = null;
-        if (env.VISITOR_DB && typeof env.VISITOR_DB.prepare === "function") {
-            try {
-                const day = isoDate(new Date());
-                const result = await env.VISITOR_DB.prepare(
-                    "SELECT kind, label, count FROM track_daily_counts WHERE day = ?"
-                ).bind(day).all();
-                if (!result.success) throw Error("D1 daily stats query failed");
-                const counts = { visits: 0, textarea: 0, clicks: {} };
-                for (const row of result.results || []) {
-                    if (row.kind === "visit" && row.label === "") counts.visits = row.count;
-                    else if (row.kind === "textarea" && row.label === "") counts.textarea = row.count;
-                    else if (row.kind === "click") counts.clicks[row.label] = row.count;
-                }
-                dailyAtomic = { date: day, ...counts };
-            } catch (error) {
-                console.warn("Daily D1 stats unavailable", error);
-            }
+        // KV daily counters are approximate under concurrent traffic.
+        const day=isoDate(new Date());
+        const visitCount=Number(await env.STATS_DB.get("daily:"+day+":visit")||"0");
+        const textareaCount=Number(await env.STATS_DB.get("daily:"+day+":textarea")||"0");
+        const dailyClicks={};
+        for(const label of Object.keys(clicks)){
+            dailyClicks[label]=Number(await env.STATS_DB.get("daily:"+day+":click:"+label)||"0");
         }
+        const dailyAtomic={date:day,visits:visitCount,textarea:textareaCount,clicks:dailyClicks};
         const forceReload = await env.STATS_DB.get("meta:force_reload");
         return ok({ clicks, totalVisits, totalTextarea, recentSessions, snapshots, textareaToday, archiveList, preview, settings, kvUsage, forceReload, dailyAtomic }, CORS);
 
@@ -376,12 +309,8 @@ export async function onRequestPost(context) {
         if ((authenticated || type.startsWith("admin_")) && suppliedOrigin !== url.origin) return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: CORS });
 
         if (type === "admin_logout") {
-            const session = await readAdminSession(request, env);
-            if (session) {
-                const db = await authDatabase(env);
-                const result = await db.prepare("DELETE FROM app_admin_sessions WHERE id = ?").bind(session.sessionId).run();
-                if (!result.success) throw invalid("logout_unavailable", 503);
-            }
+            const session=await readAdminSession(request,env);
+            if(session)await env.STATS_DB.delete("admin:session:"+session.sessionId);
             return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...CORS, "Set-Cookie": adminCookie() } });
         }
 
@@ -431,7 +360,6 @@ export async function onRequestPost(context) {
                 await env.STATS_DB.put(snapKey, JSON.stringify(snaps), { expirationTtl: 691200 });
             }
 
-            await incrementAtomicDailyStat(env, "click", label);
             await incrementDailyStat(env, "click", label);
             return ok({ success: true, label, count: current + 1 }, CORS);
         }
@@ -463,7 +391,7 @@ export async function onRequestPost(context) {
             daySes.push(session);
             if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
             await env.STATS_DB.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
-            await incrementAtomicDailyStat(env, "visit");
+
             await incrementDailyStat(env, "visit");
             return ok({ success: true, total: tot + 1 }, CORS);
         }
@@ -484,7 +412,7 @@ export async function onRequestPost(context) {
             const tot = Number(await env.STATS_DB.get("meta:total_textarea") || "0");
             if (!Number.isSafeInteger(tot) || tot < 0) throw invalid("invalid_textarea_counter", 503);
             await env.STATS_DB.put("meta:total_textarea", String(tot + 1));
-            await incrementAtomicDailyStat(env, "textarea");
+
             await incrementDailyStat(env, "textarea");
             return ok({ success: true }, CORS);
         }
@@ -600,45 +528,25 @@ export async function onRequestPost(context) {
             }), { status: 409, headers: CORS });
         }
 
-        // Credentials are private D1 state. A generation change revokes every session.
-        if (type === "admin_pass_set") {
-            await rateLimit(env, request, "credential-change", 10, 900);
-            const session = await readAdminSession(request, env);
-            if (!session) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: CORS });
-            const db = await authDatabase(env);
-            const current = await db.prepare("SELECT username, verifier, generation FROM app_admin_auth WHERE id = 1").first();
-            if (!current || current.generation !== session.generation) throw invalid("credentials_changed", 409);
-            if (!await verifyPassword(body.oldHash, current.verifier)) return bad("پاسۆردی ئێستا هەڵەیە", CORS);
-            const verifier = body.newHash ? await passwordVerifier(body.newHash) : current.verifier;
-            const generation = crypto.randomUUID();
-            const results = await db.batch([
-                db.prepare("UPDATE app_admin_auth SET username = ?, verifier = ?, generation = ? WHERE id = 1 AND generation = ?").bind(username(body.username), verifier, generation, current.generation),
-                db.prepare("DELETE FROM app_admin_sessions WHERE generation = ?").bind(current.generation)
-            ]);
-            if (!results.every(result => result.success)) throw invalid("credentials_unavailable", 503);
-            if (results[0].meta.changes !== 1) throw invalid("credentials_changed", 409);
-            return new Response(JSON.stringify({ success: true, sessionsRevoked: true }), { status: 200, headers: { ...CORS, "Set-Cookie": adminCookie() } });
+        if(type==="admin_pass_set"){
+            await rateLimit(env,request,"credential-change",10,900);
+            const session=await readAdminSession(request,env);
+            if(!session)return new Response(JSON.stringify({error:"unauthorized"}),{status:401,headers:CORS});
+            const old=await adminVerifier(env);
+            const valid=/^[0-9a-f]{64}$/.test(old)?await sameSecret(body.oldHash,old):await verifyPassword(body.oldHash,old);
+            if(!valid)return bad("پاسۆردی ئێستا هەڵەیە",CORS);
+            const verifier=body.newHash?await passwordVerifier(body.newHash):old;
+            await env.STATS_DB.put("settings:admin_verifier",verifier);
+            await env.STATS_DB.put("settings:admin_username",username(body.username));
+            await env.STATS_DB.put("settings:admin_generation",crypto.randomUUID());
+            return new Response(JSON.stringify({success:true,sessionsRevoked:true}),{status:200,headers:{...CORS,"Set-Cookie":adminCookie()}});
         }
-
-        if (type === "admin_pass_verify") {
-            const db = await authDatabase(env);
-            let state = await db.prepare("SELECT username, verifier, generation FROM app_admin_auth WHERE id = 1").first();
-            if (!state) {
-                // One-time migration: prove the current password before creating private auth state.
-                // There is no public first-user bootstrap and no fallback once D1 state exists.
-                const saved = await env.STATS_DB.get("settings:admin_pass_hash");
-                const expected = saved || env.DEFAULT_PASS_HASH;
-                if (typeof expected !== "string" || !/^[0-9a-f]{64}$/.test(expected)) throw invalid("login_not_configured", 503);
-                if (username(body.username) !== "admin" || !await sameSecret(body.passHash, expected)) return new Response(JSON.stringify({ error: "ناو یان پاسۆرد هەڵەیە" }), { status: 401, headers: CORS });
-                const result = await db.prepare("INSERT OR IGNORE INTO app_admin_auth (id, username, verifier, generation) VALUES (1, ?, ?, ?)").bind("admin", await passwordVerifier(body.passHash), crypto.randomUUID()).run();
-                if (!result.success) throw invalid("login_not_configured", 503);
-                state = await db.prepare("SELECT username, verifier, generation FROM app_admin_auth WHERE id = 1").first();
-            }
-            const [userMatches, passwordMatches] = await Promise.all([
-                sameSecret(username(body.username), state.username), verifyPassword(body.passHash, state.verifier)
-            ]);
-            if (!userMatches || !passwordMatches) return new Response(JSON.stringify({ error: "ناو یان پاسۆرد هەڵەیە" }), { status: 401, headers: CORS });
-            return await issueSession(env, db, state, CORS);
+        if(type==="admin_pass_verify"){
+            const saved=await adminVerifier(env),name=await adminUsername(env);
+            const nameMatches=await sameSecret(username(body.username),name);
+            const passMatches=/^[0-9a-f]{64}$/.test(saved)?await sameSecret(body.passHash,saved):await verifyPassword(body.passHash,saved);
+            if(!nameMatches||!passMatches)return new Response(JSON.stringify({error:"ناو یان پاسۆرد هەڵەیە"}),{status:401,headers:CORS});
+            return await issueSession(env,{username:name,generation:await adminGeneration(env)},CORS);
         }
 
                 return bad("جۆری نادروست", CORS);

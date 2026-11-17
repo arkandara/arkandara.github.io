@@ -183,10 +183,10 @@ function validateBody(body, type) {
 async function incrementDailyStat(env, kind, label = "") {
     const date = isoDate(new Date());
     const key = "daily:" + date + ":" + kind + (kind === "click" ? ":" + label : "");
-    const raw = await env.STATS_DB.get(key);
+    const raw = await env.DAILY_STATS.get(key);
     const value = raw === null ? 0 : Number(raw);
     if (!Number.isSafeInteger(value) || value < 0) throw invalid("invalid_daily_counter", 503);
-    await env.STATS_DB.put(key, String(value + 1), { expirationTtl: 691200 });
+    await env.DAILY_STATS.put(key, String(value + 1), { expirationTtl: 691200 });
 }
 
 // ---- GET: خوێندنەوەی ئامارەکان ----
@@ -233,20 +233,20 @@ export async function onRequestGet(context) {
 
         // Admin statistics: read ONLY date-scoped KV counters for the current UTC day.
         const today = isoDate(new Date());
-        const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
+        const clicksListRaw = await env.DAILY_STATS.get("daily:" + today + ":clicks_list");
         const clickLabels = safeJson(clicksListRaw, []);
         const clicks = {};
         for (const label of (Array.isArray(clickLabels) ? clickLabels : [])) {
-            const raw = await env.STATS_DB.get("daily:" + today + ":click:" + label);
+            const raw = await env.DAILY_STATS.get("daily:" + today + ":click:" + label);
             if (raw !== null) clicks[label] = Number(raw) || 0;
         }
-        const totalVisits = Number(await env.STATS_DB.get("daily:" + today + ":visit") || "0");
-        const totalTextarea = Number(await env.STATS_DB.get("daily:" + today + ":textarea") || "0");
+        const totalVisits = Number(await env.DAILY_STATS.get("daily:" + today + ":visit") || "0");
+        const totalTextarea = Number(await env.DAILY_STATS.get("daily:" + today + ":textarea") || "0");
 
         const archiveListRaw = await env.STATS_DB.get("meta:archive_list");
         const archiveList    = safeJson(archiveListRaw, []);
 
-        const previewRaw = await env.STATS_DB.get("preview:latest");
+        const previewRaw = await env.DAILY_STATS.get("daily:" + today + ":preview:latest");
         const preview    = safeJson(previewRaw, null);
 
         const settingsRaw = await env.STATS_DB.get("settings:site");
@@ -257,25 +257,25 @@ export async function onRequestGet(context) {
 
         let recentSessions = [], snapshots = [], textareaToday = [];
         if (full) {
-            const sessions = safeJson(await env.STATS_DB.get("visits:" + isoDate(new Date())), []);
+            const sessions = safeJson(await env.DAILY_STATS.get("visits:" + isoDate(new Date())), []);
             recentSessions = sessions
                 .sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0))
                 .slice(0, 200);
 
-            const snapshotRaw = await env.STATS_DB.get("snapshots:" + isoDate(new Date()));
+            const snapshotRaw = await env.DAILY_STATS.get("snapshots:" + isoDate(new Date()));
             snapshots         = safeJson(snapshotRaw, []);
 
-            const txRaw   = await env.STATS_DB.get("textarea:" + isoDate(new Date()));
+            const txRaw   = await env.DAILY_STATS.get("textarea:" + isoDate(new Date()));
             textareaToday = safeJson(txRaw, []);
         }
 
         // KV daily counters are approximate under concurrent traffic.
         const day=isoDate(new Date());
-        const visitCount=Number(await env.STATS_DB.get("daily:"+day+":visit")||"0");
-        const textareaCount=Number(await env.STATS_DB.get("daily:"+day+":textarea")||"0");
+        const visitCount=Number(await env.DAILY_STATS.get("daily:"+day+":visit")||"0");
+        const textareaCount=Number(await env.DAILY_STATS.get("daily:"+day+":textarea")||"0");
         const dailyClicks={};
         for(const label of Object.keys(clicks)){
-            dailyClicks[label]=Number(await env.STATS_DB.get("daily:"+day+":click:"+label)||"0");
+            dailyClicks[label]=Number(await env.DAILY_STATS.get("daily:"+day+":click:"+label)||"0");
         }
         const dailyAtomic={date:day,visits:visitCount,textarea:textareaCount,clicks:dailyClicks};
         const forceReload = await env.STATS_DB.get("meta:force_reload");
@@ -336,31 +336,30 @@ export async function onRequestPost(context) {
             const label = (body.label || "").trim();
             if (!label) return bad("label پێویستە", CORS);
 
-            const listRaw = await env.STATS_DB.get("meta:clicks_list");
+            const listRaw = await env.DAILY_STATS.get("daily:" + isoDate(new Date()) + ":clicks_list");
             const list    = safeJson(listRaw, []);
             if (!Array.isArray(list)) throw invalid("click_registry_unavailable", 503);
             if (!list.includes(label) && list.length >= 200) return bad("click_labels_full", CORS);
-            const key     = "click:" + label;
-            const current = Number(await env.STATS_DB.get(key) || "0");
+            const key     = "daily:" + isoDate(new Date()) + ":click:" + label;
+            const current = Number(await env.DAILY_STATS.get(key) || "0");
             if (!Number.isSafeInteger(current) || current < 0) throw invalid("invalid_click_counter", 503);
-            await env.STATS_DB.put(key, String(current + 1));
+            await env.DAILY_STATS.put(key, String(current + 1), { expirationTtl: 691200 });
             if (!list.includes(label)) {
                 list.push(label);
-                await env.STATS_DB.put("meta:clicks_list", JSON.stringify(list));
+                await env.DAILY_STATS.put("daily:" + isoDate(new Date()) + ":clicks_list", JSON.stringify(list), { expirationTtl: 691200 });
             }
 
             const text = (body.text || "").trim();
             if (text.length > 0) {
                 const snapKey = "snapshots:" + isoDate(new Date());
-                const snapRaw = await env.STATS_DB.get(snapKey);
+                const snapRaw = await env.DAILY_STATS.get(snapKey);
                 const snaps = snapRaw === null ? [] : JSON.parse(snapRaw);
                 if (!Array.isArray(snaps)) throw invalid("invalid_snapshot_data", 503);
                 snaps.push({ time: new Date().toISOString(), label: label, text: text });
                 if (snaps.length > 200) snaps.splice(0, snaps.length - 200);
-                await env.STATS_DB.put(snapKey, JSON.stringify(snaps), { expirationTtl: 691200 });
+                await env.DAILY_STATS.put(snapKey, JSON.stringify(snaps), { expirationTtl: 691200 });
             }
 
-            await incrementDailyStat(env, "click", label);
             return ok({ success: true, label, count: current + 1 }, CORS);
         }
 
@@ -381,18 +380,17 @@ export async function onRequestPost(context) {
                 referrer: body.referrer || "ڕاستەوخۆ",
                 timezone: body.timezone || ""
             };
-            const tot = Number(await env.STATS_DB.get("meta:total_visits") || "0");
+            const tot = Number(await env.DAILY_STATS.get("daily:" + isoDate(new Date()) + ":visit") || "0");
             if (!Number.isSafeInteger(tot) || tot < 0) throw invalid("invalid_visit_counter", 503);
-            await env.STATS_DB.put("meta:total_visits", String(tot + 1));
+            await env.DAILY_STATS.put("daily:" + isoDate(new Date()) + ":visit", String(tot + 1), { expirationTtl: 691200 });
             const dayKey = "visits:" + isoDate(new Date());
-            const dayRaw = await env.STATS_DB.get(dayKey);
+            const dayRaw = await env.DAILY_STATS.get(dayKey);
             const daySes = dayRaw === null ? [] : JSON.parse(dayRaw);
             if (!Array.isArray(daySes)) throw invalid("invalid_visit_data", 503);
             daySes.push(session);
             if (daySes.length > 500) daySes.splice(0, daySes.length - 500);
-            await env.STATS_DB.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
+            await env.DAILY_STATS.put(dayKey, JSON.stringify(daySes), { expirationTtl: 691200 });
 
-            await incrementDailyStat(env, "visit");
             return ok({ success: true, total: tot + 1 }, CORS);
         }
 
@@ -403,17 +401,16 @@ export async function onRequestPost(context) {
             const method = (body.method || "").trim();
             const event  = { time: new Date().toISOString(), length: text.length, text: text, method: method };
             const key    = "textarea:" + isoDate(new Date());
-            const eventsRaw = await env.STATS_DB.get(key);
+            const eventsRaw = await env.DAILY_STATS.get(key);
             const events = eventsRaw === null ? [] : JSON.parse(eventsRaw);
             if (!Array.isArray(events)) throw invalid("invalid_textarea_data", 503);
             events.push(event);
             if (events.length > 200) events.splice(0, events.length - 200);
-            await env.STATS_DB.put(key, JSON.stringify(events), { expirationTtl: 691200 });
-            const tot = Number(await env.STATS_DB.get("meta:total_textarea") || "0");
+            await env.DAILY_STATS.put(key, JSON.stringify(events), { expirationTtl: 691200 });
+            const tot = Number(await env.DAILY_STATS.get("daily:" + isoDate(new Date()) + ":textarea") || "0");
             if (!Number.isSafeInteger(tot) || tot < 0) throw invalid("invalid_textarea_counter", 503);
-            await env.STATS_DB.put("meta:total_textarea", String(tot + 1));
+            await env.DAILY_STATS.put("daily:" + isoDate(new Date()) + ":textarea", String(tot + 1), { expirationTtl: 691200 });
 
-            await incrementDailyStat(env, "textarea");
             return ok({ success: true }, CORS);
         }
 
@@ -426,7 +423,7 @@ export async function onRequestPost(context) {
                 text: text,
                 length: text.length
             };
-            await env.STATS_DB.put("preview:latest", JSON.stringify(preview));
+            await env.DAILY_STATS.put("daily:" + isoDate(new Date()) + ":preview:latest", JSON.stringify(preview), { expirationTtl: 691200 });
             return ok({ success: true }, CORS);
         }
 
@@ -509,7 +506,7 @@ export async function onRequestPost(context) {
         if (type === "snapshots_replace") {
             const snaps = body.snaps || [];
             const dayKey = "snapshots:" + isoDate(new Date());
-            await env.STATS_DB.put(dayKey, JSON.stringify(snaps), { expirationTtl: 691200 });
+            await env.DAILY_STATS.put(dayKey, JSON.stringify(snaps), { expirationTtl: 691200 });
             return ok({ success: true, count: snaps.length }, CORS);
         }
 

@@ -43,8 +43,7 @@ jobs:
         env:
           CF_ACCOUNT_ID:   ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN:    ${{ secrets.CF_API_TOKEN }}
-          CF_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
-          CF_D1_DATABASE_ID: ${{ secrets.CF_D1_DATABASE_ID }}
+          CF_NAMESPACE_ID: ${{ secrets.CF_DAILY_KV_NAMESPACE_ID }}
         run: |
           node - << 'JSEOF'
           const https = require("https");
@@ -128,7 +127,7 @@ jobs:
             const now=new Date();
             const yesterday=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-1));
             const day=date(yesterday), month=day.slice(0,7);
-            const labels=array(await get("meta:clicks_list"),"meta:clicks_list");
+            const labels=array(await get("daily:"+day+":clicks_list"),"daily click labels");
             if(labels.some(x=>typeof x!=="string"||!x||x.length>120)||new Set(labels).size!==labels.length)throw new Error("Invalid click labels");
             const clicks={};
             for(const label of labels){
@@ -151,7 +150,7 @@ jobs:
             }
             // The old writer only retains the latest 500 visit records. Do not
             // misrepresent these as a complete demographic breakdown.
-            const d1=await readD1(day);
+            const d1=null; // D1 is no longer an analytics source.
             // During migration D1 may contain only part of a day. Never
             // replace a larger legacy counter with a smaller D1 counter.
             if(d1){

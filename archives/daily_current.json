@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-11",
-  "updatedAt": "2026-11-16T06:35:10.602Z",
+  "updatedAt": "2026-11-17T07:58:53.424Z",
   "days": [
     {
       "date": "2026-11-01",
@@ -352,6 +352,37 @@
       },
       "cityStats": {
         "Sulaymaniyah": 3
+      }
+    },
+    {
+      "date": "2026-11-16",
+      "generatedAt": "2026-11-17T07:58:53.424Z",
+      "source": "kv",
+      "totalVisits": 31,
+      "totalClicks": 206,
+      "totalTextarea": 132,
+      "clicks": {
+        "کەتکردن": 10,
+        "گۆڕین بۆ یونیکۆد": 58,
+        "گۆڕین بۆ عەلی کەی": 35,
+        "پاشەکەوت Word": 61,
+        "دەربارە": 2,
+        "سڕینەوەی بۆشایی": 12,
+        "AI Studio 1": 7,
+        "سڕینەوەی دەق": 13,
+        "AI Studio": 2,
+        "هێنانی Word": 6
+      },
+      "deviceStats": {
+        "mobile": 1,
+        "desktop": 30,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 28,
+        "San Jose": 1,
+        "San Francisco": 1,
+        "Washington": 1
       }
     }
   ]

@@ -165,9 +165,7 @@ function initPanel() {
 
     // ---- بپشکنە URL: ئەگەر ?tab=preview بوو → تابی preview ----
     var urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("tab") === "visitors") {
-        showTab("tab-visitors");
-    } else if (urlParams.get("tab") === "preview") {
+    if (urlParams.get("tab") === "preview") {
         showTab("tab-preview");
     } else {
         showTab("tab-stats");

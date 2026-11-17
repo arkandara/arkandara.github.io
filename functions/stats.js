@@ -29,10 +29,10 @@ export async function onRequestGet(context) {
     }
 
     try {
-        const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
+        const clicksListRaw = await env.DAILY_STATS.get("daily:" + todayStr() + ":clicks_list");
         const clickLabels   = clicksListRaw ? JSON.parse(clicksListRaw) : [];
         if (!Array.isArray(clickLabels)) throw new Error("Invalid click registry");
-        const clickValues = await Promise.all(clickLabels.map(label => env.STATS_DB.get("click:" + label)));
+        const clickValues = await Promise.all(clickLabels.map(label => env.DAILY_STATS.get("daily:" + todayStr() + ":click:" + label)));
         const clicks = {};
         clickLabels.forEach((label, i) => {
             const raw = clickValues[i];
@@ -44,8 +44,8 @@ export async function onRequestGet(context) {
         });
 
         const [visitsRaw, textareaCountRaw] = await Promise.all([
-            env.STATS_DB.get("meta:total_visits"),
-            env.STATS_DB.get("meta:total_textarea")
+            env.DAILY_STATS.get("daily:" + todayStr() + ":visit"),
+            env.DAILY_STATS.get("daily:" + todayStr() + ":textarea")
         ]);
         const totalVisits = Number(visitsRaw || "0");
         const totalTextarea = Number(textareaCountRaw || "0");
@@ -57,7 +57,7 @@ export async function onRequestGet(context) {
             d.setUTCDate(d.getUTCDate() - i);
             return "visits:" + d.toISOString().slice(0, 10);
         });
-        const sessionValues = await Promise.all(sessionKeys.map(key => env.STATS_DB.get(key)));
+        const sessionValues = await Promise.all(sessionKeys.map(key => env.DAILY_STATS.get(key)));
         const sessions = [];
         for (const raw of sessionValues) {
             if (!raw) continue;
@@ -70,15 +70,15 @@ export async function onRequestGet(context) {
             .slice(0, 50);
 
         const txKey         = "textarea:" + todayStr();
-        const txRaw         = await env.STATS_DB.get(txKey);
+        const txRaw         = await env.DAILY_STATS.get(txKey);
         const textareaToday = txRaw ? JSON.parse(txRaw) : [];
 
         // Approximate daily KV counters (concurrent KV writes are not atomic).
         const today=todayStr();
-        const visits=Number(await env.STATS_DB.get("daily:"+today+":visit")||"0");
-        const textarea=Number(await env.STATS_DB.get("daily:"+today+":textarea")||"0");
+        const visits=Number(await env.DAILY_STATS.get("daily:"+today+":visit")||"0");
+        const textarea=Number(await env.DAILY_STATS.get("daily:"+today+":textarea")||"0");
         const dailyClicks={};
-        for(const label of clickLabels)dailyClicks[label]=Number(await env.STATS_DB.get("daily:"+today+":click:"+label)||"0");
+        for(const label of clickLabels)dailyClicks[label]=Number(await env.DAILY_STATS.get("daily:"+today+":click:"+label)||"0");
         const dailyAtomic={date:today,visits,textarea,clicks:dailyClicks};
 
         const archiveListRaw = await env.STATS_DB.get("meta:archive_list");

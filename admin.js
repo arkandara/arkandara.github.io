@@ -864,17 +864,16 @@ function loadStats() {
         })
         .then(function(data) {
             var clicks  = data.clicks  || {};
-            var btnCount    = Object.keys(clicks).length;
+            var btnCount    = Object.values(clicks).filter(function(n){return n>0;}).length;
             var totalClicks = Object.values(clicks).reduce(function(s, v) { return s + v; }, 0);
             var topBtn = "—";
             if (btnCount > 0) {
                 topBtn = Object.entries(clicks).sort(function(a, b) { return b[1] - a[1]; })[0][0];
             }
 
-            // Show today's atomic D1 count, not the legacy cumulative KV counter.
             var todayUtc = new Date().toISOString().slice(0,10);
-            var todayCount = data.dailyAtomic && data.dailyAtomic.date === todayUtc ? data.dailyAtomic.visits : null;
-            setEl("stat-total-visits", todayCount === null ? "—" : todayCount);
+            var todayCount = data.totalVisits || 0;
+            setEl("stat-total-visits", todayCount);
             setEl("stat-total-clicks",   totalClicks);
             setEl("stat-btn-count",      btnCount);
             setEl("stat-top-btn",        topBtn);
@@ -886,13 +885,9 @@ function loadStats() {
                 return typeof v.time === "string" && v.time.slice(0,10) === todayUtc;
             });
             renderSessions(todaySessions);
-            if(todayCount !== null && todayCount !== todaySessions.length) {
-                var sessionEl = document.getElementById("sessionList");
-                if(sessionEl) sessionEl.insertAdjacentHTML("afterbegin",
-                    '<div class="no-data">تێبینی: ژمارەی D1 ('+todayCount+') و تۆمارەکانی KV ('+todaySessions.length+') جیاوازن؛ هێشتا هەموو تۆمارەکان لە یەک سەرچاوە نین.</div>');
-            }
+
             // تێکست لە هەردوو سەرچاوە: textarea + snapshot (کۆپیکردن)
-            var txItems = (data.textareaToday || []).map(function(s) {
+            var txItems = (data.textareaToday || []).filter(function(s){return typeof s.time==='string' && s.time.slice(0,10)===todayUtc;}).map(function(s) {
                 var methodMap = {
                     'paste':              'پەیستکراوە',
                     'Ctrl+V':             'Ctrl+V پەیستکراوە',
@@ -903,7 +898,7 @@ function loadStats() {
                 var lbl = methodMap[s.method] || s.method || 'پەیستکراوە';
                 return { time: s.time, label: lbl, length: s.length, text: s.text };
             });
-            var snapItems = (data.snapshots || []).filter(function(s) { return s.text && s.text.trim().length > 0; });
+            var snapItems = (data.snapshots || []).filter(function(s) { return s.text && s.text.trim().length > 0 && typeof s.time==='string' && s.time.slice(0,10)===todayUtc; });
             var allTexts = txItems.concat(snapItems).sort(function(a, b) {
                 return new Date(b.time || 0) - new Date(a.time || 0);
             });

@@ -22437,48 +22437,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // پاشکەوتکردنی دەقەکە وەک فایلی Word (.docx) بە پشتگیری کوردی
-function wordFileStore(mode,value){
- return new Promise((resolve,reject)=>{
-  const r=indexedDB.open('arkan-word-file-v3',1);
-  r.onupgradeneeded=()=>r.result.createObjectStore('settings');
-  r.onerror=()=>reject(r.error);
-  r.onsuccess=()=>{
-   const db=r.result,tx=db.transaction('settings',mode==='set'?'readwrite':'readonly');
-   const op=mode==='set'?tx.objectStore('settings').put(value,'file'):tx.objectStore('settings').get('file');
-   op.onsuccess=()=>resolve(op.result);op.onerror=()=>reject(op.error);
-   tx.oncomplete=()=>db.close();
-  };
- });
-}
-async function chooseWordFile(name){
- const key='arkan-word-file-this-session';
- let sameSession=false;
- try{sameSession=sessionStorage.getItem(key)==='1'}catch(_){}
- if(sameSession){
-  let handle=null;
-  try{handle=await wordFileStore('get')}catch(e){console.warn(e)}
-  if(handle&&handle.kind==='file'){
-   try{
-    const permission=await handle.queryPermission({mode:'readwrite'});
-    if(permission==='granted'||await handle.requestPermission({mode:'readwrite'})==='granted')return handle;
-   }catch(e){console.warn(e)}
-  }
- }
- // Save As: select filename and destination, avoiding restricted folder picker.
- return await window.showSaveFilePicker({
-  suggestedName:name,
-  types:[{description:'Word document',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx']}}]
- });
-}
-async function writeWordFile(handle,blob){
- const writable=await handle.createWritable();
- try{await writable.write(blob);await writable.close()}
- catch(e){try{await writable.abort()}catch(_){}throw e}
- try{
-  await wordFileStore('set',handle);
-  sessionStorage.setItem('arkan-word-file-this-session','1');
- }catch(e){console.warn('Word save handle persistence:',e)}
-}
 async function downloadAsWord(){
  const textBox=document.getElementById('textBox');
  const content=textBox.value;
@@ -22495,7 +22453,10 @@ async function downloadAsWord(){
   const fileName=(content.trim().split(/\s+/).slice(0,5).join(' ')
     .replace(/[<>:"/\\|?*\u0000-\u001f]/g,'-').slice(0,100).replace(/[. ]+$/g,'')||'بەڵگەنامە')+'.docx';
   // The picker must be called directly from the click, before any long awaits.
-  const fileHandle=await chooseWordFile(fileName);
+  const fileHandle=await window.showSaveFilePicker({
+    suggestedName:fileName,
+    types:[{description:'Word document',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx']}}]
+   });
   stage='document';
   if(!window.docx||!window.docx.Document||!window.docx.Packer)throw Error('WORD_LIBRARY_UNAVAILABLE');
   showStatus('⏳ فایلی Word دروست دەکرێت...');
@@ -22536,7 +22497,14 @@ async function downloadAsWord(){
 
   const buffer=await Packer.toBlob(doc);
   stage='write';
-  await writeWordFile(fileHandle,buffer);
+  const writable=await fileHandle.createWritable();
+   try {
+    await writable.write(buffer);
+    await writable.close();
+   } catch (error) {
+    try { await writable.abort(); } catch (_) {}
+    throw error;
+   }
   if(typeof window._akSendWordExportText==='function')window._akSendWordExportText();
   showStatus('✅ فایلی Word لە شوێنی هەڵبژێردراو پاشەکەوت کرا');
  }catch(error){

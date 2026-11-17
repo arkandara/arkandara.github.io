@@ -1,7 +1,9 @@
-name: "03:30 Iraq - verified daily analytics cleanup"
+name: "Verified daily analytics cleanup"
 on:
-  schedule:
-    - cron: "30 0 * * *"
+  workflow_run:
+    workflows:
+      - "🌙 ئەرشیفی ڕۆژانە — safe GitHub checkpoint"
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
@@ -10,12 +12,16 @@ concurrency:
   cancel-in-progress: false
 jobs:
   cleanup:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Delete only verified archived-day analytics
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Delete archived daily keys only after successful GitHub archive
         env:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CF_KV_NAMESPACE_ID: ${{ secrets.CF_DAILY_KV_NAMESPACE_ID }}
+          CF_DAILY_KV_NAMESPACE_ID: ${{ secrets.CF_DAILY_KV_NAMESPACE_ID }}
         run: node scripts/cleanup-archived-day.cjs

@@ -1,7 +1,7 @@
 "use strict";
 // Daily 03:30 Iraq analytics reset. Security/admin/visitor block data is never touched.
 const https=require("https");
-const account=process.env.CF_ACCOUNT_ID,token=process.env.CF_API_TOKEN,ns=process.env.CF_KV_NAMESPACE_ID,dbId=process.env.CF_D1_DATABASE_ID;
+const account=process.env.CF_ACCOUNT_ID,token=process.env.CF_API_TOKEN,ns=process.env.CF_DAILY_KV_NAMESPACE_ID,dbId=null;
 if(!account||!token||!ns)throw Error("Missing KV credentials");
 const today=new Date().toISOString().slice(0,10);
 const fs=require("fs");
@@ -38,7 +38,7 @@ async function main(){
  const removable=new Set();
  for(const prefix of ["daily:","visits:","textarea:","snapshots:"]){
   for(const k of await keys(prefix)){
-   if(prefix==="daily:"?/^daily:\d{4}-\d{2}-\d{2}:(visit|textarea|click:.+)$/.test(k)&&archivedDays.has(k.slice(6,16)):archivedDays.has(k.slice(prefix.length,prefix.length+10)))removable.add(k);
+   if(prefix==="daily:"?/^daily:\d{4}-\d{2}-\d{2}:(visit|textarea|click:.+|clicks_list|preview:latest)$/.test(k)&&archivedDays.has(k.slice(6,16)):archivedDays.has(k.slice(prefix.length,prefix.length+10)))removable.add(k);
   }
  }
  // Old global analytics counters must not grow indefinitely.

@@ -8,7 +8,7 @@ const fs=require("fs");
 const archive=JSON.parse(fs.readFileSync("archives/daily_current.json","utf8"));
 if(!Array.isArray(archive.days))throw Error("Missing valid daily archive: cleanup stopped");
 const archivedDays=new Set(archive.days.filter(d=>
-  d && /^\\d{4}-\\d{2}-\\d{2}$/.test(d.date) && d.date<today &&
+  d && /^\d{4}-\d{2}-\d{2}$/.test(d.date) && d.date<today &&
   Number.isSafeInteger(d.totalVisits) && d.totalVisits>=0 &&
   Number.isSafeInteger(d.totalClicks) && d.totalClicks>=0 &&
   Number.isSafeInteger(d.totalTextarea) && d.totalTextarea>=0 &&

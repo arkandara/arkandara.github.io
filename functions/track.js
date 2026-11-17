@@ -287,16 +287,17 @@ export async function onRequestGet(context) {
         const url  = new URL(request.url);
         const full = url.searchParams.get("full") === "1";
 
+        // Admin statistics: read ONLY date-scoped KV counters for the current UTC day.
+        const today = isoDate(new Date());
         const clicksListRaw = await env.STATS_DB.get("meta:clicks_list");
-        const clickLabels   = safeJson(clicksListRaw, []);
+        const clickLabels = safeJson(clicksListRaw, []);
         const clicks = {};
-        for (const label of clickLabels) {
-            const val = await env.STATS_DB.get("click:" + label);
-            if (val) clicks[label] = parseInt(val) || 0;
+        for (const label of (Array.isArray(clickLabels) ? clickLabels : [])) {
+            const raw = await env.STATS_DB.get("daily:" + today + ":click:" + label);
+            if (raw !== null) clicks[label] = Number(raw) || 0;
         }
-
-        const totalVisits   = parseInt(await env.STATS_DB.get("meta:total_visits")   || "0");
-        const totalTextarea = parseInt(await env.STATS_DB.get("meta:total_textarea") || "0");
+        const totalVisits = Number(await env.STATS_DB.get("daily:" + today + ":visit") || "0");
+        const totalTextarea = Number(await env.STATS_DB.get("daily:" + today + ":textarea") || "0");
 
         const archiveListRaw = await env.STATS_DB.get("meta:archive_list");
         const archiveList    = safeJson(archiveListRaw, []);
@@ -312,13 +313,7 @@ export async function onRequestGet(context) {
 
         let recentSessions = [], snapshots = [], textareaToday = [];
         if (full) {
-            const sessions = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                const raw = await env.STATS_DB.get("visits:" + isoDate(d));
-                sessions.push(...safeJson(raw, []));
-            }
+            const sessions = safeJson(await env.STATS_DB.get("visits:" + isoDate(new Date())), []);
             recentSessions = sessions
                 .sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0))
                 .slice(0, 200);

@@ -1,7 +1,7 @@
 {
   "type": "daily_current",
   "month": "2026-11",
-  "updatedAt": "2026-11-18T07:33:35.243Z",
+  "updatedAt": "2026-11-19T07:29:46.168Z",
   "days": [
     {
       "date": "2026-11-01",
@@ -409,6 +409,32 @@
       },
       "cityStats": {
         "Sulaymaniyah": 13
+      }
+    },
+    {
+      "date": "2026-11-18",
+      "generatedAt": "2026-11-19T07:29:46.168Z",
+      "source": "kv",
+      "totalVisits": 3,
+      "totalClicks": 30,
+      "totalTextarea": 26,
+      "clicks": {
+        "AI Studio 1": 5,
+        "گۆڕین بۆ یونیکۆد": 12,
+        "کەتکردن": 6,
+        "سڕینەوەی بۆشایی": 2,
+        "پاشەکەوت Word": 2,
+        "دەربارە": 1,
+        "داگرتنی ڤیدیۆ": 1,
+        "AI Studio": 1
+      },
+      "deviceStats": {
+        "mobile": 0,
+        "desktop": 3,
+        "tablet": 0
+      },
+      "cityStats": {
+        "Sulaymaniyah": 3
       }
     }
   ]
